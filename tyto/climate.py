@@ -1,10 +1,11 @@
 
+from statistics import quantiles
 import xarray as xr
 
 from . import aggregate
 
 
-def climate_mean(
+def climatology_mean(
     dataarray: xr.DataArray,
     frequency: str=None,
     bin_widths: int=None,
@@ -32,7 +33,34 @@ def climate_mean(
     return grouped_data.mean("time")
 
 
-def climate_max(
+def climatology_median(
+    dataarray: xr.DataArray,
+    **kwargs
+) -> xr.DataArray:
+    """
+    Calculate the climatological median.
+
+    Parameters
+    ----------
+    dataarray : xr.DataArray
+        The DataArray over which to calculate the climatological mean. Must
+        contain a `time` dimension.
+    frequency : str (optional)
+        Valid options are `day`, `week` and `month`.
+    bin_widths : int or list (optional)
+        If `bin_widths` is an `int`, it defines the width of each group bin on
+        the frequency provided by `frequency`. If `bin_widths` is a sequence
+        it defines the edges of each bin, allowing for non-uniform bin widths.
+    
+    Returns
+    -------
+    xr.DataArray
+    """
+    result = climatology_quantiles(dataarray, [0.5], **kwargs)
+    return result.isel(quantile=0)
+
+
+def climatology_max(
     dataarray: xr.DataArray,
     frequency: str=None,
     bin_widths: int=None,
@@ -60,7 +88,7 @@ def climate_max(
     return grouped_data.max("time")
 
 
-def climate_min(
+def climatology_min(
     dataarray: xr.DataArray,
     frequency: str=None,
     bin_widths: int=None,
@@ -88,7 +116,7 @@ def climate_min(
     return grouped_data.min("time")
 
 
-def climate_quantiles(
+def climatology_quantiles(
     dataarray: xr.DataArray,
     quantiles: list,
     frequency: str=None,
@@ -130,7 +158,7 @@ def climate_quantiles(
 
 
 
-def climate_percentiles(
+def climatology_percentiles(
     dataarray: xr.DataArray,
     percentiles: list,
     **kwargs,
