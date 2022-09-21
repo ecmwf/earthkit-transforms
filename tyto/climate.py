@@ -127,3 +127,42 @@ def climate_quantiles(
         )
     result = xr.concat(results, dim="quantile")
     return result
+
+
+
+def climate_percentiles(
+    dataarray: xr.DataArray,
+    percentiles: list,
+    **kwargs,
+) -> xr.DataArray:
+    """
+    Calculate a set of climatological quantiles.
+
+    Parameters
+    ----------
+    dataarray : xr.DataArray
+        The DataArray over which to calculate the climatological mean. Must
+        contain a `time` dimension.
+    percentiles : list
+        The list of climatological percentiles to calculate.
+    frequency : str (optional)
+        Valid options are `day`, `week` and `month`.
+    bin_widths : int or list (optional)
+        If `bin_widths` is an `int`, it defines the width of each group bin on
+        the frequency provided by `frequency`. If `bin_widths` is a sequence
+        it defines the edges of each bin, allowing for non-uniform bin widths.
+    
+    Returns
+    -------
+    xr.DataArray
+    """
+    quantiles = [p*1e-2 for p in percentiles]
+    quantile_data = climate_quantiles(
+        dataarray,
+        quantiles,
+        **kwargs,
+    )
+    result = quantile_data.assign_coords(percentile=('quantile', percentiles))
+    result = result.swap_dims({'quantile': 'percentile'})
+    result = result.drop('quantile')
+    return result
