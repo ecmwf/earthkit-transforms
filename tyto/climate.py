@@ -33,6 +33,34 @@ def climatology_mean(
     return grouped_data.mean("time")
 
 
+def climatology_std(
+    dataarray: xr.DataArray,
+    frequency: str=None,
+    bin_widths: int=None,
+) -> xr.DataArray:
+    """
+    Calculate of the climatological standard deviation.
+
+    Parameters
+    ----------
+    dataarray : xr.DataArray
+        The DataArray over which to calculate the climatological mean. Must
+        contain a `time` dimension.
+    frequency : str (optional)
+        Valid options are `day`, `week` and `month`.
+    bin_widths : int or list (optional)
+        If `bin_widths` is an `int`, it defines the width of each group bin on
+        the frequency provided by `frequency`. If `bin_widths` is a sequence
+        it defines the edges of each bin, allowing for non-uniform bin widths.
+    
+    Returns
+    -------
+    xr.DataArray
+    """
+    grouped_data = aggregate.groupby(dataarray, frequency, bin_widths)
+    return grouped_data.std("time")
+
+
 def climatology_median(
     dataarray: xr.DataArray,
     **kwargs
