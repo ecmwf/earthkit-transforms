@@ -44,8 +44,8 @@ def climatology_std(
     Parameters
     ----------
     dataarray : xr.DataArray
-        The DataArray over which to calculate the climatological mean. Must
-        contain a `time` dimension.
+        The DataArray over which to calculate the climatological standard deviation.
+        Must contain a `time` dimension.
     frequency : str (optional)
         Valid options are `day`, `week` and `month`.
     bin_widths : int or list (optional)
@@ -71,7 +71,7 @@ def climatology_median(
     Parameters
     ----------
     dataarray : xr.DataArray
-        The DataArray over which to calculate the climatological mean. Must
+        The DataArray over which to calculate the climatological median. Must
         contain a `time` dimension.
     frequency : str (optional)
         Valid options are `day`, `week` and `month`.
@@ -158,7 +158,7 @@ def climatology_quantiles(
     Parameters
     ----------
     dataarray : xr.DataArray
-        The DataArray over which to calculate the climatological mean. Must
+        The DataArray over which to calculate the climatological quantiles. Must
         contain a `time` dimension.
     quantiles : list
         The list of climatological quantiles to calculate.
@@ -185,19 +185,18 @@ def climatology_quantiles(
     return result
 
 
-
 def climatology_percentiles(
     dataarray: xr.DataArray,
     percentiles: list,
     **kwargs,
 ) -> xr.DataArray:
     """
-    Calculate a set of climatological quantiles.
+    Calculate a set of climatological percentiles.
 
     Parameters
     ----------
     dataarray : xr.DataArray
-        The DataArray over which to calculate the climatological mean. Must
+        The DataArray over which to calculate the climatological percentiles. Must
         contain a `time` dimension.
     percentiles : list
         The list of climatological percentiles to calculate.
@@ -222,3 +221,54 @@ def climatology_percentiles(
     result = result.swap_dims({'quantile': 'percentile'})
     result = result.drop('quantile')
     return result
+
+
+def anomaly(
+    dataarray: xr.DataArray,
+    climatology: xr.DataArray = None,
+    climatology_range: T.Tuple[str, str] = (None, None),
+    climatology_method: str = 'mean',
+    frequency: str=None,
+    bin_widths: int=None,
+):
+    """
+    Calculate the anomaly from a reference climatology. 
+
+    Parameters
+    ----------
+    dataarray : xr.DataArray
+        The DataArray over which to calculate the anomaly from the reference
+        climatology. Must contain a `time` dimension.
+    climatology :  (xr.DataArray, optional)
+        Reference climatology data against which the anomaly is to be calculated.
+        If not provided then the climatological mean is calculated from dataarray.
+    climatology_range : (list or tuple, optional)
+        Start and end year of the period to be used for the reference climatology. Default
+        is to use the entire time-series.
+    frequency : str (optional)
+        Valid options are `day`, `week` and `month`.
+    bin_widths : int or list (optional)
+        If `bin_widths` is an `int`, it defines the width of each group bin on
+        the frequency provided by `frequency`. If `bin_widths` is a sequence
+        it defines the edges of each bin, allowing for non-uniform bin widths.
+    
+    Returns
+    -------
+    xr.DataArray
+    """
+    if climatology is None:
+        if all(c_r is not None for c_r in climatology_range):
+            selection = dataarray.sel(time=slice(*climatology_range))
+        else:
+            selection = dataarray
+        climatology = climatology_mean(
+            selection, frequency=frequency, bin_widths=bin_widths
+        )
+    anomaly = aggregate.groupby(dataarray, frequency, bin_widths) - climatology
+    anomaly.assign_attrs(dataarray.attrs)
+
+    if 'standard_name' in anomaly.attrs: anomaly.attrs['standard_name']+='_anomaly'
+    if 'long_name' in anomaly.attrs: anomaly.attrs['long_name']+=' anomaly'
+
+    return anomaly
+    
