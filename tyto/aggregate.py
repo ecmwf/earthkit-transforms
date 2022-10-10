@@ -1,6 +1,4 @@
-
 import xarray as xr
-
 
 #: Mapping from pandas frequency strings to xarray time groups
 _PANDAS_FREQUENCIES = {
@@ -28,7 +26,7 @@ def daily_mean(datarray, **kwargs):
         DataArray containing a `time` dimension.
     **kwargs
         Keyword arguments to be passed to :func:`resample`.
-    
+
     Returns
     -------
     xr.DataArray
@@ -46,7 +44,7 @@ def daily_max(datarray, **kwargs):
         DataArray containing a `time` dimension.
     **kwargs
         Keyword arguments to be passed to :func:`resample`.
-    
+
     Returns
     -------
     xr.DataArray
@@ -64,7 +62,7 @@ def daily_min(datarray, **kwargs):
         DataArray containing a `time` dimension.
     **kwargs
         Keyword arguments to be passed to :func:`resample`.
-    
+
     Returns
     -------
     xr.DataArray
@@ -82,7 +80,7 @@ def monthly_mean(datarray, **kwargs):
         DataArray containing a `time` dimension.
     **kwargs
         Keyword arguments to be passed to :func:`resample`.
-    
+
     Returns
     -------
     xr.DataArray
@@ -93,33 +91,33 @@ def monthly_mean(datarray, **kwargs):
 def resample(
     dataarray: xr.DataArray,
     frequency: str,
-    dim: str="time",
-    how: str="mean",
-    closed: str="left",
-    label: str="left",
-    skipna: bool=True,
+    dim: str = "time",
+    how: str = "mean",
+    closed: str = "left",
+    label: str = "left",
+    skipna: bool = True,
     **kwargs,
 ) -> xr.DataArray:
     resample = dataarray.resample(
-        label=label, closed=closed, skipna=skipna,
-        **{dim: frequency}, **kwargs
+        label=label, closed=closed, skipna=skipna, **{dim: frequency}, **kwargs
     )
     result = resample.__getattribute__(how)(dim)
     return result
 
+
 def groupby(
     dataarray: xr.DataArray,
-    frequency: str=None,
-    bin_widths: int=None,
-    squeeze: bool=True,
-) -> xr.core.groupby.DataArrayGroupBy:
+    frequency: str = None,
+    bin_widths: int = None,
+    squeeze: bool = True,
+):
     if frequency is None:
         try:
             frequency = xr.infer_freq(dataarray.time)
-        except:
+        except:  # noqa: E722
             raise ValueError(
-                f"Unable to infer time frequency from data; please pass the "
-                f"'frequency' argument explicitly"
+                "Unable to infer time frequency from data; please pass the "
+                "'frequency' argument explicitly"
             )
         frequency, possible_bins = _pandas_frequency_and_bins(frequency)
         bin_widths = bin_widths or possible_bins
@@ -142,13 +140,14 @@ def _groupby_bins(
     frequency: str,
     bin_widths: int,
     squeeze: bool,
-) -> xr.core.groupby.DataArrayGroupBy:
+):
     if not isinstance(bin_widths, (list, tuple)):
         max_value = _BIN_MAXES[frequency]
-        bin_widths = list(range(0, max_value+1, bin_widths))
+        bin_widths = list(range(0, max_value + 1, bin_widths))
     try:
         grouped_data = dataarray.groupby_bins(
-            f"time.{frequency}", bin_widths, squeeze=squeeze)
+            f"time.{frequency}", bin_widths, squeeze=squeeze
+        )
     except AttributeError:
         raise ValueError(
             f"Invalid frequency '{frequency}' - see xarray documentation for "
@@ -161,6 +160,6 @@ def _pandas_frequency_and_bins(
     frequency: str,
 ) -> tuple:
     freq = frequency.lstrip("0123456789")
-    bins = frequency[:-len(freq)] or None
+    bins = frequency[: -len(freq)] or None
     freq = _PANDAS_FREQUENCIES.get(freq.lstrip(" "), frequency)
     return freq, bins
