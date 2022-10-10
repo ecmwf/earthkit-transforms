@@ -1,5 +1,3 @@
-
-from statistics import quantiles
 import xarray as xr
 
 from . import aggregate
@@ -7,8 +5,8 @@ from . import aggregate
 
 def climatology_mean(
     dataarray: xr.DataArray,
-    frequency: str=None,
-    bin_widths: int=None,
+    frequency: str = None,
+    bin_widths: int = None,
 ) -> xr.DataArray:
     """
     Calculate the climatological mean.
@@ -24,7 +22,7 @@ def climatology_mean(
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
-    
+
     Returns
     -------
     xr.DataArray
@@ -35,8 +33,8 @@ def climatology_mean(
 
 def climatology_std(
     dataarray: xr.DataArray,
-    frequency: str=None,
-    bin_widths: int=None,
+    frequency: str = None,
+    bin_widths: int = None,
 ) -> xr.DataArray:
     """
     Calculate of the climatological standard deviation.
@@ -52,7 +50,7 @@ def climatology_std(
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
-    
+
     Returns
     -------
     xr.DataArray
@@ -61,10 +59,7 @@ def climatology_std(
     return grouped_data.std("time")
 
 
-def climatology_median(
-    dataarray: xr.DataArray,
-    **kwargs
-) -> xr.DataArray:
+def climatology_median(dataarray: xr.DataArray, **kwargs) -> xr.DataArray:
     """
     Calculate the climatological median.
 
@@ -79,7 +74,7 @@ def climatology_median(
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
-    
+
     Returns
     -------
     xr.DataArray
@@ -90,8 +85,8 @@ def climatology_median(
 
 def climatology_max(
     dataarray: xr.DataArray,
-    frequency: str=None,
-    bin_widths: int=None,
+    frequency: str = None,
+    bin_widths: int = None,
 ) -> xr.DataArray:
     """
     Calculate the climatological maximum.
@@ -107,7 +102,7 @@ def climatology_max(
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
-    
+
     Returns
     -------
     xr.DataArray
@@ -118,8 +113,8 @@ def climatology_max(
 
 def climatology_min(
     dataarray: xr.DataArray,
-    frequency: str=None,
-    bin_widths: int=None,
+    frequency: str = None,
+    bin_widths: int = None,
 ) -> xr.DataArray:
     """
     Calculate the climatological minimum.
@@ -135,7 +130,7 @@ def climatology_min(
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
-    
+
     Returns
     -------
     xr.DataArray
@@ -147,9 +142,9 @@ def climatology_min(
 def climatology_quantiles(
     dataarray: xr.DataArray,
     quantiles: list,
-    frequency: str=None,
-    bin_widths: int=None,
-    skipna: bool=False,
+    frequency: str = None,
+    bin_widths: int = None,
+    skipna: bool = False,
     **kwargs,
 ) -> xr.DataArray:
     """
@@ -168,7 +163,7 @@ def climatology_quantiles(
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
-    
+
     Returns
     -------
     xr.DataArray
@@ -178,7 +173,10 @@ def climatology_quantiles(
     for quantile in quantiles:
         results.append(
             grouped_data.quantile(
-                q=quantile, dim="time", skipna=skipna, **kwargs,
+                q=quantile,
+                dim="time",
+                skipna=skipna,
+                **kwargs,
             )
         )
     result = xr.concat(results, dim="quantile")
@@ -206,33 +204,33 @@ def climatology_percentiles(
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
-    
+
     Returns
     -------
     xr.DataArray
     """
-    quantiles = [p*1e-2 for p in percentiles]
-    quantile_data = climate_quantiles(
+    quantiles = [p * 1e-2 for p in percentiles]
+    quantile_data = climatology_quantiles(
         dataarray,
         quantiles,
         **kwargs,
     )
-    result = quantile_data.assign_coords(percentile=('quantile', percentiles))
-    result = result.swap_dims({'quantile': 'percentile'})
-    result = result.drop('quantile')
+    result = quantile_data.assign_coords(percentile=("quantile", percentiles))
+    result = result.swap_dims({"quantile": "percentile"})
+    result = result.drop("quantile")
     return result
 
 
 def anomaly(
     dataarray: xr.DataArray,
     climatology: xr.DataArray = None,
-    climatology_range: T.Tuple[str, str] = (None, None),
-    climatology_method: str = 'mean',
-    frequency: str=None,
-    bin_widths: int=None,
+    climatology_range: tuple = (None, None),
+    climatology_method: str = "mean",
+    frequency: str = None,
+    bin_widths: int = None,
 ):
     """
-    Calculate the anomaly from a reference climatology. 
+    Calculate the anomaly from a reference climatology.
 
     Parameters
     ----------
@@ -251,7 +249,7 @@ def anomaly(
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
-    
+
     Returns
     -------
     xr.DataArray
@@ -267,8 +265,9 @@ def anomaly(
     anomaly = aggregate.groupby(dataarray, frequency, bin_widths) - climatology
     anomaly.assign_attrs(dataarray.attrs)
 
-    if 'standard_name' in anomaly.attrs: anomaly.attrs['standard_name']+='_anomaly'
-    if 'long_name' in anomaly.attrs: anomaly.attrs['long_name']+=' anomaly'
+    if "standard_name" in anomaly.attrs:
+        anomaly.attrs["standard_name"] += "_anomaly"
+    if "long_name" in anomaly.attrs:
+        anomaly.attrs["long_name"] += " anomaly"
 
     return anomaly
-    
