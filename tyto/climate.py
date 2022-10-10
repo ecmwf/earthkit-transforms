@@ -225,7 +225,6 @@ def anomaly(
     dataarray: xr.DataArray,
     climatology: xr.DataArray = None,
     climatology_range: tuple = (None, None),
-    climatology_method: str = "mean",
     frequency: str = None,
     bin_widths: int = None,
 ):

@@ -1,8 +1,7 @@
-
 def list_to_human(
     iterable: list,
-    conjunction: str="and",
-    oxford_comma: bool=False,
+    conjunction: str = "and",
+    oxford_comma: bool = False,
 ) -> str:
     list_of_strs = [str(item) for item in iterable]
 
