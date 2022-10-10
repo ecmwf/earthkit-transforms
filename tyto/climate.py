@@ -224,9 +224,9 @@ def climatology_percentiles(
 def anomaly(
     dataarray: xr.DataArray,
     climatology: xr.DataArray = None,
-    climatology_range: T.Tuple[str, str] = (None, None),
-    frequency: str=None,
-    bin_widths: int=None,
+    climatology_range: tuple = (None, None),
+    frequency: str = None,
+    bin_widths: int = None,
 ):
     """
     Calculate the anomaly from a reference climatology.
