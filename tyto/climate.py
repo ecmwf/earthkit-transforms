@@ -227,7 +227,6 @@ def anomaly(
     dataarray: xr.DataArray,
     climatology: xr.DataArray = None,
     climatology_range: T.Tuple[str, str] = (None, None),
-    climatology_method: str = 'mean',
     frequency: str=None,
     bin_widths: int=None,
 ):
@@ -271,4 +270,3 @@ def anomaly(
     if 'long_name' in anomaly.attrs: anomaly.attrs['long_name']+=' anomaly'
 
     return anomaly
-    
