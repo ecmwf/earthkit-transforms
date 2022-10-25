@@ -213,6 +213,7 @@ docs/_build/
 target/
 
 # Jupyter Notebook
+notebooks/test_data
 
 # IPython
 

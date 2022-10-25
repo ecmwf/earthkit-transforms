@@ -22,4 +22,10 @@ except ImportError:  # pragma: no cover
     # Local copy or not installed with setuptools
     __version__ = "999"
 
-__all__ = ["__version__"]
+from . import aggregate, climate
+
+__all__ = [
+    "__version__",
+    "aggregate",
+    "climate",
+]
