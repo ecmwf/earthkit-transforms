@@ -1,6 +1,6 @@
 # coucal
 
-**C**limate **O**rientated **U**niform **CAL**culations. A set of statistical analysis tools for meteorological and climate data.
+**C**limate **O**bservations and **U**ueather **CAL**culator. A set of statistical analysis tools for meteorological and climate data.
 
 ## Quick Start
 
