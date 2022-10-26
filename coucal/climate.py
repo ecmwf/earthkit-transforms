@@ -1,3 +1,7 @@
+"""
+Module that contains methods for calculating climatological metrics from xarray objects.
+"""
+
 import xarray as xr
 
 from . import aggregate
@@ -27,7 +31,7 @@ def climatology_mean(
     -------
     xr.DataArray
     """
-    grouped_data = aggregate.groupby(dataarray, frequency, bin_widths)
+    grouped_data = aggregate._groupby_time(dataarray, frequency, bin_widths)
     return grouped_data.mean("time")
 
 
@@ -55,7 +59,7 @@ def climatology_std(
     -------
     xr.DataArray
     """
-    grouped_data = aggregate.groupby(dataarray, frequency, bin_widths)
+    grouped_data = aggregate._groupby_time(dataarray, frequency, bin_widths)
     return grouped_data.std("time")
 
 
@@ -107,7 +111,7 @@ def climatology_max(
     -------
     xr.DataArray
     """
-    grouped_data = aggregate.groupby(dataarray, frequency, bin_widths)
+    grouped_data = aggregate._groupby_time(dataarray, frequency, bin_widths)
     return grouped_data.max("time")
 
 
@@ -135,7 +139,7 @@ def climatology_min(
     -------
     xr.DataArray
     """
-    grouped_data = aggregate.groupby(dataarray, frequency, bin_widths)
+    grouped_data = aggregate._groupby_time(dataarray, frequency, bin_widths)
     return grouped_data.min("time")
 
 
@@ -168,7 +172,7 @@ def climatology_quantiles(
     -------
     xr.DataArray
     """
-    grouped_data = aggregate.groupby(dataarray, frequency, bin_widths)
+    grouped_data = aggregate._groupby_time(dataarray, frequency, bin_widths)
     results = []
     for quantile in quantiles:
         results.append(
@@ -261,7 +265,7 @@ def anomaly(
         climatology = climatology_mean(
             selection, frequency=frequency, bin_widths=bin_widths
         )
-    anomaly = aggregate.groupby(dataarray, frequency, bin_widths) - climatology
+    anomaly = aggregate._groupby_time(dataarray, frequency, bin_widths) - climatology
     anomaly.assign_attrs(dataarray.attrs)
 
     if "standard_name" in anomaly.attrs:

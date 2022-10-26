@@ -1,6 +1,10 @@
+"""
+Module that contains generalised methods for aggregating xarray objects
+"""
+
 import xarray as xr
 
-from .options import HOW_DICT
+from ._options import HOW_DICT
 
 #: Mapping from pandas frequency strings to xarray time groups
 _PANDAS_FREQUENCIES = {
@@ -102,6 +106,28 @@ def resample(
     skipna: bool = True,
     **kwargs,
 ) -> xr.DataArray:
+    """
+    Resample dataarray to a user-defined frequency using a user-defined "how" method
+
+    Parameters
+    ----------
+    dataarray : xr.DataArray
+        DataArray containing a `time` dimension.
+    frequency : str, int, float
+        The frequency at which to resample the chosen dimension. The format must be applicable
+        to the chosen dimension.
+    dim: str
+        The dimension to resample along, default is `time`
+    how: str
+        The reduction method for resampling, default is `mean`
+    **kwargs
+        Keyword arguments to be passed to :func:`resample`. Defaults have been set as:
+        `{"closed": "left", "skipna": True, "label": "left"}`
+
+    Returns
+    -------
+    xr.DataArray
+    """
     resample = dataarray.resample(
         label=label, closed=closed, skipna=skipna, **{dim: frequency}, **kwargs
     )
@@ -109,7 +135,7 @@ def resample(
     return result
 
 
-def groupby_time(
+def _groupby_time(
     dataarray: xr.DataArray,
     frequency: str = None,
     bin_widths: int = None,
