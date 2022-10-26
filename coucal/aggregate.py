@@ -98,7 +98,7 @@ def monthly_mean(datarray, **kwargs):
 
 def resample(
     dataarray: xr.DataArray,
-    frequency: str,
+    frequency: str or int or float,
     dim: str = "time",
     how: str = "mean",
     closed: str = "left",
