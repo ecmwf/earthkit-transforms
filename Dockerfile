@@ -1,12 +1,12 @@
 FROM continuumio/miniconda3
 
-WORKDIR /src/tyto
+WORKDIR /src/coucal
 
-COPY environment.yml /src/tyto/
+COPY environment.yml /src/coucal/
 
 RUN conda install -c conda-forge gcc python=3.10 \
     && conda env update -n base -f environment.yml
 
-COPY . /src/tyto
+COPY . /src/coucal
 
 RUN pip install --no-deps -e .

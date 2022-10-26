@@ -1,5 +1,5 @@
-import tyto
+import coucal
 
 
 def test_version() -> None:
-    assert tyto.__version__ != "999"
+    assert coucal.__version__ != "999"

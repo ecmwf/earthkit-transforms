@@ -1,4 +1,4 @@
-PROJECT := tyto
+PROJECT := coucal
 CONDA := conda
 CONDAFLAGS :=
 COV_REPORT := html

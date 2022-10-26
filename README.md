@@ -1,11 +1,11 @@
-# tyto
+# coucal
 
 Statistical analysis tools for meteorological and climate data.
 
 ## Quick Start
 
 ```python
->>> import tyto
+>>> import coucal
 
 ```
 

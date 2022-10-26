@@ -223,7 +223,7 @@ def rolling_reduce(
     ]
     if how_reduce in in_built_how_methods:
         data_windowed = data_rolling.__getattribute__(how_reduce)(**reduce_kwargs)
-    else:  # Check for tyto HOW methods
+    else:  # Check for coucal HOW methods
         data_windowed = data_rolling.reduce(HOW_DICT[how_reduce], reduce_kwargs)
 
     if how_dropna not in [None, "None", "none"]:

@@ -9,17 +9,17 @@
 import os
 import sys
 
-import tyto
+import coucal
 
 sys.path.insert(0, os.path.abspath("../"))
 
 # -- Project information -----------------------------------------------------
 
-project = "tyto"
+project = "coucal"
 copyright = "2022, European Centre for Medium Range Weather Forecasts"
 author = "European Centre for Medium Range Weather Forecasts"
-version = tyto.__version__
-release = tyto.__version__
+version = coucal.__version__
+release = coucal.__version__
 
 # -- General configuration ---------------------------------------------------
 
@@ -37,7 +37,7 @@ extensions = [
 autodoc_typehints = "none"
 
 # autoapi configuration
-autoapi_dirs = ["../tyto"]
+autoapi_dirs = ["../coucal"]
 autoapi_ignore = ["*/version.py"]
 autoapi_options = [
     "members",

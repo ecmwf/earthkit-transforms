@@ -1,4 +1,4 @@
-# Welcome to tyto's documentation!
+# Welcome to coucal's documentation!
 
 Statistical analysis tools for meteorological and climate data..
 
@@ -6,7 +6,7 @@ Statistical analysis tools for meteorological and climate data..
 :caption: 'Contents:'
 :maxdepth: 2
 
-API Reference <_api/tyto/index>
+API Reference <_api/coucal/index>
 ```
 
 # Indices and tables
