@@ -4,7 +4,7 @@ Module that contains generalised methods for aggregating xarray objects
 
 import xarray as xr
 
-from ._options import HOW_DICT
+from ._options import ALLOWED_LIBS, HOW_DICT, WEIGHT_DICT
 
 #: Mapping from pandas frequency strings to xarray time groups
 _PANDAS_FREQUENCIES = {
@@ -154,7 +154,7 @@ def _groupby_time(
         bin_widths = bin_widths or possible_bins
 
     if bin_widths is not None:
-        return _groupby_bins(
+        grouped_data = _groupby_bins(
             dataarray, frequency, bin_widths, squeeze, time_dim=time_dim
         )
 
@@ -165,6 +165,8 @@ def _groupby_time(
             f"Invalid frequency '{frequency}' - see xarray documentation for "
             f"a full list of valid frequencies."
         )
+    if frequency in ["season"]:
+        grouped_data = grouped_data.reindex(season=["DJF", "MAM", "JJA", "SON"])
     return grouped_data
 
 
@@ -197,6 +199,63 @@ def _pandas_frequency_and_bins(
     bins = int(frequency[: -len(freq)]) or None
     freq = _PANDAS_FREQUENCIES.get(freq.lstrip(" "), frequency)
     return freq, bins
+
+
+def reduce(dataarray, how="mean", weighted=None, all_touched=False, **kwargs):
+    '''
+    Apply a remote layer object to a remote data object using the specified 'how' method.
+    Geospatial coordinates (lat and lon) are reduced to a dimension representing the list
+    of features in the shape object.
+
+    Parameters
+    ----------
+    dataarray : xr.DataArray
+    **kwargs
+        Keyword arguments to be passed to :func:`resample`.
+
+    Returns
+    -------
+    xr.DataArray
+    """
+
+    Args:
+        dataarray: data object (must have geospatial coordinates).
+        shape: CDS remote layer/shape/geojson object.
+        how: method used to apply mask. Default='mean', which calls np.nanmean
+        weighted: To perform a latitude weighted calculation
+                  for regular lat/lon grids. Default=False
+        **kwargs:
+            kwargs recognised by the how function
+
+    Returns:
+        A data array with dimensions [features] + [data.dims not in ['lat','lon']].
+        Each slice of layer corresponds to a feature in layer.
+
+    '''
+
+    # If how is string, fetch function from dictionary:
+    if isinstance(how, str):
+        try:
+            how = HOW_DICT[how]
+        except KeyError:
+            try:
+                module, function = how.split(".")
+                how = getattr(globals()[ALLOWED_LIBS[module]], function)
+            except KeyError:
+                raise ValueError(f"method must come from one of {ALLOWED_LIBS}")
+            except AttributeError:
+                raise AttributeError(
+                    f"module '{module}' has no attribute " f"'{function}'"
+                )
+
+    # If latitude_weighted, build array of weights based on latitude.
+    if weighted:
+        weights = WEIGHT_DICT[weighted](dataarray)
+        kwargs.update(dict(weights=weights))
+
+    reduced = dataarray.reduce(how, **kwargs)
+
+    return reduced
 
 
 def rolling_reduce(

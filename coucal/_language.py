@@ -1,4 +1,4 @@
-def list_to_human(
+def _list_to_human(
     iterable: list,
     conjunction: str = "and",
     oxford_comma: bool = False,
