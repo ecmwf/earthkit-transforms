@@ -48,23 +48,30 @@ def nanaverage(data, weights=None, **kwargs):
     return nanaverage
 
 
-def latitude_weights(latitudes, data_shape=None, lat_dims=0):
+# TODO: Replace with method from meteokit
+def latitude_weights(latitudes, data_shape=None, lat_dims=None):
     """
     Function to return latitude weights. This is a very basic latitudinal
     weights function where weights are the normalised cosine of latitude.
     i.e. weight = cosine(latitude) / SUM(cosine(latitude))
 
-    Args:
-        latitude: numpy.array
-            Latitude values to calculate weights
-        data_shape (optional): list
-            The shape of the data which the weights apply to,
-            default is the shape of `latitudes`
-        lat_dims (optional): integer or list
-            The latitude dimension indices, default=0. If multi-dimensional then latitudes
-            must be in the same order
-    Returns:
-        weights equal to cosine of latitude coordinate
+    Parameters
+    ----------
+    latitudes: numpy.array
+        Latitude values to calculate weights
+    data_shape (optional): list
+        The shape of the data which the weights apply to,
+        default is the shape of `latitudes`
+    lat_dims (optional): integer or list
+        The dimension indices that corresponde to the latitude data,
+        default is the shape of the latitudes array. If latitudes is a multi-dimensional,
+        then order of latitudes must be in the same order as the lat_dims.
+
+    Returns
+    -------
+    numpy.array
+        weights equal to cosine of latitude coordinate in the shape of latitudes,
+        or a user defined data_shape
     """
     # Calculate the weights
     weights = np.cos(np.radians(latitudes))
@@ -74,9 +81,14 @@ def latitude_weights(latitudes, data_shape=None, lat_dims=0):
         data_shape = latitudes.shape
     ndims = len(data_shape)
 
-    if not isinstance(lat_dims, list):
-        lat_dims = list(lat_dims)
+    # Treat lat_dim as a list so we can handle irregular data
+    if lat_dims is None:
+        lat_dims = latitudes.shape
+    elif isinstance(lat_dims, int):
+        lat_dims = [lat_dims]
 
+    # create shape for weights, where latitude dependant take
+    # appropriate weight shape, where not fill with ones.
     i_w = 0
     w_shape = []
     for i_d in range(ndims):
@@ -86,7 +98,6 @@ def latitude_weights(latitudes, data_shape=None, lat_dims=0):
         else:
             w_shape.append(1)
 
-    # Is expanding to full data shape required?
     ones = np.ones(data_shape)
     return ones * weights.reshape(w_shape)
 
@@ -108,7 +119,6 @@ def _latitude_weights(dataarray: xr.DataArray, lat_dim_names=["latitude", "lat"]
 
 
 HOW_DICT = {
-    # 'latitude_weighted_average': latitude_weighted_average,
     "average": nanaverage,
     "mean": np.nanmean,
     "stddev": np.nanstd,

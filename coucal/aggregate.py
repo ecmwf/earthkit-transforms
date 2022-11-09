@@ -201,37 +201,31 @@ def _pandas_frequency_and_bins(
     return freq, bins
 
 
-def reduce(dataarray, how="mean", weighted=None, all_touched=False, **kwargs):
-    '''
-    Apply a remote layer object to a remote data object using the specified 'how' method.
-    Geospatial coordinates (lat and lon) are reduced to a dimension representing the list
-    of features in the shape object.
+def reduce(data, how="mean", how_weights=None, **kwargs):
+    """
+    Reduce an xarray.datarray or xarray.dataset using a specified `how` method
+    with the option to apply weights either directly or using a specified
+    `how_weights` method.
 
     Parameters
     ----------
-    dataarray : xr.DataArray
-    **kwargs
-        Keyword arguments to be passed to :func:`resample`.
-
-    Returns
-    -------
-    xr.DataArray
-    """
-
-    Args:
-        dataarray: data object (must have geospatial coordinates).
-        shape: CDS remote layer/shape/geojson object.
-        how: method used to apply mask. Default='mean', which calls np.nanmean
-        weighted: To perform a latitude weighted calculation
-                  for regular lat/lon grids. Default=False
-        **kwargs:
-            kwargs recognised by the how function
+    data : xr.DataArray or xr.Dataset
+        Data object to reduce
+    how: str or callable
+        Method used to reduce data. Default='mean', which calls np.nanmean.
+        If string, it must be a coucal recognised how method, otherwise it can be
+        any function which can be called in the form f(x, axis=axis, **kwargs)
+        to return the result of reducing an np.ndarray over an integer valued axis
+    how_weights (optional): str
+        Choose a recognised method to apply weighting. Cu
+    **kwargs:
+        kwargs recognised by the how :func: `reduce`
 
     Returns:
         A data array with dimensions [features] + [data.dims not in ['lat','lon']].
         Each slice of layer corresponds to a feature in layer.
 
-    '''
+    """
 
     # If how is string, fetch function from dictionary:
     if isinstance(how, str):
@@ -249,11 +243,11 @@ def reduce(dataarray, how="mean", weighted=None, all_touched=False, **kwargs):
                 )
 
     # If latitude_weighted, build array of weights based on latitude.
-    if weighted:
-        weights = WEIGHT_DICT[weighted](dataarray)
+    if how_weights is not None:
+        weights = WEIGHT_DICT.get(how_weights)(data)
         kwargs.update(dict(weights=weights))
 
-    reduced = dataarray.reduce(how, **kwargs)
+    reduced = data.reduce(how, **kwargs)
 
     return reduced
 
@@ -309,7 +303,7 @@ def rolling_reduce(
     if how_reduce in in_built_how_methods:
         data_windowed = data_rolling.__getattribute__(how_reduce)(**reduce_kwargs)
     else:  # Check for coucal HOW methods
-        data_windowed = data_rolling.reduce(HOW_DICT[how_reduce], reduce_kwargs)
+        data_windowed = data_rolling.reduce(HOW_DICT[how_reduce], **reduce_kwargs)
 
     if how_dropna not in [None, "None", "none"]:
         for dim in window_dims:
