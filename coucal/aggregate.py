@@ -201,7 +201,7 @@ def _pandas_frequency_and_bins(
     return freq, bins
 
 
-def reduce(data, how="mean", how_weights=None, **kwargs):
+def reduce(data, how="mean", how_weights=None, how_dropna=False, **kwargs):
     """
     Reduce an xarray.datarray or xarray.dataset using a specified `how` method
     with the option to apply weights either directly or using a specified
@@ -212,12 +212,16 @@ def reduce(data, how="mean", how_weights=None, **kwargs):
     data : xr.DataArray or xr.Dataset
         Data object to reduce
     how: str or callable
-        Method used to reduce data. Default='mean', which calls np.nanmean.
-        If string, it must be a coucal recognised how method, otherwise it can be
-        any function which can be called in the form f(x, axis=axis, **kwargs)
+        Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
+        If string, it must be an in-built xarray reduce method, a coucal how method or any numpy method.
+        In the case of duplicate names, method selection is first in the order: xarray, coucal, numpy.
+        Otherwise it can be any function which can be called in the form f(x, axis=axis, **kwargs)
         to return the result of reducing an np.ndarray over an integer valued axis
     how_weights (optional): str
-        Choose a recognised method to apply weighting. Cu
+        Choose a recognised method to apply weighting. Currently availble methods are; ['latitude']
+    how_dropna (optional): str
+        Choose how to drop nan values.
+        Default is None and na values are preserved. Options are 'any' and 'all'.
     **kwargs:
         kwargs recognised by the how :func: `reduce`
 
@@ -227,27 +231,35 @@ def reduce(data, how="mean", how_weights=None, **kwargs):
 
     """
 
-    # If how is string, fetch function from dictionary:
-    if isinstance(how, str):
-        try:
-            how = HOW_DICT[how]
-        except KeyError:
-            try:
-                module, function = how.split(".")
-                how = getattr(globals()[ALLOWED_LIBS[module]], function)
-            except KeyError:
-                raise ValueError(f"method must come from one of {ALLOWED_LIBS}")
-            except AttributeError:
-                raise AttributeError(
-                    f"module '{module}' has no attribute " f"'{function}'"
-                )
-
     # If latitude_weighted, build array of weights based on latitude.
     if how_weights is not None:
         weights = WEIGHT_DICT.get(how_weights)(data)
         kwargs.update(dict(weights=weights))
 
-    reduced = data.reduce(how, **kwargs)
+    in_built_how_methods = [
+        method for method in dir(data) if not method.startswith("_")
+    ]
+    # If how is string, fetch function from dictionary:
+    if isinstance(how, str):
+        if how in in_built_how_methods:
+            return data.__getattribute__(how)(**kwargs)
+        else:
+            try:
+                how_method = HOW_DICT[how]
+            except KeyError:
+                try:
+                    module, function = how.split(".")
+                    how_method = getattr(globals()[ALLOWED_LIBS[module]], function)
+                except KeyError:
+                    raise ValueError(f"method must come from one of {ALLOWED_LIBS}")
+                except AttributeError:
+                    raise AttributeError(
+                        f"module '{module}' has no attribute " f"'{function}'"
+                    )
+    else:
+        how_method = how
+
+    reduced = data.reduce(how_method, **kwargs)
 
     return reduced
 
@@ -293,22 +305,27 @@ def rolling_reduce(
 
     # Any kwargs left after above reductions are kwargs for reduction method
     reduce_kwargs = kwargs
-
+    print('rolling kwargs: ',rolling_kwargs)
     # Create rolling groups:
     data_rolling = dataarray.rolling(**rolling_kwargs)
+    print('reduce kwargs: ',reduce_kwargs)
 
-    in_built_how_methods = [
-        method for method in dir(data_rolling) if not method.startswith("_")
-    ]
-    if how_reduce in in_built_how_methods:
-        data_windowed = data_rolling.__getattribute__(how_reduce)(**reduce_kwargs)
-    else:  # Check for coucal HOW methods
-        data_windowed = data_rolling.reduce(HOW_DICT[how_reduce], **reduce_kwargs)
+    data_windowed = reduce(data_rolling, how=how_reduce, **reduce_kwargs)
 
-    if how_dropna not in [None, "None", "none"]:
-        for dim in window_dims:
-            data_windowed = data_windowed.dropna(dim, how=how_dropna)
+    data_windowed = _dropna(data_windowed, window_dims, how_dropna)
 
     data_windowed.attrs.update(dataarray.attrs)
 
     return data_windowed
+
+
+def _dropna(data, dims, how):
+    '''
+    Method for drop nan values
+    '''
+    if how in [None, "None", "none"]:
+        return data
+
+    for dim in dims:
+        data = data.dropna(dim, how=how)
+    return data

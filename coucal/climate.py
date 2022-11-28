@@ -32,7 +32,7 @@ def climatology_mean(
     xr.DataArray
     """
     grouped_data = aggregate._groupby_time(dataarray, frequency, bin_widths)
-    return grouped_data.mean("time")
+    return aggregate.reduce(grouped_data, dim="time")
 
 
 def climatology_std(
@@ -60,7 +60,7 @@ def climatology_std(
     xr.DataArray
     """
     grouped_data = aggregate._groupby_time(dataarray, frequency, bin_widths)
-    return grouped_data.std("time")
+    return aggregate.reduce(grouped_data, how='std', dim="time")
 
 
 def climatology_median(dataarray: xr.DataArray, **kwargs) -> xr.DataArray:
@@ -112,7 +112,7 @@ def climatology_max(
     xr.DataArray
     """
     grouped_data = aggregate._groupby_time(dataarray, frequency, bin_widths)
-    return grouped_data.max("time")
+    return aggregate.reduce(grouped_data, how='max', dim="time")
 
 
 def climatology_min(
@@ -140,7 +140,7 @@ def climatology_min(
     xr.DataArray
     """
     grouped_data = aggregate._groupby_time(dataarray, frequency, bin_widths)
-    return grouped_data.min("time")
+    return aggregate.reduce(grouped_data, how='min', dim="time")
 
 
 def climatology_quantiles(
@@ -172,7 +172,9 @@ def climatology_quantiles(
     -------
     xr.DataArray
     """
-    grouped_data = aggregate._groupby_time(dataarray, frequency, bin_widths)
+    grouped_data = aggregate._groupby_time(
+        dataarray.chunk({'time':-1}), frequency, bin_widths
+    )
     results = []
     for quantile in quantiles:
         results.append(

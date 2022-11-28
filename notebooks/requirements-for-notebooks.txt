@@ -1,0 +1,8 @@
+ipykernel
+xarray
+cdsapi
+cfgrib
+ecmwflibs
+matplotlib
+dask
+jinja2
