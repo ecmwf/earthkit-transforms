@@ -24,7 +24,7 @@ _BIN_MAXES = {
 }
 
 
-def daily_mean(datarray, **kwargs):
+def daily_mean(dataarray, **kwargs):
     """
     Calculate the daily mean.
 
@@ -39,10 +39,10 @@ def daily_mean(datarray, **kwargs):
     -------
     xr.DataArray
     """
-    return resample(datarray, frequency="D", dim="time", how="mean", **kwargs)
+    return resample(dataarray, frequency="D", dim="time", how="mean", **kwargs)
 
 
-def daily_max(datarray, **kwargs):
+def daily_max(dataarray, **kwargs):
     """
     Calculate the daily max.
 
@@ -57,10 +57,10 @@ def daily_max(datarray, **kwargs):
     -------
     xr.DataArray
     """
-    return resample(datarray, frequency="D", dim="time", how="max", **kwargs)
+    return resample(dataarray, frequency="D", dim="time", how="max", **kwargs)
 
 
-def daily_min(datarray, **kwargs):
+def daily_min(dataarray, **kwargs):
     """
     Calculate the daily min.
 
@@ -75,10 +75,10 @@ def daily_min(datarray, **kwargs):
     -------
     xr.DataArray
     """
-    return resample(datarray, frequency="D", dim="time", how="min", **kwargs)
+    return resample(dataarray, frequency="D", dim="time", how="min", **kwargs)
 
 
-def monthly_mean(datarray, **kwargs):
+def monthly_mean(dataarray, **kwargs):
     """
     Calculate the monthly mean.
 
@@ -93,7 +93,7 @@ def monthly_mean(datarray, **kwargs):
     -------
     xr.DataArray
     """
-    return resample(datarray, frequency="M", dim="time", how="mean", **kwargs)
+    return resample(dataarray, frequency="M", dim="time", how="mean", **kwargs)
 
 
 def resample(
@@ -203,7 +203,7 @@ def _pandas_frequency_and_bins(
 
 def reduce(data, how="mean", how_weights=None, how_dropna=False, **kwargs):
     """
-    Reduce an xarray.datarray or xarray.dataset using a specified `how` method
+    Reduce an xarray.dataarray or xarray.dataset using a specified `how` method
     with the option to apply weights either directly or using a specified
     `how_weights` method.
 
