@@ -305,10 +305,10 @@ def rolling_reduce(
 
     # Any kwargs left after above reductions are kwargs for reduction method
     reduce_kwargs = kwargs
-    print('rolling kwargs: ',rolling_kwargs)
+    print("rolling kwargs: ", rolling_kwargs)
     # Create rolling groups:
     data_rolling = dataarray.rolling(**rolling_kwargs)
-    print('reduce kwargs: ',reduce_kwargs)
+    print("reduce kwargs: ", reduce_kwargs)
 
     data_windowed = reduce(data_rolling, how=how_reduce, **reduce_kwargs)
 
@@ -320,9 +320,9 @@ def rolling_reduce(
 
 
 def _dropna(data, dims, how):
-    '''
+    """
     Method for drop nan values
-    '''
+    """
     if how in [None, "None", "none"]:
         return data
 
