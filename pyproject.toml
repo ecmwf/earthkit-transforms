@@ -1,9 +1,25 @@
 [build-system]
-requires = [
-    "setuptools>=42",
-    "wheel",
-    "setuptools_scm[toml]>=3.4",
-    "setuptools_scm_git_archive",
+requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
+
+[project]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Topic :: Scientific/Engineering"
+]
+description = "Statistical analysis tools for meteorological and climate data."
+dynamic = ["version"]
+license = {file = "LICENSE"}
+name = "coucal"
+readme = "README.md"
+dependencies = [
+    "xarray",
+    "numpy",
 ]
 
 [tool.coverage.run]
@@ -13,8 +29,12 @@ branch = true
 profile = "black"
 
 [tool.pydocstyle]
+add_ignore = ["D1, D2, D4"]
 convention = "numpy"
-add_ignore = "D1"
+
+
+[tool.setuptools]
+packages = ["coucal"]
 
 [tool.setuptools_scm]
 write_to = "coucal/version.py"

@@ -1,3 +1,4 @@
+# environment-ci.yml: Additional dependencies to install in the CI environment.
 channels:
 - conda-forge
 - nodefaults
@@ -11,10 +12,4 @@ dependencies:
 - pytest-cov
 - sphinx
 - sphinx-autoapi
-# EXAMPLE:
-# dependencies:
-# - package1
-# - package2
-# DO NOT EDIT ABOVE THIS LINE, ADD DEPENDENCIES BELOW AS SHOWN IN THE EXAMPLE
-- numpy
-- xarray
+# DO NOT EDIT ABOVE THIS LINE, ADD DEPENDENCIES BELOW

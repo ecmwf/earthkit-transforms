@@ -12,7 +12,7 @@ unit-tests:
 	python -m pytest -vv --cov=. --cov-report=$(COV_REPORT) --doctest-glob="*.md" --doctest-glob="*.rst"
 
 conda-env-update:
-	$(CONDA) env update $(CONDAFLAGS) -f environment.yml
+	$(CONDA) env update $(CONDAFLAGS) -f ci/environment-ci.yml
 
 docker-build:
 	docker build -t $(PROJECT) .
@@ -21,7 +21,7 @@ docker-run:
 	docker run --rm -ti -v $(PWD):/srv $(PROJECT)
 
 template-update:
-	pre-commit run --all-files cruft -c .pre-commit-config-weekly.yaml
+	pre-commit run --all-files cruft -c .pre-commit-config-cruft.yaml
 
 docs-build:
 	cd docs && rm -fr _api && make clean && make html

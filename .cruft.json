@@ -1,6 +1,6 @@
 {
   "template": "https://github.com/ecmwf-projects/cookiecutter-conda-package",
-  "commit": "dad40538400e96c7d116f520692e7080174739a6",
+  "commit": "d3bc8995c49e2d15169c66dcac0395de13a0ad63",
   "checkout": null,
   "context": {
     "cookiecutter": {
@@ -9,6 +9,8 @@
       "project_short_description": "Statistical analysis tools for meteorological and climate data.",
       "copyright_holder": "European Centre for Medium Range Weather Forecasts",
       "copyright_year": "2022",
+      "mypy_strict": "False",
+      "integration_tests": "False",
       "_template": "https://github.com/ecmwf-projects/cookiecutter-conda-package"
     }
   },
