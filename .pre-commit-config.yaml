@@ -19,11 +19,6 @@ repos:
   hooks:
   - id: blackdoc
     additional_dependencies: [black==22.3.0]
-- repo: https://github.com/charliermarsh/ruff-pre-commit
-  rev: v0.0.241
-  hooks:
-  - id: ruff
-    args: [--fix]
 - repo: https://github.com/executablebooks/mdformat
   rev: 0.7.16
   hooks:

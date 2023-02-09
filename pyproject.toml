@@ -12,15 +12,15 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Topic :: Scientific/Engineering"
 ]
+dependencies = [
+  "xarray",
+  "numpy"
+]
 description = "Statistical analysis tools for meteorological and climate data."
 dynamic = ["version"]
 license = {file = "LICENSE"}
 name = "coucal"
 readme = "README.md"
-dependencies = [
-    "xarray",
-    "numpy",
-]
 
 [tool.coverage.run]
 branch = true
@@ -31,7 +31,6 @@ profile = "black"
 [tool.pydocstyle]
 add_ignore = ["D1, D2, D4"]
 convention = "numpy"
-
 
 [tool.setuptools]
 packages = ["coucal"]
