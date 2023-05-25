@@ -13,8 +13,8 @@ classifiers = [
   "Topic :: Scientific/Engineering"
 ]
 dependencies = [
-  "xarray",
-  "numpy"
+  "xarray>=0.18.0",
+  "numpy>=1.17"
 ]
 description = "Statistical analysis tools for meteorological and climate data."
 dynamic = ["version"]
