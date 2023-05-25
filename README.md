@@ -1,4 +1,4 @@
-# eaRthkIt climate
+# earthkit-climate
 
 **C**limate, **O**bservations and **U**ueather **CAL**culator. A set of statistical analysis tools for meteorological and climate data.
 
