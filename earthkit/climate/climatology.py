@@ -7,7 +7,7 @@ import xarray as xr
 from . import aggregate
 
 
-def climatology_mean(
+def mean(
     dataarray: xr.DataArray,
     frequency: str = None,
     bin_widths: int = None,
@@ -35,7 +35,7 @@ def climatology_mean(
     return aggregate.reduce(grouped_data, dim="time")
 
 
-def climatology_std(
+def stdev(
     dataarray: xr.DataArray,
     frequency: str = None,
     bin_widths: int = None,
@@ -63,7 +63,7 @@ def climatology_std(
     return aggregate.reduce(grouped_data, how="std", dim="time")
 
 
-def climatology_median(dataarray: xr.DataArray, **kwargs) -> xr.DataArray:
+def median(dataarray: xr.DataArray, **kwargs) -> xr.DataArray:
     """
     Calculate the climatological median.
 
@@ -87,7 +87,7 @@ def climatology_median(dataarray: xr.DataArray, **kwargs) -> xr.DataArray:
     return result.isel(quantile=0)
 
 
-def climatology_max(
+def max(
     dataarray: xr.DataArray,
     frequency: str = None,
     bin_widths: int = None,
@@ -115,7 +115,7 @@ def climatology_max(
     return aggregate.reduce(grouped_data, how="max", dim="time")
 
 
-def climatology_min(
+def min(
     dataarray: xr.DataArray,
     frequency: str = None,
     bin_widths: int = None,
@@ -143,7 +143,7 @@ def climatology_min(
     return aggregate.reduce(grouped_data, how="min", dim="time")
 
 
-def climatology_quantiles(
+def quantiles(
     dataarray: xr.DataArray,
     quantiles: list,
     frequency: str = None,
@@ -189,7 +189,7 @@ def climatology_quantiles(
     return result
 
 
-def climatology_percentiles(
+def percentiles(
     dataarray: xr.DataArray,
     percentiles: list,
     **kwargs,
