@@ -1,11 +1,11 @@
-# coucal
+# eaRthkIt climate
 
 **C**limate, **O**bservations and **U**ueather **CAL**culator. A set of statistical analysis tools for meteorological and climate data.
 
 ## Quick Start
 
 ```python
->>> import coucal
+>>> from earthkit import climate
 
 ```
 

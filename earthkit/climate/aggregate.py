@@ -213,8 +213,8 @@ def reduce(data, how="mean", how_weights=None, how_dropna=False, **kwargs):
         Data object to reduce
     how: str or callable
         Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
-        If string, it must be an in-built xarray reduce method, a coucal how method or any numpy method.
-        In the case of duplicate names, method selection is first in the order: xarray, coucal, numpy.
+        If string, it must be an in-built xarray reduce method, a earthkit how method or any numpy method.
+        In the case of duplicate names, method selection is first in the order: xarray, earthkit, numpy.
         Otherwise it can be any function which can be called in the form f(x, axis=axis, **kwargs)
         to return the result of reducing an np.ndarray over an integer valued axis
     how_weights (optional): str

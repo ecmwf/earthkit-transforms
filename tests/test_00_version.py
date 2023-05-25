@@ -1,5 +1,5 @@
-import coucal
+from earthkit import climate
 
 
 def test_version() -> None:
-    assert coucal.__version__ != "999"
+    assert climate.__version__ != "999"

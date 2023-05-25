@@ -1,4 +1,4 @@
-PROJECT := coucal
+PROJECT := earthkit-climate
 CONDA := conda
 CONDAFLAGS :=
 COV_REPORT := html

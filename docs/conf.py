@@ -9,17 +9,17 @@
 import os
 import sys
 
-import coucal
+from earthkit import climate
 
 sys.path.insert(0, os.path.abspath("../"))
 
 # -- Project information -----------------------------------------------------
 
-project = "coucal"
+project = "earthkit-climate"
 copyright = "2022, European Centre for Medium Range Weather Forecasts"
 author = "European Centre for Medium Range Weather Forecasts"
-version = coucal.__version__
-release = coucal.__version__
+version = climate.__version__
+release = climate.__version__
 
 # -- General configuration ---------------------------------------------------
 
@@ -37,7 +37,7 @@ extensions = [
 autodoc_typehints = "none"
 
 # autoapi configuration
-autoapi_dirs = ["../coucal"]
+autoapi_dirs = ["../earthkit/climate"]
 autoapi_ignore = ["*/version.py"]
 autoapi_options = [
     "members",

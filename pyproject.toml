@@ -19,7 +19,7 @@ dependencies = [
 description = "Statistical analysis tools for meteorological and climate data."
 dynamic = ["version"]
 license = {file = "LICENSE"}
-name = "coucal"
+name = "earthkit-climate"
 readme = "README.md"
 
 [tool.coverage.run]
@@ -33,10 +33,10 @@ add_ignore = ["D1, D2, D4"]
 convention = "numpy"
 
 [tool.setuptools]
-packages = ["coucal"]
+packages = ["earthkit.climate"]
 
 [tool.setuptools_scm]
-write_to = "coucal/version.py"
+write_to = "earthkit/climate/version.py"
 write_to_template = '''
 # Do not change! Do not track in version control!
 __version__ = "{version}"
