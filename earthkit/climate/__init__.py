@@ -22,7 +22,20 @@ except ImportError:  # pragma: no cover
     # Local copy or not installed with setuptools
     __version__ = "999"
 
-from . import aggregate, climatology
+import xarray as xr
+
+from earthkit._inputs_transform import transform_module_inputs
+from earthkit.climate import aggregate, climatology
+
+KWARG_TYPES = {
+    "dataarray": xr.DataArray,
+    "dataset": xr.Dataset,
+}
+
+aggregate = transform_module_inputs(aggregate, kwarg_type=KWARG_TYPES)
+
+climatology = transform_module_inputs(climatology, kwarg_type=KWARG_TYPES)
+
 
 __all__ = [
     "__version__",

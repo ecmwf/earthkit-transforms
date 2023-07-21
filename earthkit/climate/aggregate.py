@@ -4,7 +4,7 @@ Module that contains generalised methods for aggregating xarray objects
 
 import xarray as xr
 
-from ._options import ALLOWED_LIBS, HOW_DICT, WEIGHT_DICT
+from .tools import ALLOWED_LIBS, HOW_DICT, WEIGHTS_DICT
 
 #: Mapping from pandas frequency strings to xarray time groups
 _PANDAS_FREQUENCIES = {
@@ -140,7 +140,7 @@ def _groupby_time(
     frequency: str = None,
     bin_widths: int = None,
     squeeze: bool = True,
-    time_dim="time",
+    time_dim: str = "time",
 ):
     if frequency is None:
         try:
@@ -233,7 +233,7 @@ def reduce(data, how="mean", how_weights=None, how_dropna=False, **kwargs):
 
     # If latitude_weighted, build array of weights based on latitude.
     if how_weights is not None:
-        weights = WEIGHT_DICT.get(how_weights)(data)
+        weights = WEIGHTS_DICT.get(how_weights)(data)
         kwargs.update(dict(weights=weights))
 
     in_built_how_methods = [
