@@ -11,6 +11,7 @@ docs/_api/
 # gitignore template for Jupyter Notebooks
 # website: http://jupyter.org/
 
+dev-notebook.ipynb
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 
