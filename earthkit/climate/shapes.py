@@ -128,6 +128,7 @@ def mask_contains_points(
 def geopandas_to_shape_list(geodataframe):
     return [row[1]['geometry'] for row in geodataframe.iterrows()]
 
+
 def _shape_mask_iterator(shapes, target, regular_grid=True, **kwargs):
     """
     Method which iterates over shape mask methods.
@@ -146,11 +147,29 @@ def _shape_mask_iterator(shapes, target, regular_grid=True, **kwargs):
         yield shape_da
 
 
+def shapes_to_mask(shapes, target, regular_grid=True, **kwargs):
+    """
+    Method which creates a list of mask dataarrays.
+    If possible use the shape_mask_iterator.
+    """
+    if isinstance(shapes, gpd.GeoDataFrame):
+        shapes = geopandas_to_shape_list(shapes)
+    if regular_grid:
+        mask_function = rasterize
+    else:
+        mask_function = mask_contains_points
+    
+    return [
+        mask_function([shape], target.coords, **kwargs)
+        for shape in shapes
+    ]
+
+
 def masks(
     dataarray: T.Union[xr.DataArray, xr.Dataset],
     geodataframe: gpd.GeoDataFrame,
     mask_dim: str = 'FID',
-    regular_grid: bool = True,
+    # regular_grid: bool = True,
     **kwargs
 ):
     """
