@@ -1,3 +1,5 @@
+from copy import deepcopy
+import pandas as pd
 import geopandas as gpd
 import xarray as xr
 import numpy as np
@@ -216,6 +218,8 @@ def reduce(
     lat_key: T.Union[None, str] = None,
     lon_key: T.Union[None, str] = None,
     mask_dim = 'FID',
+    return_as = 'pandas',
+    how_label = None,
     **kwargs
 ):
     '''
@@ -239,7 +243,11 @@ def reduce(
 
     # If how is string, fetch function from dictionary:
     if isinstance(how, str):
+        how_label = deepcopy(how)
         how = get_how(how)
+    
+    assert isinstance(how, T.Callable), f"how must be a callable"
+    how_label = how_label or how.__name__
     
     if lat_key is None:
         lat_key = get_dim_key(dataarray, 'y')
@@ -258,6 +266,7 @@ def reduce(
     for mask in _shape_mask_iterator(geodataframe, dataarray, **kwargs):
         this = dataarray.where(mask, other=np.nan)
         reduced = this.reduce(how, dim=spatial_dims, **kwargs).compute()
+        reduced = reduced.assign_attrs(dataarray.attrs)
         reduced_list.append(reduced)
         # context.debug(f"Shapes.average reduced ({i}): {reduced} \n{i}")
 
@@ -269,9 +278,15 @@ def reduce(
     else:
         raise ValueError('Unrecognised format for mask_dim, should be a string or length one dictionary')
     
-    out = xr.concat(reduced_list, dim=mask_dim)
-    out = out.assign_coords(coords={mask_dim: mask_dim_values})
-
-    out.attrs.update(geodataframe.attrs)
+    if return_as in ['xarray']:
+        out = xr.concat(reduced_list, dim=mask_dim)
+        out = out.assign_coords(coords={
+            mask_dim: mask_dim_values
+        })
+        out = out.assign_attrs(geodataframe.attrs)
+    else:
+        if how_label in geodataframe:
+            how_label += '_reduced'
+        out = geodataframe.assign(**{how_label:reduced_list})
 
     return out
