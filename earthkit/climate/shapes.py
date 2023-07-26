@@ -213,6 +213,44 @@ def masks(
 def reduce(
     dataarray: T.Union[xr.DataArray, xr.Dataset],
     geodataframe: gpd.GeoDataFrame,
+    **kwargs
+):
+    '''
+    Apply a shape object to an xarray.DataArray object using the specified 'how' method. Geospatial coordinates
+    (lat and lon) are reduced to a dimension representing the list of features in the shape object.
+
+    Args:
+        data: Xarray data object (must have geospatial coordinates).
+        geodataframe: geopandas dataframe
+        how: method used to apply mask. Default='mean', which calls np.nanmean
+        weighted: To perform a latitude weighted calculation
+                  for regular lat/lon grids. Default=False
+        **kwargs:
+            kwargs recognised by the how function
+
+    Returns:
+        A data array with dimensions [features] + [data.dims not in ['lat','lon']].
+        Each slice of layer corresponds to a feature in layer.
+
+    '''
+
+    if isinstance(dataarray, xr.DataArray):
+        return _reduce_dataarray(dataarray, geodataframe, **kwargs)
+    else:
+        if kwargs.get("return_as", "pandas") in ['xarray']:
+            return xr.Dataset([
+                _reduce_dataarray(dataarray[var], geodataframe, **kwargs) for var in dataarray.data_vars
+            ])
+        else:
+            out = geodataframe
+            for var in dataarray.data_vars:
+                out = _reduce_dataarray(dataarray[var], geodataframe, **kwargs)
+            return out
+
+
+def _reduce_dataarray(
+    dataarray: xr.DataArray,
+    geodataframe: gpd.GeoDataFrame,
     how: T.Union[T.Callable, str] = nanaverage,
     weights: T.Union[None, str, np.ndarray] = None,
     lat_key: T.Union[None, str] = None,
@@ -247,7 +285,6 @@ def reduce(
         how = get_how(how)
     
     assert isinstance(how, T.Callable), f"how must be a callable"
-    how_label = how_label or how.__name__
     
     if lat_key is None:
         lat_key = get_dim_key(dataarray, 'y')
@@ -280,11 +317,14 @@ def reduce(
     
     if return_as in ['xarray']:
         out = xr.concat(reduced_list, dim=mask_dim)
-        out = out.assign_coords(coords={
-            mask_dim: mask_dim_values
+        out = out.assign_coords(**{
+            mask_dim: (mask_dim, mask_dim_values),
+            "geometry": (mask_dim, [geom for geom in geodataframe['geometry']]),
         })
         out = out.assign_attrs(geodataframe.attrs)
+
     else:
+        how_label = f"{dataarray.name}_{how_label or how.__name__}"
         if how_label in geodataframe:
             how_label += '_reduced'
         out = geodataframe.assign(**{how_label:reduced_list})
