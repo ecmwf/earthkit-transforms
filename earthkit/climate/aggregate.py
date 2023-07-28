@@ -4,7 +4,7 @@ Module that contains generalised methods for aggregating xarray objects
 
 import xarray as xr
 
-from .tools import ALLOWED_LIBS, HOW_DICT, WEIGHTS_DICT
+from .tools import ALLOWED_LIBS, HOW_DICT, WEIGHTS_DICT, WEIGHTED_HOW_METHODS
 
 #: Mapping from pandas frequency strings to xarray time groups
 _PANDAS_FREQUENCIES = {
@@ -201,7 +201,7 @@ def _pandas_frequency_and_bins(
     return freq, bins
 
 
-def reduce(data, how="mean", how_weights=None, how_dropna=False, **kwargs):
+def reduce(dataarray, how="mean", how_weights=None, how_dropna=False, **kwargs):
     """
     Reduce an xarray.dataarray or xarray.dataset using a specified `how` method
     with the option to apply weights either directly or using a specified
@@ -231,18 +231,13 @@ def reduce(data, how="mean", how_weights=None, how_dropna=False, **kwargs):
 
     """
 
-    # If latitude_weighted, build array of weights based on latitude.
-    if how_weights is not None:
-        weights = WEIGHTS_DICT.get(how_weights)(data)
-        kwargs.update(dict(weights=weights))
-
     in_built_how_methods = [
-        method for method in dir(data) if not method.startswith("_")
+        method for method in dir(dataarray) if not method.startswith("_")
     ]
     # If how is string, fetch function from dictionary:
     if isinstance(how, str):
         if how in in_built_how_methods:
-            return data.__getattribute__(how)(**kwargs)
+            return dataarray.__getattribute__(how)(**kwargs)
         else:
             try:
                 how_method = HOW_DICT[how]
@@ -259,7 +254,18 @@ def reduce(data, how="mean", how_weights=None, how_dropna=False, **kwargs):
     else:
         how_method = how
 
-    reduced = data.reduce(how_method, **kwargs)
+    # If weighted, use xarray weighted methods
+    if how_weights is not None:
+        # First check that how-method is compatible with weights:
+        assert how_method.__name__ in WEIGHTED_HOW_METHODS, (
+            f"Selected reduction method ({how}) is not compatible with weights"
+        )
+        # Create any standard weights, i.e. latitude
+        if isinstance(weights, str):
+            weights = WEIGHTS_DICT[weights](dataarray)
+        w_dataarray = dataarray.weighted(weights)
+
+    reduced = dataarray.reduce(how_method, **kwargs)
 
     return reduced
 

@@ -107,15 +107,16 @@ def _latitude_weights(dataarray: xr.DataArray, lat_dim_names=["latitude", "lat"]
     xarray.DataArray wrapper for latitude_weights which detects to the spatial dimensions
     latitude must be a coordinate of the dataarray
     """
-    data_shape = dataarray.shape
+    # data_shape = dataarray.shape
     for lat in lat_dim_names:
-        lat_array = dataarray.coords.get(lat, None)
+        lat_array = dataarray.coords.get(lat)
         if lat_array is not None:
-            break
-    lat_dim_indices = [dataarray.dims.index(dim) for dim in lat_array.dims]
-    return latitude_weights(
-        lat_array.values, data_shape=data_shape, lat_dims=lat_dim_indices
-    )
+            return np.cos(np.radians(lat_array.latitude))
+    #         break
+    # lat_dim_indices = [dataarray.dims.index(dim) for dim in lat_array.dims]
+    # return latitude_weights(
+    #     lat_array.values, data_shape=data_shape, lat_dims=lat_dim_indices
+    # )
 
 
 HOW_DICT = {
@@ -132,6 +133,21 @@ HOW_DICT = {
     "quantile": np.nanquantile,
     "percentile": np.nanpercentile,
     "p": np.nanpercentile,
+}
+
+
+WEIGHTED_HOW_METHODS = {
+    "average": "mean",
+    "mean": "mean",
+    "nanmean": "mean",
+    "stddev": "std",
+    "std": "std",
+    "stdev": "std",
+    "sum": "sum",
+    "q": "quantile",
+    "quantile": "quantile",
+    # "percentile": np.nanpercentile,
+    # "p": np.nanpercentile,
 }
 
 

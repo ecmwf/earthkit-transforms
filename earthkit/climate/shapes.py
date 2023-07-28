@@ -255,9 +255,10 @@ def _reduce_dataarray(
     weights: T.Union[None, str, np.ndarray] = None,
     lat_key: T.Union[None, str] = None,
     lon_key: T.Union[None, str] = None,
-    mask_dim = 'FID',
-    return_as = 'pandas',
-    how_label = None,
+    extra_reduce_dims: T.Union[list, str] = [],
+    mask_dim: str = 'FID',
+    return_as: str = 'pandas',
+    how_label: T.Union[str, None] = None,
     **kwargs
 ):
     '''
@@ -278,14 +279,16 @@ def _reduce_dataarray(
         Each slice of layer corresponds to a feature in layer.
 
     '''
-
     # If how is string, fetch function from dictionary:
     if isinstance(how, str):
         how_label = deepcopy(how)
         how = get_how(how)
     
-    assert isinstance(how, T.Callable), f"how must be a callable"
+    if isinstance(extra_reduce_dims, str):
+        extra_reduce_dims = [extra_reduce_dims]
     
+    assert isinstance(how, T.Callable), f"how must be a callable"
+
     if lat_key is None:
         lat_key = get_dim_key(dataarray, 'y')
     if lon_key is None:
@@ -293,16 +296,22 @@ def _reduce_dataarray(
 
     spatial_dims = get_spatial_dims(dataarray, lat_key, lon_key)
     
-    # If latitude_weighted, build array of weights based on latitude.
-    if isinstance(weights, str):
-        weights = WEIGHTS_DICT[weights](dataarray, spatial_dims=spatial_dims)
-        kwargs.update(dict(weights=weights))
     
-
+    # Create any standard weights, i.e. latitude
+    if isinstance(weights, str):
+        weights = WEIGHTS_DICT[weights](dataarray)
+        
+    
+    red_kwargs = {}
     reduced_list = []
     for mask in _shape_mask_iterator(geodataframe, dataarray, **kwargs):
         this = dataarray.where(mask, other=np.nan)
-        reduced = this.reduce(how, dim=spatial_dims, **kwargs).compute()
+
+        # If weighted, use xarray weighted arrays which correctly handle missing values etc.
+        if weights is not None:
+            w_dataarray = dataarray.weighted(weights)
+
+        reduced = this.reduce(how, dim=spatial_dims+extra_reduce_dims, **red_kwargs).compute()
         reduced = reduced.assign_attrs(dataarray.attrs)
         reduced_list.append(reduced)
         # context.debug(f"Shapes.average reduced ({i}): {reduced} \n{i}")
@@ -315,6 +324,7 @@ def _reduce_dataarray(
     else:
         raise ValueError('Unrecognised format for mask_dim, should be a string or length one dictionary')
     
+    # TODO: Maybe this could be handled more succinctly by making better use of xarray/pandas interoperability
     if return_as in ['xarray']:
         out = xr.concat(reduced_list, dim=mask_dim)
         out = out.assign_coords(**{
@@ -322,11 +332,15 @@ def _reduce_dataarray(
             "geometry": (mask_dim, [geom for geom in geodataframe['geometry']]),
         })
         out = out.assign_attrs(geodataframe.attrs)
-
     else:
         how_label = f"{dataarray.name}_{how_label or how.__name__}"
         if how_label in geodataframe:
             how_label += '_reduced'
+        # If all dataarrays are single valued, convert to integer values
+        if all([not red.shape for red in reduced_list]):
+            reduced_list = [red.values for red in reduced_list]
+        
         out = geodataframe.assign(**{how_label:reduced_list})
+        out.attrs.update(dataarray.attrs)
 
     return out
