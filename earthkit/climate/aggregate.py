@@ -2,7 +2,7 @@
 
 import xarray as xr
 
-from .tools import ALLOWED_LIBS, HOW_DICT, WEIGHTS_DICT, WEIGHTED_HOW_METHODS
+from .tools import ALLOWED_LIBS, HOW_DICT, WEIGHTED_HOW_METHODS, WEIGHTS_DICT
 
 #: Mapping from pandas frequency strings to xarray time groups
 _PANDAS_FREQUENCIES = {

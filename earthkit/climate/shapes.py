@@ -1,19 +1,17 @@
-from copy import deepcopy
-import pandas as pd
-import geopandas as gpd
-import xarray as xr
-import numpy as np
-
 import typing as T
+from copy import deepcopy
+
+import geopandas as gpd
+import numpy as np
+import xarray as xr
 
 from earthkit.climate.tools import (
-    get_how,
-    get_dim_key,
-    get_spatial_dims,
     WEIGHTS_DICT,
+    get_dim_key,
+    get_how,
+    get_spatial_dims,
     nanaverage,
 )
-from earthkit.climate import aggregate
 
 
 def transform_from_latlon(lat, lon):
@@ -136,9 +134,7 @@ def geopandas_to_shape_list(geodataframe):
 
 
 def _shape_mask_iterator(shapes, target, regular_grid=True, **kwargs):
-    """
-    Method which iterates over shape mask methods.
-    """
+    """Method which iterates over shape mask methods."""
     if isinstance(shapes, gpd.GeoDataFrame):
         shapes = geopandas_to_shape_list(shapes)
     if regular_grid:
@@ -173,10 +169,14 @@ def masks(
     **kwargs,
 ):
     """
-    Apply multiple shape masks to some gridded data. Each feauture in shape is treated as an individual mask to apply to
-    data. NOTE: The data provided is returned with an additional dimension equal in length to the number of features in
-    the shape object, this can result in very large files which will slow down your workflow. It may be better to loop
-    over individual features, or directly apply the mask with the ct.shapes.average or ct.shapes.reduce functions.
+    Apply multiple shape masks to some gridded data.
+
+    Each feauture in shape is treated as an individual mask to apply to
+    data. NOTE: The data provided is returned with an additional dimension equal in
+    length to the number of features in the shape object, this can result in very
+    large files which will slow down your workflow. It may be better to loop
+    over individual features, or directly apply the mask with the ct.shapes.average
+    or ct.shapes.reduce functions.
 
     Parameters
     ----------
@@ -190,7 +190,8 @@ def masks(
         Provide weights for aggregation, also accepts recognised keys for weights, e.g.
         'latitude'
 
-    Returns:
+    Returns
+    -------
         A masked data array with dimensions [feautre_id] + [data.dims].
         Each slice of layer corresponds to a feature in layer.
     """
@@ -226,8 +227,8 @@ def reduce(
     **kwargs,
 ):
     """
-    Apply a shape object to an xarray.DataArray object using the specified 'how' method. Geospatial coordinates
-    (lat and lon) are reduced to a dimension representing the list of features in the shape object.
+    Apply a shape object to an xarray.DataArray object using the specified 'how' method. Geospatial
+    coordinates are reduced to a dimension representing the list of features in the shape object.
 
     Parameters
     ----------
@@ -253,12 +254,12 @@ def reduce(
     kwargs :
         kwargs recognised by the how function
 
-    Returns:
+    Returns
+    -------
         A data array with dimensions [features] + [data.dims not in ['lat','lon']].
         Each slice of layer corresponds to a feature in layer.
 
     """
-
     if isinstance(dataarray, xr.DataArray):
         return _reduce_dataarray(dataarray, geodataframe, **kwargs)
     else:
@@ -290,8 +291,8 @@ def _reduce_dataarray(
     **kwargs,
 ):
     """
-    Apply a shape object to an xarray.DataArray object using the specified 'how' method. Geospatial coordinates
-    (lat and lon) are reduced to a dimension representing the list of features in the shape object.
+    Apply a shape object to an xarray.DataArray object using the specified 'how' method. Geospatial
+    coordinates are reduced to a dimension representing the list of features in the shape object.
 
     Parameters
     ----------
@@ -317,7 +318,8 @@ def _reduce_dataarray(
     kwargs :
         kwargs recognised by the how function
 
-    Returns:
+    Returns
+    -------
         A data array with dimensions [features] + [data.dims not in ['lat','lon']].
         Each slice of layer corresponds to a feature in layer.
 
@@ -330,7 +332,7 @@ def _reduce_dataarray(
     if isinstance(extra_reduce_dims, str):
         extra_reduce_dims = [extra_reduce_dims]
 
-    assert isinstance(how, T.Callable), f"how must be a callable"
+    assert isinstance(how, T.Callable), "how must be a callable"
 
     if lat_key is None:
         lat_key = get_dim_key(dataarray, "y")
@@ -350,7 +352,7 @@ def _reduce_dataarray(
 
         # If weighted, use xarray weighted arrays which correctly handle missing values etc.
         if weights is not None:
-            w_dataarray = dataarray.weighted(weights)
+            dataarray.weighted(weights)
 
         reduced = this.reduce(
             how, dim=spatial_dims + extra_reduce_dims, **red_kwargs

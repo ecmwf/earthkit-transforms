@@ -1,6 +1,7 @@
+import typing as T
+
 import numpy as np
 import xarray as xr
-import typing as T
 
 
 # TODO: Replace with method from meteokit
@@ -189,9 +190,7 @@ def get_dim_key(
     dataarray: T.Union[xr.DataArray, xr.Dataset],
     axis: str,
 ):
-    """
-    Return the key of the dimension
-    """
+    """Return the key of the dimension."""
     # First check if the axis value is in any dim:
     for dim in dataarray.dims:
         if (

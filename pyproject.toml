@@ -33,6 +33,7 @@ ignore = [
   # pydocstyle: numpy convention
   "D107",
   "D203",
+  "D205",
   "D212",
   "D213",
   "D401",

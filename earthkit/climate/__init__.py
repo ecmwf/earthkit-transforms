@@ -24,8 +24,8 @@ except ImportError:  # pragma: no cover
 
 import xarray as xr
 
-from earthkit.data.utils.module_inputs_wrapper import transform_module_inputs
 from earthkit.climate import aggregate, climatology
+from earthkit.data.utils.module_inputs_wrapper import transform_module_inputs
 
 KWARG_TYPES = {
     "dataarray": xr.DataArray,
