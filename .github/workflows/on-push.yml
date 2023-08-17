@@ -78,6 +78,7 @@ jobs:
   docs-build:
     needs: [combine-environments, unit-tests]
     runs-on: ubuntu-latest
+
     steps:
     - uses: actions/checkout@v3
     - name: Download combined environments
@@ -86,13 +87,12 @@ jobs:
         name: combined-environments
         path: ci
     - name: Install Conda environment with Micromamba
-      uses: mamba-org/provision-with-micromamba@v15
+      uses: mamba-org/setup-micromamba@v1
       with:
         environment-file: ci/combined-environment-ci.yml
         environment-name: DEVELOP
-        channels: conda-forge
-        cache-env: true
-        extra-specs: |
+        cache-environment: true
+        create-args: >-
           python=3.10
     - name: Install package
       run: |
