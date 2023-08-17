@@ -267,7 +267,7 @@ def reduce(dataarray, how="mean", how_weights=None, how_dropna=False, **kwargs):
         # Create any standard weights, i.e. latitude
         if isinstance(weights, str):
             weights = WEIGHTS_DICT[weights](dataarray)
-        w_dataarray = dataarray.weighted(weights)
+        dataarray = dataarray.weighted(weights)
 
     reduced = dataarray.reduce(how_method, **kwargs)
 
