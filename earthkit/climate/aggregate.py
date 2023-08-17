@@ -1,6 +1,4 @@
-"""
-Module that contains generalised methods for aggregating xarray objects
-"""
+"""Module that contains generalised methods for aggregating xarray objects."""
 
 import xarray as xr
 
@@ -107,7 +105,7 @@ def resample(
     **kwargs,
 ) -> xr.DataArray:
     """
-    Resample dataarray to a user-defined frequency using a user-defined "how" method
+    Resample dataarray to a user-defined frequency using a user-defined "how" method.
 
     Parameters
     ----------
@@ -203,8 +201,9 @@ def _pandas_frequency_and_bins(
 
 def reduce(dataarray, how="mean", how_weights=None, how_dropna=False, **kwargs):
     """
-    Reduce an xarray.dataarray or xarray.dataset using a specified `how` method
-    with the option to apply weights either directly or using a specified
+    Reduce an xarray.dataarray or xarray.dataset using a specified `how` method.
+
+    With the option to apply weights either directly or using a specified
     `how_weights` method.
 
     Parameters
@@ -225,11 +224,16 @@ def reduce(dataarray, how="mean", how_weights=None, how_dropna=False, **kwargs):
     **kwargs:
         kwargs recognised by the how :func: `reduce`
 
-    Returns:
+    Returns
+    -------
         A data array with dimensions [features] + [data.dims not in ['lat','lon']].
         Each slice of layer corresponds to a feature in layer.
 
     """
+    # If latitude_weighted, build array of weights based on latitude.
+    if how_weights is not None:
+        weights = WEIGHTS_DICT.get(how_weights)(dataarray)
+        kwargs.update(dict(weights=weights))
 
     in_built_how_methods = [
         method for method in dir(dataarray) if not method.startswith("_")
@@ -326,9 +330,7 @@ def rolling_reduce(
 
 
 def _dropna(data, dims, how):
-    """
-    Method for drop nan values
-    """
+    """Method for drop nan values."""
     if how in [None, "None", "none"]:
         return data
 

@@ -1,6 +1,4 @@
-"""
-Module that contains methods for calculating climatological metrics from xarray objects.
-"""
+"""Module that contains methods for calculating climatological metrics from xarray objects."""
 
 import xarray as xr
 
