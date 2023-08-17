@@ -24,7 +24,7 @@ except ImportError:  # pragma: no cover
 
 import xarray as xr
 
-from earthkit._inputs_transform import transform_module_inputs
+from earthkit.data.utils.module_inputs_wrapper import transform_module_inputs
 from earthkit.climate import aggregate, climatology
 
 KWARG_TYPES = {
@@ -32,9 +32,9 @@ KWARG_TYPES = {
     "dataset": xr.Dataset,
 }
 
-aggregate = transform_module_inputs(aggregate, kwarg_type=KWARG_TYPES)
+aggregate = transform_module_inputs(aggregate, kwarg_types=KWARG_TYPES)
 
-climatology = transform_module_inputs(climatology, kwarg_type=KWARG_TYPES)
+climatology = transform_module_inputs(climatology, kwarg_types=KWARG_TYPES)
 
 
 __all__ = [
