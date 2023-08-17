@@ -1,6 +1,4 @@
-"""
-Module that contains methods for calculating climatological metrics from xarray objects.
-"""
+"""Module that contains methods for calculating climatological metrics from xarray objects."""
 
 import xarray as xr
 
@@ -83,7 +81,7 @@ def median(dataarray: xr.DataArray, **kwargs) -> xr.DataArray:
     -------
     xr.DataArray
     """
-    result = climatology_quantiles(dataarray, [0.5], **kwargs)
+    result = quantiles(dataarray, [0.5], **kwargs)
     return result.isel(quantile=0)
 
 
@@ -216,7 +214,7 @@ def percentiles(
     xr.DataArray
     """
     quantiles = [p * 1e-2 for p in percentiles]
-    quantile_data = climatology_quantiles(
+    quantile_data = quantiles(
         dataarray,
         quantiles,
         **kwargs,
@@ -264,9 +262,7 @@ def anomaly(
             selection = dataarray.sel(time=slice(*climatology_range))
         else:
             selection = dataarray
-        climatology = climatology_mean(
-            selection, frequency=frequency, bin_widths=bin_widths
-        )
+        climatology = mean(selection, frequency=frequency, bin_widths=bin_widths)
     anomaly = aggregate._groupby_time(dataarray, frequency, bin_widths) - climatology
     anomaly.assign_attrs(dataarray.attrs)
 

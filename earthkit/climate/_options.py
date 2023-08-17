@@ -50,10 +50,11 @@ def nanaverage(data, weights=None, **kwargs):
 
 # TODO: Replace with method from meteokit
 def latitude_weights(latitudes, data_shape=None, lat_dims=None):
-    """
-    Function to return latitude weights. This is a very basic latitudinal
-    weights function where weights are the normalised cosine of latitude.
-    i.e. weight = cosine(latitude) / SUM(cosine(latitude))
+    """Function to return latitude weights.
+
+    This is a very basic latitudinal
+    weights function where weights are the normalised cosine of latitude,
+    i.e. weight = cosine(latitude) / SUM(cosine(latitude)).
 
     Parameters
     ----------
@@ -104,8 +105,9 @@ def latitude_weights(latitudes, data_shape=None, lat_dims=None):
 
 def _latitude_weights(dataarray: xr.DataArray, lat_dim_names=["latitude", "lat"]):
     """
-    xarray.DataArray wrapper for latitude_weights which detects to the spatial dimensions
-    latitude must be a coordinate of the dataarray
+    xarray.DataArray wrapper for latitude_weights.
+
+    Detects the spatial dimensions latitude must be a coordinate of the dataarray.
     """
     data_shape = dataarray.shape
     for lat in lat_dim_names:
