@@ -178,11 +178,17 @@ def masks(
     the shape object, this can result in very large files which will slow down your workflow. It may be better to loop
     over individual features, or directly apply the mask with the ct.shapes.average or ct.shapes.reduce functions.
 
-    Args:
-        dataarray: An xarray data object, must have geospatial coordinates.
-        shape: CDS remote layer/shape/geojson object.
-        **kwargs:
-            kwargs recognised by rasterio.features.rasterize
+    Parameters
+    ----------
+    dataarray :
+        Xarray data object (must have geospatial coordinates).
+    geodataframe :
+        Geopandas Dataframe containing the polygons for aggregations
+    how :
+        method used to apply mask. Default='mean', which calls np.nanmean
+    weights :
+        Provide weights for aggregation, also accepts recognised keys for weights, e.g.
+        'latitude'
 
     Returns:
         A masked data array with dimensions [feautre_id] + [data.dims].
@@ -223,14 +229,29 @@ def reduce(
     Apply a shape object to an xarray.DataArray object using the specified 'how' method. Geospatial coordinates
     (lat and lon) are reduced to a dimension representing the list of features in the shape object.
 
-    Args:
-        data: Xarray data object (must have geospatial coordinates).
-        geodataframe: geopandas dataframe
-        how: method used to apply mask. Default='mean', which calls np.nanmean
-        weighted: To perform a latitude weighted calculation
-                  for regular lat/lon grids. Default=False
-        **kwargs:
-            kwargs recognised by the how function
+    Parameters
+    ----------
+    dataarray :
+        Xarray data object (must have geospatial coordinates).
+    geodataframe :
+        Geopandas Dataframe containing the polygons for aggregations
+    how :
+        method used to apply mask. Default='mean', which calls np.nanmean
+    weights :
+        Provide weights for aggregation, also accepts recognised keys for weights, e.g.
+        'latitude'
+    lat_key/lon_key :
+        key for latitude/longitude variable, default behaviour is to detect variable keys.
+    extra_reduce_dims :
+        any additional dimensions to aggregate over when reducing over spatial dimensions
+    mask_dim :
+        dimension that will be created after the reduction of the spatial dimensions, default = `"FID"`
+    return_as :
+        what format to return the data object, `"pandas"` or `"xarray"`. Work In Progress
+    how_label :
+        label to append to variable name in returned object, default is `how`
+    kwargs :
+        kwargs recognised by the how function
 
     Returns:
         A data array with dimensions [features] + [data.dims not in ['lat','lon']].
@@ -272,14 +293,29 @@ def _reduce_dataarray(
     Apply a shape object to an xarray.DataArray object using the specified 'how' method. Geospatial coordinates
     (lat and lon) are reduced to a dimension representing the list of features in the shape object.
 
-    Args:
-        data: Xarray data object (must have geospatial coordinates).
-        geodataframe: geopandas dataframe
-        how: method used to apply mask. Default='mean', which calls np.nanmean
-        weighted: To perform a latitude weighted calculation
-                  for regular lat/lon grids. Default=False
-        **kwargs:
-            kwargs recognised by the how function
+    Parameters
+    ----------
+    dataarray :
+        Xarray data object (must have geospatial coordinates).
+    geodataframe :
+        Geopandas Dataframe containing the polygons for aggregations
+    how :
+        method used to apply mask. Default='mean', which calls np.nanmean
+    weights :
+        Provide weights for aggregation, also accepts recognised keys for weights, e.g.
+        'latitude'
+    lat_key/lon_key :
+        key for latitude/longitude variable, default behaviour is to detect variable keys.
+    extra_reduce_dims :
+        any additional dimensions to aggregate over when reducing over spatial dimensions
+    mask_dim :
+        dimension that will be created after the reduction of the spatial dimensions, default = `"FID"`
+    return_as :
+        what format to return the data object, `"pandas"` or `"xarray"`. Work In Progress
+    how_label :
+        label to append to variable name in returned object, default is `how`
+    kwargs :
+        kwargs recognised by the how function
 
     Returns:
         A data array with dimensions [features] + [data.dims not in ['lat','lon']].
