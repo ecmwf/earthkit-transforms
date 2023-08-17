@@ -257,9 +257,9 @@ def reduce(dataarray, how="mean", how_weights=None, how_dropna=False, **kwargs):
     # If weighted, use xarray weighted methods
     if how_weights is not None:
         # First check that how-method is compatible with weights:
-        assert how_method.__name__ in WEIGHTED_HOW_METHODS, (
-            f"Selected reduction method ({how}) is not compatible with weights"
-        )
+        assert (
+            how_method.__name__ in WEIGHTED_HOW_METHODS
+        ), f"Selected reduction method ({how}) is not compatible with weights"
         # Create any standard weights, i.e. latitude
         if isinstance(weights, str):
             weights = WEIGHTS_DICT[weights](dataarray)

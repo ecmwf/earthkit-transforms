@@ -2,6 +2,7 @@ import numpy as np
 import xarray as xr
 import typing as T
 
+
 # TODO: Replace with method from meteokit
 def nanaverage(data, weights=None, **kwargs):
     """A merge of the functionality of np.nanmean and np.average.
@@ -161,51 +162,52 @@ WEIGHTS_DICT = {
     "latitude": _latitude_weights,
 }
 
+
 def get_how(how: str):
     try:
         how = HOW_DICT[how]
     except KeyError:
         try:
-            module, function = how.split('.')
+            module, function = how.split(".")
             how = getattr(globals()[ALLOWED_LIBS[module]], function)
         except KeyError:
-            raise ValueError(
-                f'method must come from one of {ALLOWED_LIBS}')
+            raise ValueError(f"method must come from one of {ALLOWED_LIBS}")
         except AttributeError:
-            raise AttributeError(f'module \'{module}\' has no attribute '
-                                    f'\'{function}\'')
-
+            raise AttributeError(f"module '{module}' has no attribute " f"'{function}'")
 
 
 STANDARD_AXIS_KEYS = {
-    'y': ['lat', 'latitude'],
-    'x': ['lon', 'long', 'longitude'],
-    't': ['time', 'valid_time'],
+    "y": ["lat", "latitude"],
+    "x": ["lon", "long", "longitude"],
+    "t": ["time", "valid_time"],
 }
+
 
 def get_dim_key(
     dataarray: T.Union[xr.DataArray, xr.Dataset],
     axis: str,
 ):
-    '''
+    """
     Return the key of the dimension
-    '''
+    """
     # First check if the axis value is in any dim:
     for dim in dataarray.dims:
-        if 'axis' in dataarray[dim].attrs and dataarray[dim].attrs['axis'].lower()==axis.lower():
+        if (
+            "axis" in dataarray[dim].attrs
+            and dataarray[dim].attrs["axis"].lower() == axis.lower()
+        ):
             return dim
-    
+
     # Then check if any dims match our "standard" axis
     for dim in dataarray.dims:
         if dim in STANDARD_AXIS_KEYS.get(axis.lower()):
             return dim
-    
+
     # We have not been able to detect, so return the axis key
-    return  axis
+    return axis
 
 
 def get_spatial_dims(dataarray, lat_key, lon_key):
-
     # Get the geospatial dimensions of the data. In the case of regular data this
     #  will be 'lat' and 'lon'. For irregular data it could be any dimensions
     lat_dims = dataarray.coords[lat_key].dims
@@ -214,8 +216,7 @@ def get_spatial_dims(dataarray, lat_key, lon_key):
     # Assert that latitude and longitude have the same dimensions
     #   (irregular data, e.g. x&y or obs)
     # or the dimensions are themselves (regular data, 'lat'&'lon')
-    assert (
-        (lat_dims == lon_dims) or
-        ((lat_dims == (lat_key,)) and (lon_dims) == (lon_key,))
+    assert (lat_dims == lon_dims) or (
+        (lat_dims == (lat_key,)) and (lon_dims) == (lon_key,)
     )
-    return list(set(lat_dims+lon_dims))
+    return list(set(lat_dims + lon_dims))

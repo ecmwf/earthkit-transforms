@@ -6,7 +6,13 @@ import numpy as np
 
 import typing as T
 
-from earthkit.climate.tools import get_how, get_dim_key, get_spatial_dims, WEIGHTS_DICT, nanaverage
+from earthkit.climate.tools import (
+    get_how,
+    get_dim_key,
+    get_spatial_dims,
+    WEIGHTS_DICT,
+    nanaverage,
+)
 from earthkit.climate import aggregate
 
 
@@ -17,18 +23,21 @@ def transform_from_latlon(lat, lon):
     """
     from affine import Affine
 
-    trans = Affine.translation(lon[0] - (lon[1] - lon[0])/2, lat[0] - (lat[1] - lat[0])/2)
+    trans = Affine.translation(
+        lon[0] - (lon[1] - lon[0]) / 2, lat[0] - (lat[1] - lat[0]) / 2
+    )
     scale = Affine.scale(lon[1] - lon[0], lat[1] - lat[0])
 
     return trans * scale
 
+
 def rasterize(
     shape_list: T.List,
     coords: xr.core.coordinates.Coordinates,
-    lat_key: str = 'latitude',
-    lon_key: str = 'longitude',
+    lat_key: str = "latitude",
+    lon_key: str = "longitude",
     dtype: type = int,
-    **kwargs
+    **kwargs,
 ):
     """Rasterize a list of geometries onto the given xarray coordinates.
     This only works for regular and contiguous latitude and longitude grids.
@@ -56,20 +65,14 @@ def rasterize(
     transform = transform_from_latlon(coords[lat_key], coords[lon_key])
     out_shape = (len(coords[lat_key]), len(coords[lon_key]))
     raster = features.rasterize(
-        shape_list, out_shape=out_shape,
-        transform=transform,
-        dtype=dtype, **kwargs
+        shape_list, out_shape=out_shape, transform=transform, dtype=dtype, **kwargs
     )
     spatial_coords = {lat_key: coords[lat_key], lon_key: coords[lon_key]}
     return xr.DataArray(raster, coords=spatial_coords, dims=(lat_key, lon_key))
 
 
-def mask_contains_points(
-        shape_list, coords,
-        lat_key='lat', lon_key='lon',
-        **kwargs
-):
-    '''
+def mask_contains_points(shape_list, coords, lat_key="lat", lon_key="lon", **kwargs):
+    """
     Return a mask array for the spatial points of data that
     lie within shapes in shape_list.
     Function uses matplotlib.Path so can accept a list of points,
@@ -77,7 +80,7 @@ def mask_contains_points(
     It was initially included for use with irregular data but has been
     constructed to also accept regular data and return in the same
     format as the rasterize function.
-    '''
+    """
     import matplotlib.path as mpltPath
 
     lat_dims = coords[lat_key].dims
@@ -86,11 +89,8 @@ def mask_contains_points(
     #   (irregular data, e.g. x,y or obs)
     # or the dimensions are themselves (regular data) but we will probably
     # just use the rasterize function for the regular case
-    assert (
-        (lat_dims==lon_dims) or
-        (lat_dims==(lat_key,) and lon_dims==(lon_key,))
-    )
-    if (lat_dims==(lat_key,) and lon_dims==(lon_key,)):
+    assert (lat_dims == lon_dims) or (lat_dims == (lat_key,) and lon_dims == (lon_key,))
+    if lat_dims == (lat_key,) and lon_dims == (lon_key,):
         lon_full, lat_full = np.meshgrid(
             coords[lon_key].values,
             coords[lat_key].values,
@@ -101,23 +101,27 @@ def mask_contains_points(
             coords[lat_key].values,
         )
     # convert lat lon pairs to to points:
-    points = list(zip(
-        lon_full.flat,
-        lat_full.flat,
-    ))
+    points = list(
+        zip(
+            lon_full.flat,
+            lat_full.flat,
+        )
+    )
 
     # get spatial dims and create output array:
-    spatial_dims = list(set(lat_dims+lon_dims))
+    spatial_dims = list(set(lat_dims + lon_dims))
     outdata_shape = [len(coords[dim]) for dim in spatial_dims]
-    outdata = np.zeros(outdata_shape).astype(bool)*np.nan
+    outdata = np.zeros(outdata_shape).astype(bool) * np.nan
     # loop over shapes and mask any point that is in the shape
     for shape in shape_list:
         for shp in shape[0]:
             shape_exterior = shp.exterior.coords.xy
-            shape_exterior = list(zip(
-                list(shape_exterior[0]),   # longitudes
-                list(shape_exterior[1]),   # latitudes
-            ))
+            shape_exterior = list(
+                zip(
+                    list(shape_exterior[0]),  # longitudes
+                    list(shape_exterior[1]),  # latitudes
+                )
+            )
             path = mpltPath.Path(shape_exterior)
             outdata.flat[path.contains_points(points)] = True
 
@@ -128,7 +132,7 @@ def mask_contains_points(
 
 
 def geopandas_to_shape_list(geodataframe):
-    return [row[1]['geometry'] for row in geodataframe.iterrows()]
+    return [row[1]["geometry"] for row in geodataframe.iterrows()]
 
 
 def _shape_mask_iterator(shapes, target, regular_grid=True, **kwargs):
@@ -142,10 +146,7 @@ def _shape_mask_iterator(shapes, target, regular_grid=True, **kwargs):
     else:
         mask_function = mask_contains_points
     for shape in shapes:
-        shape_da = mask_function(
-            [shape], target.coords,
-            **kwargs
-        )
+        shape_da = mask_function([shape], target.coords, **kwargs)
         yield shape_da
 
 
@@ -160,19 +161,16 @@ def shapes_to_mask(shapes, target, regular_grid=True, **kwargs):
         mask_function = rasterize
     else:
         mask_function = mask_contains_points
-    
-    return [
-        mask_function([shape], target.coords, **kwargs)
-        for shape in shapes
-    ]
+
+    return [mask_function([shape], target.coords, **kwargs) for shape in shapes]
 
 
 def masks(
     dataarray: T.Union[xr.DataArray, xr.Dataset],
     geodataframe: gpd.GeoDataFrame,
-    mask_dim: str = 'FID',
+    mask_dim: str = "FID",
     # regular_grid: bool = True,
-    **kwargs
+    **kwargs,
 ):
     """
     Apply multiple shape masks to some gridded data. Each feauture in shape is treated as an individual mask to apply to
@@ -193,15 +191,21 @@ def masks(
     masked_arrays = []
     for mask in _shape_mask_iterator(geodataframe, dataarray, **kwargs):
         masked_arrays.append(dataarray.where(mask))
-    
+
     if isinstance(mask_dim, str):
-        mask_dim_values = geodataframe.get(mask_dim, np.arange(len(masked_arrays))).to_numpy()
+        mask_dim_values = geodataframe.get(
+            mask_dim, np.arange(len(masked_arrays))
+        ).to_numpy()
     elif isinstance(mask_dim, dict):
-        assert len(mask_dim)==1, 'If provided as a dictionary, mask_dim should have onlly one key value pair'
+        assert (
+            len(mask_dim) == 1
+        ), "If provided as a dictionary, mask_dim should have onlly one key value pair"
         mask_dim, mask_dim_values = mask_dim.items()
     else:
-        raise ValueError('Unrecognised format for mask_dim, should be a string or length one dictionary')
-    
+        raise ValueError(
+            "Unrecognised format for mask_dim, should be a string or length one dictionary"
+        )
+
     out = xr.concat(masked_arrays, dim=mask_dim)
     out = out.assign_coords({mask_dim: mask_dim_values})
 
@@ -213,9 +217,9 @@ def masks(
 def reduce(
     dataarray: T.Union[xr.DataArray, xr.Dataset],
     geodataframe: gpd.GeoDataFrame,
-    **kwargs
+    **kwargs,
 ):
-    '''
+    """
     Apply a shape object to an xarray.DataArray object using the specified 'how' method. Geospatial coordinates
     (lat and lon) are reduced to a dimension representing the list of features in the shape object.
 
@@ -232,15 +236,18 @@ def reduce(
         A data array with dimensions [features] + [data.dims not in ['lat','lon']].
         Each slice of layer corresponds to a feature in layer.
 
-    '''
+    """
 
     if isinstance(dataarray, xr.DataArray):
         return _reduce_dataarray(dataarray, geodataframe, **kwargs)
     else:
-        if kwargs.get("return_as", "pandas") in ['xarray']:
-            return xr.Dataset([
-                _reduce_dataarray(dataarray[var], geodataframe, **kwargs) for var in dataarray.data_vars
-            ])
+        if kwargs.get("return_as", "pandas") in ["xarray"]:
+            return xr.Dataset(
+                [
+                    _reduce_dataarray(dataarray[var], geodataframe, **kwargs)
+                    for var in dataarray.data_vars
+                ]
+            )
         else:
             out = geodataframe
             for var in dataarray.data_vars:
@@ -256,12 +263,12 @@ def _reduce_dataarray(
     lat_key: T.Union[None, str] = None,
     lon_key: T.Union[None, str] = None,
     extra_reduce_dims: T.Union[list, str] = [],
-    mask_dim: str = 'FID',
-    return_as: str = 'pandas',
+    mask_dim: str = "FID",
+    return_as: str = "pandas",
     how_label: T.Union[str, None] = None,
-    **kwargs
+    **kwargs,
 ):
-    '''
+    """
     Apply a shape object to an xarray.DataArray object using the specified 'how' method. Geospatial coordinates
     (lat and lon) are reduced to a dimension representing the list of features in the shape object.
 
@@ -278,30 +285,28 @@ def _reduce_dataarray(
         A data array with dimensions [features] + [data.dims not in ['lat','lon']].
         Each slice of layer corresponds to a feature in layer.
 
-    '''
+    """
     # If how is string, fetch function from dictionary:
     if isinstance(how, str):
         how_label = deepcopy(how)
         how = get_how(how)
-    
+
     if isinstance(extra_reduce_dims, str):
         extra_reduce_dims = [extra_reduce_dims]
-    
+
     assert isinstance(how, T.Callable), f"how must be a callable"
 
     if lat_key is None:
-        lat_key = get_dim_key(dataarray, 'y')
+        lat_key = get_dim_key(dataarray, "y")
     if lon_key is None:
-        lon_key = get_dim_key(dataarray, 'x')
+        lon_key = get_dim_key(dataarray, "x")
 
     spatial_dims = get_spatial_dims(dataarray, lat_key, lon_key)
-    
-    
+
     # Create any standard weights, i.e. latitude
     if isinstance(weights, str):
         weights = WEIGHTS_DICT[weights](dataarray)
-        
-    
+
     red_kwargs = {}
     reduced_list = []
     for mask in _shape_mask_iterator(geodataframe, dataarray, **kwargs):
@@ -311,36 +316,46 @@ def _reduce_dataarray(
         if weights is not None:
             w_dataarray = dataarray.weighted(weights)
 
-        reduced = this.reduce(how, dim=spatial_dims+extra_reduce_dims, **red_kwargs).compute()
+        reduced = this.reduce(
+            how, dim=spatial_dims + extra_reduce_dims, **red_kwargs
+        ).compute()
         reduced = reduced.assign_attrs(dataarray.attrs)
         reduced_list.append(reduced)
         # context.debug(f"Shapes.average reduced ({i}): {reduced} \n{i}")
 
     if isinstance(mask_dim, str):
-        mask_dim_values = geodataframe.get(mask_dim, np.arange(len(reduced_list))).to_numpy()
+        mask_dim_values = geodataframe.get(
+            mask_dim, np.arange(len(reduced_list))
+        ).to_numpy()
     elif isinstance(mask_dim, dict):
-        assert len(mask_dim)==1, 'If provided as a dictionary, mask_dim should have onlly one key value pair'
+        assert (
+            len(mask_dim) == 1
+        ), "If provided as a dictionary, mask_dim should have onlly one key value pair"
         mask_dim, mask_dim_values = mask_dim.items()
     else:
-        raise ValueError('Unrecognised format for mask_dim, should be a string or length one dictionary')
-    
+        raise ValueError(
+            "Unrecognised format for mask_dim, should be a string or length one dictionary"
+        )
+
     # TODO: Maybe this could be handled more succinctly by making better use of xarray/pandas interoperability
-    if return_as in ['xarray']:
+    if return_as in ["xarray"]:
         out = xr.concat(reduced_list, dim=mask_dim)
-        out = out.assign_coords(**{
-            mask_dim: (mask_dim, mask_dim_values),
-            "geometry": (mask_dim, [geom for geom in geodataframe['geometry']]),
-        })
+        out = out.assign_coords(
+            **{
+                mask_dim: (mask_dim, mask_dim_values),
+                "geometry": (mask_dim, [geom for geom in geodataframe["geometry"]]),
+            }
+        )
         out = out.assign_attrs(geodataframe.attrs)
     else:
         how_label = f"{dataarray.name}_{how_label or how.__name__}"
         if how_label in geodataframe:
-            how_label += '_reduced'
+            how_label += "_reduced"
         # If all dataarrays are single valued, convert to integer values
         if all([not red.shape for red in reduced_list]):
             reduced_list = [red.values for red in reduced_list]
-        
-        out = geodataframe.assign(**{how_label:reduced_list})
+
+        out = geodataframe.assign(**{how_label: reduced_list})
         out.attrs.update(dataarray.attrs)
 
     return out
