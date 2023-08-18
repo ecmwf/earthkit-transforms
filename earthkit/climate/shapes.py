@@ -137,16 +137,12 @@ def mask_contains_points(shape_list, coords, lat_key="lat", lon_key="lon", **kwa
 
 
 def geopandas_to_shape_list(geodataframe):
-    """
-    Iterate over rows of a geodataframe
-    """
+    """Iterate over rows of a geodataframe."""
     return [row[1]["geometry"] for row in geodataframe.iterrows()]
 
 
 def _shape_mask_iterator(shapes, target, regular_grid=True, **kwargs):
-    """
-    Method which iterates over shape mask methods.
-    """
+    """Method which iterates over shape mask methods."""
     if isinstance(shapes, gpd.GeoDataFrame):
         shapes = geopandas_to_shape_list(shapes)
     if regular_grid:
@@ -240,8 +236,8 @@ def reduce(
     **kwargs,
 ):
     """
-    Apply a shape object to an xarray.DataArray object using the specified 'how' method. 
-    
+    Apply a shape object to an xarray.DataArray object using the specified 'how' method.
+
     Geospatial coordinates are reduced to a dimension representing the list of features in the shape object.
 
     Parameters
@@ -306,7 +302,7 @@ def _reduce_dataarray(
 ):
     """
     Apply a shape object to an xarray.DataArray object using the specified 'how' method.
-     
+
     Geospatial coordinates are reduced to a dimension representing the list of features in the shape object.
 
     Parameters

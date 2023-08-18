@@ -16,4 +16,3 @@ dependencies:
 - xarray
 - pip:
   - earthkit.data@git+https://github.com/ecmwf/earthkit-data@develop
-

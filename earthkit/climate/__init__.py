@@ -23,11 +23,11 @@ except ImportError:  # pragma: no cover
     __version__ = "999"
 
 
-
 from earthkit.climate import aggregate, climatology
+
 try:
     from earthkit.data.utils.module_inputs_wrappers import transform_module_inputs
-except:
+except ImportError:
     pass
 else:
     import xarray as xr
