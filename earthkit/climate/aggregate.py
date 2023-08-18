@@ -1,5 +1,3 @@
-"""Module that contains generalised methods for aggregating xarray objects."""
-
 import xarray as xr
 
 from .tools import ALLOWED_LIBS, HOW_DICT, WEIGHTED_HOW_METHODS, WEIGHTS_DICT
@@ -214,10 +212,10 @@ def reduce(dataarray, how="mean", how_weights=None, how_dropna=False, **kwargs):
         Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
         If string, it must be an in-built xarray reduce method, a earthkit how method or any numpy method.
         In the case of duplicate names, method selection is first in the order: xarray, earthkit, numpy.
-        Otherwise it can be any function which can be called in the form f(x, axis=axis, **kwargs)
+        Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
         to return the result of reducing an np.ndarray over an integer valued axis
     how_weights (optional): str
-        Choose a recognised method to apply weighting. Currently availble methods are; ['latitude']
+        Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
     how_dropna (optional): str
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
@@ -226,8 +224,7 @@ def reduce(dataarray, how="mean", how_weights=None, how_dropna=False, **kwargs):
 
     Returns
     -------
-        A data array with dimensions [features] + [data.dims not in ['lat','lon']].
-        Each slice of layer corresponds to a feature in layer.
+        A data array with reduce dimensions removed.
 
     """
     # If latitude_weighted, build array of weights based on latitude.

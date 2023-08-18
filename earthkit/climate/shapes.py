@@ -16,8 +16,13 @@ from earthkit.climate.tools import (
 
 def transform_from_latlon(lat, lon):
     """
-    Return an Affine transformation of input 1D arrays of lat / lon.
+    Return an Affine transformation of input 1D arrays of lat and lon.
+
     This assumes that both lat and lon are regular and contiguous.
+
+    Parameters
+    ----------
+    lat/lon : arrays or lists of latitude and longitude
     """
     from affine import Affine
 
@@ -37,7 +42,8 @@ def rasterize(
     dtype: type = int,
     **kwargs,
 ):
-    """Rasterize a list of geometries onto the given xarray coordinates.
+    """
+    Rasterize a list of geometries onto the given xarray coordinates.
     This only works for regular and contiguous latitude and longitude grids.
 
     Parameters
@@ -71,8 +77,9 @@ def rasterize(
 
 def mask_contains_points(shape_list, coords, lat_key="lat", lon_key="lon", **kwargs):
     """
-    Return a mask array for the spatial points of data that
-    lie within shapes in shape_list.
+    Return a mask array for the spatial points of data that lie within shapes in shape_list.
+
+
     Function uses matplotlib.Path so can accept a list of points,
     this is much faster than shapely.
     It was initially included for use with irregular data but has been
@@ -130,11 +137,16 @@ def mask_contains_points(shape_list, coords, lat_key="lat", lon_key="lon", **kwa
 
 
 def geopandas_to_shape_list(geodataframe):
+    """
+    Iterate over rows of a geodataframe
+    """
     return [row[1]["geometry"] for row in geodataframe.iterrows()]
 
 
 def _shape_mask_iterator(shapes, target, regular_grid=True, **kwargs):
-    """Method which iterates over shape mask methods."""
+    """
+    Method which iterates over shape mask methods.
+    """
     if isinstance(shapes, gpd.GeoDataFrame):
         shapes = geopandas_to_shape_list(shapes)
     if regular_grid:
@@ -149,6 +161,7 @@ def _shape_mask_iterator(shapes, target, regular_grid=True, **kwargs):
 def shapes_to_mask(shapes, target, regular_grid=True, **kwargs):
     """
     Method which creates a list of mask dataarrays.
+
     If possible use the shape_mask_iterator.
     """
     if isinstance(shapes, gpd.GeoDataFrame):
@@ -172,7 +185,7 @@ def masks(
     Apply multiple shape masks to some gridded data.
 
     Each feauture in shape is treated as an individual mask to apply to
-    data. NOTE: The data provided is returned with an additional dimension equal in
+    data. The data provided is returned with an additional dimension equal in
     length to the number of features in the shape object, this can result in very
     large files which will slow down your workflow. It may be better to loop
     over individual features, or directly apply the mask with the ct.shapes.average
@@ -227,8 +240,9 @@ def reduce(
     **kwargs,
 ):
     """
-    Apply a shape object to an xarray.DataArray object using the specified 'how' method. Geospatial
-    coordinates are reduced to a dimension representing the list of features in the shape object.
+    Apply a shape object to an xarray.DataArray object using the specified 'how' method. 
+    
+    Geospatial coordinates are reduced to a dimension representing the list of features in the shape object.
 
     Parameters
     ----------
@@ -246,9 +260,9 @@ def reduce(
     extra_reduce_dims :
         any additional dimensions to aggregate over when reducing over spatial dimensions
     mask_dim :
-        dimension that will be created after the reduction of the spatial dimensions, default = `"FID"`
+        dimension that will be created after the reduction of the spatial dimensions, default = `FID`
     return_as :
-        what format to return the data object, `"pandas"` or `"xarray"`. Work In Progress
+        what format to return the data object, `pandas` or `xarray`. Work In Progress
     how_label :
         label to append to variable name in returned object, default is `how`
     kwargs :
@@ -256,7 +270,7 @@ def reduce(
 
     Returns
     -------
-        A data array with dimensions [features] + [data.dims not in ['lat','lon']].
+        A data array with dimensions `features` + `data.dims not in 'lat','lon'`.
         Each slice of layer corresponds to a feature in layer.
 
     """
@@ -291,8 +305,9 @@ def _reduce_dataarray(
     **kwargs,
 ):
     """
-    Apply a shape object to an xarray.DataArray object using the specified 'how' method. Geospatial
-    coordinates are reduced to a dimension representing the list of features in the shape object.
+    Apply a shape object to an xarray.DataArray object using the specified 'how' method.
+     
+    Geospatial coordinates are reduced to a dimension representing the list of features in the shape object.
 
     Parameters
     ----------

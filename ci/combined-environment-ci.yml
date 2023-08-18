@@ -1,0 +1,19 @@
+channels:
+- conda-forge
+- nodefaults
+dependencies:
+- make
+- mypy
+- myst-parser
+- numpy
+- pip
+- pre-commit
+- pydata-sphinx-theme
+- pytest
+- pytest-cov
+- sphinx
+- sphinx-autoapi
+- xarray
+- pip:
+  - earthkit.data@git+https://github.com/ecmwf/earthkit-data@develop
+
