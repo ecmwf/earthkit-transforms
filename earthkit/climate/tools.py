@@ -62,10 +62,10 @@ def latitude_weights(latitudes, data_shape=None, lat_dims=None):
     ----------
     latitudes: numpy.array
         Latitude values to calculate weights
-    data_shape (optional): list
+    data_shape  : list
         The shape of the data which the weights apply to,
         default is the shape of `latitudes`
-    lat_dims (optional): integer or list
+    lat_dims  : integer or list
         The dimension indices that corresponde to the latitude data,
         default is the shape of the latitudes array. If latitudes is a multi-dimensional,
         then order of latitudes must be in the same order as the lat_dims.

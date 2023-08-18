@@ -9,7 +9,7 @@
 import os
 import sys
 
-from earthkit import climate
+import earthkit.climate as climate
 
 sys.path.insert(0, os.path.abspath("../"))
 

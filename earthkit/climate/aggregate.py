@@ -206,7 +206,7 @@ def reduce(dataarray, how="mean", how_weights=None, how_dropna=False, **kwargs):
 
     Parameters
     ----------
-    data : xr.DataArray or xr.Dataset
+    dataarray : xr.DataArray or xr.Dataset
         Data object to reduce
     how: str or callable
         Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
@@ -214,12 +214,12 @@ def reduce(dataarray, how="mean", how_weights=None, how_dropna=False, **kwargs):
         In the case of duplicate names, method selection is first in the order: xarray, earthkit, numpy.
         Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
         to return the result of reducing an np.ndarray over an integer valued axis
-    how_weights (optional): str
+    how_weights : str
         Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
-    how_dropna (optional): str
+    how_dropna : str
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
-    **kwargs:
+    **kwargs :
         kwargs recognised by the how :func: `reduce`
 
     Returns
@@ -280,18 +280,19 @@ def rolling_reduce(
     ----------
     dataarray : xr.DataArray
         Data over which the moving window is applied according to the reduction method.
-    **windows : (see documentation for xarray.dataarray.rolling)
+    windows : 
         windows for the rolling groups, for example `time=10` to perform a reduction
         in the time dimension with a bin size of 10. the rolling groups can be defined
-        over any number of dimensions.
-    min_periods (optional) : integer (see documentation for xarray.dataarray.rolling)
+        over any number of dimensions. **see documentation for xarray.dataarray.rolling**.
+    min_periods : integer 
         The minimum number of observations in the window required to have a value
         (otherwise result is NaN). Default is to set **min_periods** equal to the size of the window.
-    center (optional): bool (see documentation for xarray.dataarray.rolling)
-        Set the labels at the centre of the window.
-    how_reduce (optional) : str,
+        **see documentation for xarray.dataarray.rolling**
+    center : bool
+        Set the labels at the centre of the window, **see documentation for xarray.dataarray.rolling**.
+    how_reduce : str,
         Function to be applied for reduction. Default is 'mean'.
-    how_dropna (optional): str
+    how_dropna : str
         Determine if dimension is removed from the output when we have at least one NaN or
         all NaN. **how_dropna** can be 'None', 'any' or 'all'. Default is 'any'.
     **kwargs :
