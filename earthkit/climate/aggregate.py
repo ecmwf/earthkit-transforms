@@ -1,6 +1,14 @@
+import typing as T
+from copy import deepcopy
+
+import numpy as np
 import xarray as xr
 
-from .tools import ALLOWED_LIBS, HOW_DICT, WEIGHTED_HOW_METHODS, WEIGHTS_DICT
+from .tools import (
+    WEIGHTED_HOW_METHODS,
+    WEIGHTS_DICT,
+    get_how,
+)
 
 #: Mapping from pandas frequency strings to xarray time groups
 _PANDAS_FREQUENCIES = {
@@ -197,12 +205,19 @@ def _pandas_frequency_and_bins(
     return freq, bins
 
 
-def reduce(dataarray, how="mean", how_weights=None, how_dropna=False, **kwargs):
+def _reduce_dataarray(
+    dataarray: xr.DataArray,
+    how: T.Union[T.Callable, str] = "mean",
+    weights: T.Union[None, str, np.ndarray] = None,
+    how_label: str = "",
+    how_dropna=False,
+    **kwargs,
+):
     """
     Reduce an xarray.dataarray or xarray.dataset using a specified `how` method.
 
     With the option to apply weights either directly or using a specified
-    `how_weights` method.
+    `weights` method.
 
     Parameters
     ----------
@@ -214,7 +229,7 @@ def reduce(dataarray, how="mean", how_weights=None, how_dropna=False, **kwargs):
         In the case of duplicate names, method selection is first in the order: xarray, earthkit, numpy.
         Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
         to return the result of reducing an np.ndarray over an integer valued axis
-    how_weights : str
+    weights : str
         Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
     how_dropna : str
         Choose how to drop nan values.
@@ -227,48 +242,83 @@ def reduce(dataarray, how="mean", how_weights=None, how_dropna=False, **kwargs):
         A data array with reduce dimensions removed.
 
     """
-    # If latitude_weighted, build array of weights based on latitude.
-    if how_weights is not None:
-        weights = WEIGHTS_DICT.get(how_weights)(dataarray)
-        kwargs.update(dict(weights=weights))
-
-    in_built_how_methods = [
-        method for method in dir(dataarray) if not method.startswith("_")
-    ]
-    # If how is string, fetch function from dictionary:
-    if isinstance(how, str):
-        if how in in_built_how_methods:
-            return dataarray.__getattribute__(how)(**kwargs)
-        else:
-            try:
-                how_method = HOW_DICT[how]
-            except KeyError:
-                try:
-                    module, function = how.split(".")
-                    how_method = getattr(globals()[ALLOWED_LIBS[module]], function)
-                except KeyError:
-                    raise ValueError(f"method must come from one of {ALLOWED_LIBS}")
-                except AttributeError:
-                    raise AttributeError(
-                        f"module '{module}' has no attribute " f"'{function}'"
-                    )
-    else:
-        how_method = how
-
     # If weighted, use xarray weighted methods
-    if how_weights is not None:
-        # First check that how-method is compatible with weights:
-        assert (
-            how_method.__name__ in WEIGHTED_HOW_METHODS
-        ), f"Selected reduction method ({how}) is not compatible with weights"
+    if weights is not None:
         # Create any standard weights, i.e. latitude
         if isinstance(weights, str):
             weights = WEIGHTS_DICT[weights](dataarray)
+        # We ensure the callable is always a string
+        if callable(how):
+            how = how.__name__
+        # map any alias methods:
+        how = WEIGHTED_HOW_METHODS.get(how, how)
+
         dataarray = dataarray.weighted(weights)
 
-    reduced = dataarray.reduce(how_method, **kwargs)
+        red_array = dataarray.__getattribute__(how)(**kwargs)
 
-    return reduced
+    else:
+        # If how is string, fetch function from dictionary:
+        if isinstance(how, str):
+            if how in dir(dataarray):
+                red_array = dataarray.__getattribute__(how)(**kwargs)
+            else:
+                how_label = deepcopy(how)
+                how = get_how(how)
+        assert isinstance(how, T.Callable), f"how method not recognised: {how}"
+
+        red_array = dataarray.reduce(how, **kwargs)
+
+    if how_label:
+        red_array = red_array.rename(f"{red_array.name}_{how_label}")
+
+    if how_dropna:
+        red_array = red_array.dropna(how_dropna)
+
+    return red_array
+
+
+def reduce(
+    dataarray: T.Union[xr.DataArray, xr.Dataset],
+    **kwargs,
+):
+    """
+    Reduce an xarray.dataarray or xarray.dataset using a specified `how` method.
+
+    With the option to apply weights either directly or using a specified
+    `weights` method.
+
+    Parameters
+    ----------
+    dataarray : xr.DataArray or xr.Dataset
+        Data object to reduce
+    how: str or callable
+        Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
+        If string, it must be an in-built xarray reduce method, a earthkit how method or any numpy method.
+        In the case of duplicate names, method selection is first in the order: xarray, earthkit, numpy.
+        Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
+        to return the result of reducing an np.ndarray over an integer valued axis
+    weights : str
+        Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
+    how_label : str
+        Label to append to the name of the variable in the reduced object
+    how_dropna : str
+        Choose how to drop nan values.
+        Default is None and na values are preserved. Options are 'any' and 'all'.
+    **kwargs :
+        kwargs recognised by the how :func: `reduce`
+
+    Returns
+    -------
+        A data array with reduce dimensions removed.
+
+    """
+    if isinstance(dataarray, xr.DataArray):
+        return _reduce_dataarray(dataarray, **kwargs)
+    else:
+        return xr.Dataset(
+            [_reduce_dataarray(dataarray[var], **kwargs) for var in dataarray.data_vars]
+        )
 
 
 def rolling_reduce(

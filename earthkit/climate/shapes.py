@@ -10,7 +10,6 @@ from earthkit.climate.tools import (
     get_dim_key,
     get_how,
     get_spatial_dims,
-    nanaverage,
 )
 
 
@@ -290,7 +289,7 @@ def reduce(
 def _reduce_dataarray(
     dataarray: xr.DataArray,
     geodataframe: gpd.GeoDataFrame,
-    how: T.Union[T.Callable, str] = nanaverage,
+    how: T.Union[T.Callable, str] = "mean",
     weights: T.Union[None, str, np.ndarray] = None,
     lat_key: T.Union[None, str] = None,
     lon_key: T.Union[None, str] = None,
@@ -339,11 +338,10 @@ def _reduce_dataarray(
     if isinstance(how, str):
         how_label = deepcopy(how)
         how = get_how(how)
+    assert isinstance(how, T.Callable), f"how must be a callable: {how}"
 
     if isinstance(extra_reduce_dims, str):
         extra_reduce_dims = [extra_reduce_dims]
-
-    assert isinstance(how, T.Callable), "how must be a callable"
 
     if lat_key is None:
         lat_key = get_dim_key(dataarray, "y")
@@ -379,7 +377,7 @@ def _reduce_dataarray(
     elif isinstance(mask_dim, dict):
         assert (
             len(mask_dim) == 1
-        ), "If provided as a dictionary, mask_dim should have onlly one key value pair"
+        ), "If provided as a dictionary, mask_dim should have only one key value pair"
         mask_dim, mask_dim_values = mask_dim.items()
     else:
         raise ValueError(

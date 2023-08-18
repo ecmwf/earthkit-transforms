@@ -62,10 +62,10 @@ def latitude_weights(latitudes, data_shape=None, lat_dims=None):
     ----------
     latitudes: numpy.array
         Latitude values to calculate weights
-    data_shape  : list
+    data_shape (optional): list
         The shape of the data which the weights apply to,
         default is the shape of `latitudes`
-    lat_dims  : integer or list
+    lat_dims (optional): integer or list
         The dimension indices that corresponde to the latitude data,
         default is the shape of the latitudes array. If latitudes is a multi-dimensional,
         then order of latitudes must be in the same order as the lat_dims.
@@ -123,7 +123,7 @@ def _latitude_weights(dataarray: xr.DataArray, lat_dim_names=["latitude", "lat"]
     # )
 
 
-HOW_DICT = {
+HOW_METHODS = {
     "average": nanaverage,
     "mean": np.nanmean,
     "stddev": np.nanstd,
@@ -142,14 +142,16 @@ HOW_DICT = {
 
 WEIGHTED_HOW_METHODS = {
     "average": "mean",
-    "mean": "mean",
+    # "mean": "mean",
     "nanmean": "mean",
     "stddev": "std",
-    "std": "std",
+    # "std": "std",
     "stdev": "std",
-    "sum": "sum",
+    # "sum": "sum",
+    # "sum_of_squares": "sum_of_squares",
+    # "sum_of_weights": "sum_of_weights",
     "q": "quantile",
-    "quantile": "quantile",
+    # "quantile": "quantile",
     # "percentile": np.nanpercentile,
     # "p": np.nanpercentile,
 }
@@ -166,9 +168,9 @@ WEIGHTS_DICT = {
 }
 
 
-def get_how(how: str):
+def get_how(how: str, how_methods=HOW_METHODS):
     try:
-        how = HOW_DICT[how]
+        how = how_methods[how]
     except KeyError:
         try:
             module, function = how.split(".")
