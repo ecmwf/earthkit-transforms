@@ -280,11 +280,11 @@ def rolling_reduce(
     ----------
     dataarray : xr.DataArray
         Data over which the moving window is applied according to the reduction method.
-    windows : 
+    windows :
         windows for the rolling groups, for example `time=10` to perform a reduction
         in the time dimension with a bin size of 10. the rolling groups can be defined
         over any number of dimensions. **see documentation for xarray.dataarray.rolling**.
-    min_periods : integer 
+    min_periods : integer
         The minimum number of observations in the window required to have a value
         (otherwise result is NaN). Default is to set **min_periods** equal to the size of the window.
         **see documentation for xarray.dataarray.rolling**
