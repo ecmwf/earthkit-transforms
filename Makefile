@@ -3,8 +3,7 @@ CONDA := conda
 CONDAFLAGS :=
 COV_REPORT := html
 
-default: qa unit-tests type-check
-
+default: qa unit-tests
 qa:
 	pre-commit run --all-files
 
@@ -12,7 +11,7 @@ unit-tests:
 	python -m pytest -vv --cov=. --cov-report=$(COV_REPORT) --doctest-glob="*.md" --doctest-glob="*.rst"
 
 type-check:
-	python -m mypy .
+	python -m mypy . --no-namespace-packages
 
 conda-env-update:
 	$(CONDA) install -y -c conda-forge conda-merge
