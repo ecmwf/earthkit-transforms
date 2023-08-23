@@ -179,6 +179,7 @@ def get_how(how: str, how_methods=HOW_METHODS):
             raise ValueError(f"method must come from one of {ALLOWED_LIBS}")
         except AttributeError:
             raise AttributeError(f"module '{module}' has no attribute " f"'{function}'")
+    return how
 
 
 STANDARD_AXIS_KEYS = {

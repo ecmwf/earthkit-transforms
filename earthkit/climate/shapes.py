@@ -13,7 +13,7 @@ from earthkit.climate.tools import (
 )
 
 
-def transform_from_latlon(lat, lon):
+def _transform_from_latlon(lat, lon):
     """
     Return an Affine transformation of input 1D arrays of lat and lon.
 
@@ -65,7 +65,7 @@ def rasterize(
     """
     from rasterio import features
 
-    transform = transform_from_latlon(coords[lat_key], coords[lon_key])
+    transform = _transform_from_latlon(coords[lat_key], coords[lon_key])
     out_shape = (len(coords[lat_key]), len(coords[lon_key]))
     raster = features.rasterize(
         shape_list, out_shape=out_shape, transform=transform, dtype=dtype, **kwargs
@@ -135,7 +135,7 @@ def mask_contains_points(shape_list, coords, lat_key="lat", lon_key="lon", **kwa
     return outarray
 
 
-def geopandas_to_shape_list(geodataframe):
+def _geopandas_to_shape_list(geodataframe):
     """Iterate over rows of a geodataframe."""
     return [row[1]["geometry"] for row in geodataframe.iterrows()]
 
@@ -143,7 +143,7 @@ def geopandas_to_shape_list(geodataframe):
 def _shape_mask_iterator(shapes, target, regular_grid=True, **kwargs):
     """Method which iterates over shape mask methods."""
     if isinstance(shapes, gpd.GeoDataFrame):
-        shapes = geopandas_to_shape_list(shapes)
+        shapes = _geopandas_to_shape_list(shapes)
     if regular_grid:
         mask_function = rasterize
     else:
@@ -160,7 +160,7 @@ def shapes_to_mask(shapes, target, regular_grid=True, **kwargs):
     If possible use the shape_mask_iterator.
     """
     if isinstance(shapes, gpd.GeoDataFrame):
-        shapes = geopandas_to_shape_list(shapes)
+        shapes = _geopandas_to_shape_list(shapes)
     if regular_grid:
         mask_function = rasterize
     else:
@@ -232,6 +232,7 @@ def masks(
 def reduce(
     dataarray: T.Union[xr.DataArray, xr.Dataset],
     geodataframe: gpd.GeoDataFrame,
+    # how: T.Union[T.Callable, str] = "mean",
     **kwargs,
 ):
     """
@@ -269,6 +270,7 @@ def reduce(
         Each slice of layer corresponds to a feature in layer.
 
     """
+    # kwargs.update({"how": how})
     if isinstance(dataarray, xr.DataArray):
         return _reduce_dataarray(dataarray, geodataframe, **kwargs)
     else:
@@ -384,13 +386,13 @@ def _reduce_dataarray(
             "Unrecognised format for mask_dim, should be a string or length one dictionary"
         )
 
-    # TODO: Maybe this could be handled more succinctly by making better use of xarray/pandas interoperability
     if return_as in ["xarray"]:
         out = xr.concat(reduced_list, dim=mask_dim)
         out = out.assign_coords(
             **{
                 mask_dim: (mask_dim, mask_dim_values),
-                "geometry": (mask_dim, [geom for geom in geodataframe["geometry"]]),
+                #  TODO: the following creates an xarray that cannot be saved to netCDF
+                # "geometry": (mask_dim, [geom for geom in geodataframe["geometry"]]),
             }
         )
         out = out.assign_attrs(geodataframe.attrs)
@@ -398,11 +400,21 @@ def _reduce_dataarray(
         how_label = f"{dataarray.name}_{how_label or how.__name__}"
         if how_label in geodataframe:
             how_label += "_reduced"
-        # If all dataarrays are single valued, convert to integer values
-        if all([not red.shape for red in reduced_list]):
-            reduced_list = [red.values for red in reduced_list]
+        
+        # Out dims for attributes:
+        out_dims = {
+            dim: dataarray.coords.get(dim).values if dim in dataarray.coords else None
+            for dim in reduced_list[0].dims
+        }
+        # # If all dataarrays are single valued, convert to integer values
+        # if all([not red.shape for red in reduced_list]):
+        reduced_list = [red.values for red in reduced_list]
+        # reduced_list = [red.to_dataframe() for red in reduced_list]
 
         out = geodataframe.assign(**{how_label: reduced_list})
-        out.attrs.update(dataarray.attrs)
+        out.attrs.update({
+            f"{dataarray.name}_attrs": dataarray.attrs,
+            f"{how_label}_dims": out_dims,
+        })
 
     return out
