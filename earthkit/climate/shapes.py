@@ -171,7 +171,7 @@ def shapes_to_mask(shapes, target, regular_grid=True, **kwargs):
 
 def masks(
     dataarray: T.Union[xr.DataArray, xr.Dataset],
-    geodataframe: gpd.GeoDataFrame,
+    geodataframe: gpd.geodataframe.GeoDataFrame,
     mask_dim: str = "FID",
     # regular_grid: bool = True,
     **kwargs,
@@ -232,7 +232,6 @@ def masks(
 def reduce(
     dataarray: T.Union[xr.DataArray, xr.Dataset],
     geodataframe: gpd.GeoDataFrame,
-    # how: T.Union[T.Callable, str] = "mean",
     **kwargs,
 ):
     """
@@ -299,6 +298,7 @@ def _reduce_dataarray(
     mask_dim: str = "FID",
     return_as: str = "pandas",
     how_label: T.Union[str, None] = None,
+    squeeze: bool = True,
     **kwargs,
 ):
     """
@@ -386,6 +386,9 @@ def _reduce_dataarray(
             "Unrecognised format for mask_dim, should be a string or length one dictionary"
         )
 
+    if squeeze:
+        reduced_list = [red_data.squeeze() for red_data in reduced_list]
+
     if return_as in ["xarray"]:
         out = xr.concat(reduced_list, dim=mask_dim)
         out = out.assign_coords(
@@ -400,7 +403,7 @@ def _reduce_dataarray(
         how_label = f"{dataarray.name}_{how_label or how.__name__}"
         if how_label in geodataframe:
             how_label += "_reduced"
-        
+
         # Out dims for attributes:
         out_dims = {
             dim: dataarray.coords.get(dim).values if dim in dataarray.coords else None
@@ -412,9 +415,11 @@ def _reduce_dataarray(
         # reduced_list = [red.to_dataframe() for red in reduced_list]
 
         out = geodataframe.assign(**{how_label: reduced_list})
-        out.attrs.update({
-            f"{dataarray.name}_attrs": dataarray.attrs,
-            f"{how_label}_dims": out_dims,
-        })
+        out.attrs.update(
+            {
+                f"{dataarray.name}_attrs": dataarray.attrs,
+                f"{how_label}_dims": out_dims,
+            }
+        )
 
     return out

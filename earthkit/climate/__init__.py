@@ -23,27 +23,24 @@ except ImportError:  # pragma: no cover
     __version__ = "999"
 
 
-from earthkit.climate import aggregate, climatology
+from earthkit.climate import aggregate, climatology, shapes
 
-try:
-    from earthkit.data.utils.module_inputs_wrappers import transform_module_inputs
-except ImportError:
-    pass
-else:
-    import xarray as xr
+# try:
+#     from earthkit.data.utils.module_inputs_wrappers import transform_module_inputs
+# except ImportError:
+#     pass
+# else:
+from earthkit.data.utils.module_inputs_wrapper import transform_module_inputs
 
-    KWARG_TYPES = {
-        "dataarray": xr.DataArray,
-        "dataset": xr.Dataset,
-    }
+KWARG_TYPES = {
+    # "dataarray": xr.DataArray,
+    # "dataset": xr.Dataset,
+}
 
-    aggregate = transform_module_inputs(aggregate, kwarg_types=KWARG_TYPES)
+aggregate = transform_module_inputs(aggregate, kwarg_types=KWARG_TYPES)
 
-    climatology = transform_module_inputs(climatology, kwarg_types=KWARG_TYPES)
+climatology = transform_module_inputs(climatology, kwarg_types=KWARG_TYPES)
 
+shapes = transform_module_inputs(shapes, kwarg_types=KWARG_TYPES)
 
-__all__ = [
-    "__version__",
-    "aggregate",
-    "climatology",
-]
+__all__ = ["__version__", "aggregate", "climatology", "shapes"]
