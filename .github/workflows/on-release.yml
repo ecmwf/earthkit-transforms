@@ -4,11 +4,6 @@ on:
   push:
     tags:
     - "*"
-  # release:
-  #   types:
-  #   - published
-  #   - released
-  #   - prereleased
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -83,7 +78,7 @@ jobs:
     - name: Check wheels
       run: |
         cd dist || exit
-        $CONDA/bin/python -m pip install earthkit-climate*.whl || exit
+        $CONDA/bin/python -m pip install earthkit_climate*.whl || exit
         $CONDA/bin/python -m twine check * || exit
         $CONDA/bin/python -c "from earthkit import climate"
     - name: Publish a Python distribution to PyPI
@@ -92,3 +87,4 @@ jobs:
       with:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
+
