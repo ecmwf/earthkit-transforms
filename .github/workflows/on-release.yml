@@ -1,9 +1,8 @@
-name: on-push
+name: on-release
 
 on:
-  push:
-    tags:
-    - '*'
+  release:
+    types: [published]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
