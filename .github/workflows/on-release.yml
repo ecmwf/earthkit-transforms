@@ -3,7 +3,7 @@ name: on-release
 on:
   push:
     tags:
-      - "*"
+    - "*"
   # release:
   #   types:
   #   - published
