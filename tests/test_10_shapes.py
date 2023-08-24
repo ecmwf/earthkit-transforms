@@ -1,13 +1,19 @@
-import geopandas as gpd
-import xarray as xr
-
+from earthkit import data as ek_data
 from earthkit.climate import shapes
+from earthkit.data.testing import earthkit_remote_test_data_file
 
-DATASET = xr.open_dataset(
-    "tests/data/era5_temperature_europe_2015.grib", chunks={"time": 48}
+REMOTE_ERA5_FILE = earthkit_remote_test_data_file(
+    "test-data", "era5_temperature_europe_2015.grib"
 )
+ERA5_DATA = ek_data.from_source("url", REMOTE_ERA5_FILE)
+DATASET = ERA5_DATA.to_xarray()
 DATAARRAY = DATASET.t2m
-GEODATAFRAME = gpd.read_file("tests/data/nuts/NUTS_RG_60M_2021_4326_LEVL_0.geojson")
+
+REMOTE_NUTS_FILE = earthkit_remote_test_data_file(
+    "test-data", "NUTS_RG_60M_2021_4326_LEVL_0.geojson"
+)
+NUTS_DATA = ek_data.from_source("url", REMOTE_NUTS_FILE)
+GEODATAFRAME = NUTS_DATA.to_pandas()
 
 
 def test_shapes_masks():
