@@ -2,6 +2,8 @@ channels:
 - conda-forge
 - nodefaults
 dependencies:
+- earthkit-data
+- geopandas
 - make
 - mypy
 - myst-parser
@@ -14,5 +16,4 @@ dependencies:
 - sphinx
 - sphinx-autoapi
 - xarray
-- pip:
-  - earthkit.data@git+https://github.com/ecmwf/earthkit-data@develop
+

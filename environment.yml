@@ -19,5 +19,5 @@ dependencies:
 - numpy
 - xarray
 - pip
-- pip:
-  - earthkit-data
+- geopandas
+- earthkit-data
