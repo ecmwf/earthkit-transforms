@@ -1,0 +1,18 @@
+channels:
+- conda-forge
+- nodefaults
+dependencies:
+- earthkit-data
+- geopandas
+- make
+- mypy
+- myst-parser
+- numpy
+- pip
+- pre-commit
+- pydata-sphinx-theme
+- pytest
+- pytest-cov
+- sphinx
+- sphinx-autoapi
+- xarray

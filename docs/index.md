@@ -6,7 +6,7 @@ Statistical analysis tools for meteorological and climate data..
 :caption: 'Contents:'
 :maxdepth: 2
 
-API Reference <_api/earthkit-climate/index>
+API Reference <_api/index>
 ```
 
 # Indices and tables

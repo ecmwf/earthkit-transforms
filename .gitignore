@@ -11,6 +11,7 @@ docs/_api/
 # gitignore template for Jupyter Notebooks
 # website: http://jupyter.org/
 
+dev-notebook.ipynb
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 
@@ -213,7 +214,7 @@ docs/_build/
 target/
 
 # Jupyter Notebook
-notebooks/test_data
+test_data
 
 # IPython
 

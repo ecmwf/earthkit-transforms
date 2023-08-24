@@ -1,8 +1,14 @@
-"""Module that contains generalised methods for aggregating xarray objects."""
+import typing as T
+from copy import deepcopy
 
+import numpy as np
 import xarray as xr
 
-from ._options import ALLOWED_LIBS, HOW_DICT, WEIGHT_DICT
+from .tools import (
+    WEIGHTED_HOW_METHODS,
+    WEIGHTS_DICT,
+    get_how,
+)
 
 #: Mapping from pandas frequency strings to xarray time groups
 _PANDAS_FREQUENCIES = {
@@ -138,7 +144,7 @@ def _groupby_time(
     frequency: str = None,
     bin_widths: int = None,
     squeeze: bool = True,
-    time_dim="time",
+    time_dim: str = "time",
 ):
     if frequency is None:
         try:
@@ -199,68 +205,120 @@ def _pandas_frequency_and_bins(
     return freq, bins
 
 
-def reduce(data, how="mean", how_weights=None, how_dropna=False, **kwargs):
+def _reduce_dataarray(
+    dataarray: xr.DataArray,
+    how: T.Union[T.Callable, str] = "mean",
+    weights: T.Union[None, str, np.ndarray] = None,
+    how_label: str = "",
+    how_dropna=False,
+    **kwargs,
+):
     """
     Reduce an xarray.dataarray or xarray.dataset using a specified `how` method.
 
     With the option to apply weights either directly or using a specified
-    `how_weights` method.
+    `weights` method.
 
     Parameters
     ----------
-    data : xr.DataArray or xr.Dataset
+    dataarray : xr.DataArray or xr.Dataset
         Data object to reduce
     how: str or callable
         Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
         If string, it must be an in-built xarray reduce method, a earthkit how method or any numpy method.
         In the case of duplicate names, method selection is first in the order: xarray, earthkit, numpy.
-        Otherwise it can be any function which can be called in the form f(x, axis=axis, **kwargs)
+        Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
         to return the result of reducing an np.ndarray over an integer valued axis
-    how_weights (optional): str
-        Choose a recognised method to apply weighting. Currently availble methods are; ['latitude']
-    how_dropna (optional): str
+    weights : str
+        Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
+    how_dropna : str
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
-    **kwargs:
+    **kwargs :
         kwargs recognised by the how :func: `reduce`
 
     Returns
     -------
-        A data array with dimensions [features] + [data.dims not in ['lat','lon']].
-        Each slice of layer corresponds to a feature in layer.
+        A data array with reduce dimensions removed.
 
     """
-    # If latitude_weighted, build array of weights based on latitude.
-    if how_weights is not None:
-        weights = WEIGHT_DICT.get(how_weights)(data)
-        kwargs.update(dict(weights=weights))
+    # If weighted, use xarray weighted methods
+    if weights is not None:
+        # Create any standard weights, i.e. latitude
+        if isinstance(weights, str):
+            weights = WEIGHTS_DICT[weights](dataarray)
+        # We ensure the callable is always a string
+        if callable(how):
+            how = how.__name__
+        # map any alias methods:
+        how = WEIGHTED_HOW_METHODS.get(how, how)
 
-    in_built_how_methods = [
-        method for method in dir(data) if not method.startswith("_")
-    ]
-    # If how is string, fetch function from dictionary:
-    if isinstance(how, str):
-        if how in in_built_how_methods:
-            return data.__getattribute__(how)(**kwargs)
-        else:
-            try:
-                how_method = HOW_DICT[how]
-            except KeyError:
-                try:
-                    module, function = how.split(".")
-                    how_method = getattr(globals()[ALLOWED_LIBS[module]], function)
-                except KeyError:
-                    raise ValueError(f"method must come from one of {ALLOWED_LIBS}")
-                except AttributeError:
-                    raise AttributeError(
-                        f"module '{module}' has no attribute " f"'{function}'"
-                    )
+        dataarray = dataarray.weighted(weights)
+
+        red_array = dataarray.__getattribute__(how)(**kwargs)
+
     else:
-        how_method = how
+        # If how is string, fetch function from dictionary:
+        if isinstance(how, str):
+            if how in dir(dataarray):
+                red_array = dataarray.__getattribute__(how)(**kwargs)
+            else:
+                how_label = deepcopy(how)
+                how = get_how(how)
+        assert isinstance(how, T.Callable), f"how method not recognised: {how}"
 
-    reduced = data.reduce(how_method, **kwargs)
+        red_array = dataarray.reduce(how, **kwargs)
 
-    return reduced
+    if how_label:
+        red_array = red_array.rename(f"{red_array.name}_{how_label}")
+
+    if how_dropna:
+        red_array = red_array.dropna(how_dropna)
+
+    return red_array
+
+
+def reduce(
+    dataarray: T.Union[xr.DataArray, xr.Dataset],
+    **kwargs,
+):
+    """
+    Reduce an xarray.dataarray or xarray.dataset using a specified `how` method.
+
+    With the option to apply weights either directly or using a specified
+    `weights` method.
+
+    Parameters
+    ----------
+    dataarray : xr.DataArray or xr.Dataset
+        Data object to reduce
+    how: str or callable
+        Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
+        If string, it must be an in-built xarray reduce method, a earthkit how method or any numpy method.
+        In the case of duplicate names, method selection is first in the order: xarray, earthkit, numpy.
+        Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
+        to return the result of reducing an np.ndarray over an integer valued axis
+    weights : str
+        Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
+    how_label : str
+        Label to append to the name of the variable in the reduced object
+    how_dropna : str
+        Choose how to drop nan values.
+        Default is None and na values are preserved. Options are 'any' and 'all'.
+    **kwargs :
+        kwargs recognised by the how :func: `reduce`
+
+    Returns
+    -------
+        A data array with reduce dimensions removed.
+
+    """
+    if isinstance(dataarray, xr.DataArray):
+        return _reduce_dataarray(dataarray, **kwargs)
+    else:
+        return xr.Dataset(
+            [_reduce_dataarray(dataarray[var], **kwargs) for var in dataarray.data_vars]
+        )
 
 
 def rolling_reduce(
@@ -272,18 +330,19 @@ def rolling_reduce(
     ----------
     dataarray : xr.DataArray
         Data over which the moving window is applied according to the reduction method.
-    **windows : (see documentation for xarray.dataarray.rolling)
+    windows :
         windows for the rolling groups, for example `time=10` to perform a reduction
         in the time dimension with a bin size of 10. the rolling groups can be defined
-        over any number of dimensions.
-    min_periods (optional) : integer (see documentation for xarray.dataarray.rolling)
+        over any number of dimensions. **see documentation for xarray.dataarray.rolling**.
+    min_periods : integer
         The minimum number of observations in the window required to have a value
         (otherwise result is NaN). Default is to set **min_periods** equal to the size of the window.
-    center (optional): bool (see documentation for xarray.dataarray.rolling)
-        Set the labels at the centre of the window.
-    how_reduce (optional) : str,
+        **see documentation for xarray.dataarray.rolling**
+    center : bool
+        Set the labels at the centre of the window, **see documentation for xarray.dataarray.rolling**.
+    how_reduce : str,
         Function to be applied for reduction. Default is 'mean'.
-    how_dropna (optional): str
+    how_dropna : str
         Determine if dimension is removed from the output when we have at least one NaN or
         all NaN. **how_dropna** can be 'None', 'any' or 'all'. Default is 'any'.
     **kwargs :

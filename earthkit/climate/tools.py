@@ -1,3 +1,5 @@
+import typing as T
+
 import numpy as np
 import xarray as xr
 
@@ -109,18 +111,19 @@ def _latitude_weights(dataarray: xr.DataArray, lat_dim_names=["latitude", "lat"]
 
     Detects the spatial dimensions latitude must be a coordinate of the dataarray.
     """
-    data_shape = dataarray.shape
+    # data_shape = dataarray.shape
     for lat in lat_dim_names:
-        lat_array = dataarray.coords.get(lat, None)
+        lat_array = dataarray.coords.get(lat)
         if lat_array is not None:
-            break
-    lat_dim_indices = [dataarray.dims.index(dim) for dim in lat_array.dims]
-    return latitude_weights(
-        lat_array.values, data_shape=data_shape, lat_dims=lat_dim_indices
-    )
+            return np.cos(np.radians(lat_array.latitude))
+    #         break
+    # lat_dim_indices = [dataarray.dims.index(dim) for dim in lat_array.dims]
+    # return latitude_weights(
+    #     lat_array.values, data_shape=data_shape, lat_dims=lat_dim_indices
+    # )
 
 
-HOW_DICT = {
+HOW_METHODS = {
     "average": nanaverage,
     "mean": np.nanmean,
     "stddev": np.nanstd,
@@ -137,13 +140,87 @@ HOW_DICT = {
 }
 
 
+WEIGHTED_HOW_METHODS = {
+    "average": "mean",
+    # "mean": "mean",
+    "nanmean": "mean",
+    "stddev": "std",
+    # "std": "std",
+    "stdev": "std",
+    # "sum": "sum",
+    # "sum_of_squares": "sum_of_squares",
+    # "sum_of_weights": "sum_of_weights",
+    "q": "quantile",
+    # "quantile": "quantile",
+    # "percentile": np.nanpercentile,
+    # "p": np.nanpercentile,
+}
+
+
 # Libraries which are usable with reduce
 ALLOWED_LIBS = {
     "numpy": "np",
 }
 
-
 # Dictionary containing recognised weight functions.
-WEIGHT_DICT = {
+WEIGHTS_DICT = {
     "latitude": _latitude_weights,
 }
+
+
+def get_how(how: str, how_methods=HOW_METHODS):
+    try:
+        how = how_methods[how]
+    except KeyError:
+        try:
+            module, function = how.split(".")
+            how = getattr(globals()[ALLOWED_LIBS[module]], function)
+        except KeyError:
+            raise ValueError(f"method must come from one of {ALLOWED_LIBS}")
+        except AttributeError:
+            raise AttributeError(f"module '{module}' has no attribute " f"'{function}'")
+    return how
+
+
+STANDARD_AXIS_KEYS = {
+    "y": ["lat", "latitude"],
+    "x": ["lon", "long", "longitude"],
+    "t": ["time", "valid_time"],
+}
+
+
+def get_dim_key(
+    dataarray: T.Union[xr.DataArray, xr.Dataset],
+    axis: str,
+):
+    """Return the key of the dimension."""
+    # First check if the axis value is in any dim:
+    for dim in dataarray.dims:
+        if (
+            "axis" in dataarray[dim].attrs
+            and dataarray[dim].attrs["axis"].lower() == axis.lower()
+        ):
+            return dim
+
+    # Then check if any dims match our "standard" axis
+    for dim in dataarray.dims:
+        if dim in STANDARD_AXIS_KEYS.get(axis.lower()):
+            return dim
+
+    # We have not been able to detect, so return the axis key
+    return axis
+
+
+def get_spatial_dims(dataarray, lat_key, lon_key):
+    # Get the geospatial dimensions of the data. In the case of regular data this
+    #  will be 'lat' and 'lon'. For irregular data it could be any dimensions
+    lat_dims = dataarray.coords[lat_key].dims
+    lon_dims = dataarray.coords[lon_key].dims
+
+    # Assert that latitude and longitude have the same dimensions
+    #   (irregular data, e.g. x&y or obs)
+    # or the dimensions are themselves (regular data, 'lat'&'lon')
+    assert (lat_dims == lon_dims) or (
+        (lat_dims == (lat_key,)) and (lon_dims) == (lon_key,)
+    )
+    return list(set(lat_dims + lon_dims))
