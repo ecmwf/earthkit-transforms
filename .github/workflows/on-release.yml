@@ -1,11 +1,14 @@
 name: on-release
 
 on:
-  release:
-    types:
-    - published
-    - released
-    - prereleased
+  push:
+    tags:
+      - "*"
+  # release:
+  #   types:
+  #   - published
+  #   - released
+  #   - prereleased
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
