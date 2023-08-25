@@ -77,7 +77,8 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          password: ${{ secrets.PYPI_TOKEN }}
+    # BOPEN METHOD:
     # steps:
     # - uses: actions/checkout@v3
     # - name: Install packages
