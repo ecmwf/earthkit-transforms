@@ -16,3 +16,6 @@ dependencies:
 - sphinx
 - sphinx-autoapi
 - xarray
+- pip:
+  - git+https://github.com/ecmwf/multiurl
+

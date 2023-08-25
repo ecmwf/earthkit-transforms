@@ -269,10 +269,7 @@ def reduce(
         Each slice of layer corresponds to a feature in layer.
 
     """
-    # kwargs.update({"how": how})
-    if isinstance(dataarray, xr.DataArray):
-        return _reduce_dataarray(dataarray, geodataframe, **kwargs)
-    else:
+    if isinstance(dataarray, xr.Dataset):
         if kwargs.get("return_as", "pandas") in ["xarray"]:
             return xr.Dataset(
                 [
@@ -285,6 +282,9 @@ def reduce(
             for var in dataarray.data_vars:
                 out = _reduce_dataarray(dataarray[var], geodataframe, **kwargs)
             return out
+    else:
+        return _reduce_dataarray(dataarray, geodataframe, **kwargs)
+    
 
 
 def _reduce_dataarray(

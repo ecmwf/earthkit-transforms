@@ -259,15 +259,15 @@ def _reduce_dataarray(
 
     else:
         # If how is string, fetch function from dictionary:
-        if isinstance(how, str):
-            if how in dir(dataarray):
-                red_array = dataarray.__getattribute__(how)(**kwargs)
-            else:
+        if isinstance(how, str) and how in dir(dataarray):
+            red_array = dataarray.__getattribute__(how)(**kwargs)
+        else:
+            if isinstance(how, str):
                 how_label = deepcopy(how)
                 how = get_how(how)
-        assert isinstance(how, T.Callable), f"how method not recognised: {how}"
+            assert isinstance(how, T.Callable), f"how method not recognised: {how}"
 
-        red_array = dataarray.reduce(how, **kwargs)
+            red_array = dataarray.reduce(how, **kwargs)
 
     if how_label:
         red_array = red_array.rename(f"{red_array.name}_{how_label}")
@@ -313,12 +313,12 @@ def reduce(
         A data array with reduce dimensions removed.
 
     """
-    if isinstance(dataarray, xr.DataArray):
-        return _reduce_dataarray(dataarray, **kwargs)
-    else:
+    if isinstance(dataarray, (xr.Dataset)):
         return xr.Dataset(
             [_reduce_dataarray(dataarray[var], **kwargs) for var in dataarray.data_vars]
         )
+    else:
+        return _reduce_dataarray(dataarray, **kwargs)
 
 
 def rolling_reduce(
