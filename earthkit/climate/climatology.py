@@ -1,10 +1,12 @@
+import typing as T
+
 import xarray as xr
 
 from . import aggregate
 
 
 def mean(
-    dataarray: xr.DataArray,
+    dataarray: T.Union[xr.Dataset, xr.DataArray],
     frequency: str = None,
     bin_widths: int = None,
     time_dim: str = "time",
@@ -35,7 +37,7 @@ def mean(
 
 
 def stdev(
-    dataarray: xr.DataArray,
+    dataarray: T.Union[xr.Dataset, xr.DataArray],
     frequency: str = None,
     bin_widths: int = None,
     time_dim: str = "time",
@@ -63,7 +65,7 @@ def stdev(
     return aggregate.reduce(grouped_data, how="std", dim=time_dim)
 
 
-def median(dataarray: xr.DataArray, **kwargs) -> xr.DataArray:
+def median(dataarray: T.Union[xr.Dataset, xr.DataArray], **kwargs) -> xr.DataArray:
     """
     Calculate the climatological median.
 
@@ -88,7 +90,7 @@ def median(dataarray: xr.DataArray, **kwargs) -> xr.DataArray:
 
 
 def max(
-    dataarray: xr.DataArray,
+    dataarray: T.Union[xr.Dataset, xr.DataArray],
     frequency: str = None,
     bin_widths: int = None,
     time_dim: str = "time",
@@ -117,7 +119,7 @@ def max(
 
 
 def min(
-    dataarray: xr.DataArray,
+    dataarray: T.Union[xr.Dataset, xr.DataArray],
     frequency: str = None,
     bin_widths: int = None,
     time_dim: str = "time",

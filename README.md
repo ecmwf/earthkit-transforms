@@ -1,6 +1,6 @@
 # earthkit-climate
 
-A toolkit for statistical analysis of climate and related observational data.
+A toolkit for statistical analysis of temporal-geospatial data.
 
 **DISCLAIMER**
 This project is **BETA** and will be **Experimental** for the foreseeable future.

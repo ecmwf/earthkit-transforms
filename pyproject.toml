@@ -16,7 +16,7 @@ dependencies = [
   "xarray>=2022.3.0",
   "numpy>=1.18",
   "earthkit-data",
-  "geopandas",
+  "geopandas"
 ]
 description = "Statistical analysis tools for meteorological and climate data."
 dynamic = ["version"]

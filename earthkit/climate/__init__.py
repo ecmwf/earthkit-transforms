@@ -30,15 +30,10 @@ try:
 except ImportError:
     pass
 else:
-    KWARG_TYPES = {
-        # "dataarray": xr.DataArray,
-        # "dataset": xr.Dataset,
-    }
+    aggregate = transform_module_inputs(aggregate)
 
-    aggregate = transform_module_inputs(aggregate, kwarg_types=KWARG_TYPES)
+    climatology = transform_module_inputs(climatology)
 
-    climatology = transform_module_inputs(climatology, kwarg_types=KWARG_TYPES)
-
-    shapes = transform_module_inputs(shapes, kwarg_types=KWARG_TYPES)
+    shapes = transform_module_inputs(shapes)
 
 __all__ = ["__version__", "aggregate", "climatology", "shapes"]

@@ -28,7 +28,7 @@ _BIN_MAXES = {
 }
 
 
-def daily_mean(dataarray, **kwargs):
+def daily_mean(dataarray: T.Union[xr.Dataset, xr.DataArray], **kwargs):
     """
     Calculate the daily mean.
 
@@ -46,7 +46,7 @@ def daily_mean(dataarray, **kwargs):
     return resample(dataarray, frequency="D", dim="time", how="mean", **kwargs)
 
 
-def daily_max(dataarray, **kwargs):
+def daily_max(dataarray: T.Union[xr.Dataset, xr.DataArray], **kwargs):
     """
     Calculate the daily max.
 
@@ -64,7 +64,7 @@ def daily_max(dataarray, **kwargs):
     return resample(dataarray, frequency="D", dim="time", how="max", **kwargs)
 
 
-def daily_min(dataarray, **kwargs):
+def daily_min(dataarray: T.Union[xr.Dataset, xr.DataArray], **kwargs):
     """
     Calculate the daily min.
 
@@ -82,7 +82,7 @@ def daily_min(dataarray, **kwargs):
     return resample(dataarray, frequency="D", dim="time", how="min", **kwargs)
 
 
-def monthly_mean(dataarray, **kwargs):
+def monthly_mean(dataarray: T.Union[xr.Dataset, xr.DataArray], **kwargs):
     """
     Calculate the monthly mean.
 
@@ -101,7 +101,7 @@ def monthly_mean(dataarray, **kwargs):
 
 
 def resample(
-    dataarray: xr.DataArray,
+    dataarray: T.Union[xr.Dataset, xr.DataArray],
     frequency: str or int or float,
     dim: str = "time",
     how: str = "mean",
@@ -140,7 +140,7 @@ def resample(
 
 
 def _groupby_time(
-    dataarray: xr.DataArray,
+    dataarray: T.Union[xr.Dataset, xr.DataArray],
     frequency: str = None,
     bin_widths: int = None,
     squeeze: bool = True,
@@ -175,7 +175,7 @@ def _groupby_time(
 
 
 def _groupby_bins(
-    dataarray: xr.DataArray,
+    dataarray: T.Union[xr.Dataset, xr.DataArray],
     frequency: str,
     bin_widths: int,
     squeeze: bool,
@@ -280,6 +280,7 @@ def _reduce_dataarray(
 
 def reduce(
     dataarray: T.Union[xr.DataArray, xr.Dataset],
+    *args,
     **kwargs,
 ):
     """
@@ -314,14 +315,57 @@ def reduce(
 
     """
     if isinstance(dataarray, (xr.Dataset)):
-        return xr.Dataset(
-            [_reduce_dataarray(dataarray[var], **kwargs) for var in dataarray.data_vars]
-        )
+        out_ds = xr.Dataset().assign_attrs(dataarray.attrs)
+        for var in dataarray.data_vars:
+            out_da = _reduce_dataarray(dataarray[var], *args, **kwargs)
+            out_ds[out_da.name] = out_da
+        return out_ds
     else:
-        return _reduce_dataarray(dataarray, **kwargs)
+        return _reduce_dataarray(dataarray, *args, **kwargs)
 
 
 def rolling_reduce(
+    dataarray: T.Union[xr.Dataset, xr.DataArray], *args, **kwargs
+) -> xr.DataArray:
+    """Return reduced data using a moving window over which to apply the reduction.
+
+    Parameters
+    ----------
+    dataarray : xr.DataArray or xr.Dataset
+        Data over which the moving window is applied according to the reduction method.
+    windows :
+        windows for the rolling groups, for example `time=10` to perform a reduction
+        in the time dimension with a bin size of 10. the rolling groups can be defined
+        over any number of dimensions. **see documentation for xarray.dataarray.rolling**.
+    min_periods : integer
+        The minimum number of observations in the window required to have a value
+        (otherwise result is NaN). Default is to set **min_periods** equal to the size of the window.
+        **see documentation for xarray.dataarray.rolling**
+    center : bool
+        Set the labels at the centre of the window, **see documentation for xarray.dataarray.rolling**.
+    how_reduce : str,
+        Function to be applied for reduction. Default is 'mean'.
+    how_dropna : str
+        Determine if dimension is removed from the output when we have at least one NaN or
+        all NaN. **how_dropna** can be 'None', 'any' or 'all'. Default is 'any'.
+    **kwargs :
+        Any kwargs that are compatible with the select `how_reduce` method.
+
+    Returns
+    -------
+    xr.DataArray or xr.Dataset (as provided)
+    """
+    if isinstance(dataarray, (xr.Dataset)):
+        out_ds = xr.Dataset().assign_attrs(dataarray.attrs)
+        for var in dataarray.data_vars:
+            out_da = _rolling_reduce_dataarray(dataarray[var], *args, **kwargs)
+            out_ds[out_da.name] = out_da
+        return out_ds
+    else:
+        return _rolling_reduce_dataarray(dataarray, *args, **kwargs)
+
+
+def _rolling_reduce_dataarray(
     dataarray: xr.DataArray, how_reduce="mean", how_dropna="any", **kwargs
 ) -> xr.DataArray:
     """Return reduced data using a moving window over which to apply the reduction.
@@ -363,12 +407,10 @@ def rolling_reduce(
 
     # Any kwargs left after above reductions are kwargs for reduction method
     reduce_kwargs = kwargs
-    # print("rolling kwargs: ", rolling_kwargs)
     # Create rolling groups:
     data_rolling = dataarray.rolling(**rolling_kwargs)
-    # print("reduce kwargs: ", reduce_kwargs)
 
-    data_windowed = reduce(data_rolling, how=how_reduce, **reduce_kwargs)
+    data_windowed = _reduce_dataarray(data_rolling, how=how_reduce, **reduce_kwargs)
 
     data_windowed = _dropna(data_windowed, window_dims, how_dropna)
 

@@ -18,4 +18,3 @@ dependencies:
 - xarray
 - pip:
   - git+https://github.com/ecmwf/multiurl
-
