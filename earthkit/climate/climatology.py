@@ -2,14 +2,17 @@ import typing as T
 
 import xarray as xr
 
-from . import aggregate
+from earthkit.climate import aggregate, tools
 
 
+@tools.time_dim_decorator
+@tools.groupby_kwargs_decorator
+@tools.season_order_decorator
 def mean(
     dataarray: T.Union[xr.Dataset, xr.DataArray],
-    frequency: str = None,
-    bin_widths: int = None,
-    time_dim: str = "time",
+    time_dim: T.Union[str, None] = None,
+    groupby_kwargs: dict = {},
+    **reduce_kwargs,
 ) -> xr.DataArray:
     """
     Calculate the climatological mean.
@@ -25,22 +28,32 @@ def mean(
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
+    time_dim : str (optional)
+        Name of the time dimension in the data object, default behviour is to detect the
+        time dimension from the input object
+    **reduce_kwargs :
+        Any other kwargs that are accepted by `earthkit.climate.aggregate.reduce` (except how)
 
     Returns
     -------
     xr.DataArray
     """
     grouped_data = aggregate._groupby_time(
-        dataarray, frequency=frequency, bin_widths=bin_widths, time_dim=time_dim
+        dataarray,
+        time_dim=time_dim,
+        **groupby_kwargs,
     )
-    return aggregate.reduce(grouped_data, dim=time_dim)
+    return aggregate.reduce(grouped_data, how="mean", dim=time_dim, **reduce_kwargs)
 
 
+@tools.time_dim_decorator
+@tools.groupby_kwargs_decorator
+@tools.season_order_decorator
 def stdev(
     dataarray: T.Union[xr.Dataset, xr.DataArray],
-    frequency: str = None,
-    bin_widths: int = None,
-    time_dim: str = "time",
+    time_dim: T.Union[str, None] = None,
+    groupby_kwargs: dict = {},
+    **reduce_kwargs,
 ) -> xr.DataArray:
     """
     Calculate of the climatological standard deviation.
@@ -56,13 +69,22 @@ def stdev(
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
+    time_dim : str (optional)
+        Name of the time dimension in the data object, default behviour is to detect the
+        time dimension from the input object
+    **reduce_kwargs :
+        Any other kwargs that are accepted by `earthkit.climate.aggregate.reduce` (except how)
 
     Returns
     -------
     xr.DataArray
     """
-    grouped_data = aggregate._groupby_time(dataarray, frequency, bin_widths)
-    return aggregate.reduce(grouped_data, how="std", dim=time_dim)
+    grouped_data = aggregate._groupby_time(
+        dataarray,
+        time_dim=time_dim,
+        **groupby_kwargs,
+    )
+    return aggregate.reduce(grouped_data, how="std", dim=time_dim, **reduce_kwargs)
 
 
 def median(dataarray: T.Union[xr.Dataset, xr.DataArray], **kwargs) -> xr.DataArray:
@@ -80,6 +102,11 @@ def median(dataarray: T.Union[xr.Dataset, xr.DataArray], **kwargs) -> xr.DataArr
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
+    time_dim : str (optional)
+        Name of the time dimension in the data object, default behviour is to detect the
+        time dimension from the input object
+    **reduce_kwargs :
+        Any other kwargs that are accepted by `earthkit.climate.aggregate.reduce` (except how)
 
     Returns
     -------
@@ -89,11 +116,14 @@ def median(dataarray: T.Union[xr.Dataset, xr.DataArray], **kwargs) -> xr.DataArr
     return result.isel(quantile=0)
 
 
+@tools.time_dim_decorator
+@tools.groupby_kwargs_decorator
+@tools.season_order_decorator
 def max(
     dataarray: T.Union[xr.Dataset, xr.DataArray],
-    frequency: str = None,
-    bin_widths: int = None,
-    time_dim: str = "time",
+    time_dim: T.Union[str, None] = None,
+    groupby_kwargs: dict = {},
+    **reduce_kwargs,
 ) -> xr.DataArray:
     """
     Calculate the climatological maximum.
@@ -109,20 +139,32 @@ def max(
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
+    time_dim : str (optional)
+        Name of the time dimension in the data object, default behviour is to detect the
+        time dimension from the input object
+    **reduce_kwargs :
+        Any other kwargs that are accepted by `earthkit.climate.aggregate.reduce` (except how)
 
     Returns
     -------
     xr.DataArray
     """
-    grouped_data = aggregate._groupby_time(dataarray, frequency, bin_widths)
-    return aggregate.reduce(grouped_data, how="max", dim=time_dim)
+    grouped_data = aggregate._groupby_time(
+        dataarray,
+        time_dim=time_dim,
+        **groupby_kwargs,
+    )
+    return aggregate.reduce(grouped_data, how="max", dim=time_dim, **reduce_kwargs)
 
 
+@tools.time_dim_decorator
+@tools.groupby_kwargs_decorator
+@tools.season_order_decorator
 def min(
     dataarray: T.Union[xr.Dataset, xr.DataArray],
-    frequency: str = None,
-    bin_widths: int = None,
-    time_dim: str = "time",
+    time_dim: T.Union[str, None] = None,
+    groupby_kwargs: dict = {},
+    **reduce_kwargs,
 ) -> xr.DataArray:
     """
     Calculate the climatological minimum.
@@ -138,23 +180,33 @@ def min(
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
+    time_dim : str (optional)
+        Name of the time dimension in the data object, default behviour is to detect the
+        time dimension from the input object
+    **reduce_kwargs :
+        Any other kwargs that are accepted by `earthkit.climate.aggregate.reduce` (except how)
 
     Returns
     -------
     xr.DataArray
     """
-    grouped_data = aggregate._groupby_time(dataarray, frequency, bin_widths)
-    return aggregate.reduce(grouped_data, how="min", dim=time_dim)
+    grouped_data = aggregate._groupby_time(
+        dataarray,
+        time_dim=time_dim,
+        **groupby_kwargs,
+    )
+    return aggregate.reduce(grouped_data, how="min", dim=time_dim, **reduce_kwargs)
 
 
+@tools.time_dim_decorator
+@tools.groupby_kwargs_decorator
+@tools.season_order_decorator
 def quantiles(
     dataarray: xr.DataArray,
     quantiles: list,
-    frequency: str = None,
-    bin_widths: int = None,
-    skipna: bool = False,
-    time_dim: str = "time",
-    **kwargs,
+    time_dim: T.Union[str, None] = None,
+    groupby_kwargs: dict = {},
+    **reduce_kwargs,
 ) -> xr.DataArray:
     """
     Calculate a set of climatological quantiles.
@@ -172,13 +224,18 @@ def quantiles(
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
+    time_dim : str (optional)
+        Name of the time dimension in the data object, default behviour is to detect the
+        time dimension from the input object
+    **reduce_kwargs :
+        Any other kwargs that are accepted by `earthkit.climate.aggregate.reduce` (except how)
 
     Returns
     -------
     xr.DataArray
     """
     grouped_data = aggregate._groupby_time(
-        dataarray.chunk({time_dim: -1}), frequency, bin_widths
+        dataarray.chunk({time_dim: -1}), time_dim=time_dim, **groupby_kwargs
     )
     results = []
     for quantile in quantiles:
@@ -186,8 +243,7 @@ def quantiles(
             grouped_data.quantile(
                 q=quantile,
                 dim=time_dim,
-                skipna=skipna,
-                **kwargs,
+                **reduce_kwargs,
             )
         )
     result = xr.concat(results, dim="quantile")
@@ -215,6 +271,11 @@ def percentiles(
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
+    time_dim : str (optional)
+        Name of the time dimension in the data object, default behviour is to detect the
+        time dimension from the input object
+    **reduce_kwargs :
+        Any other kwargs that are accepted by `earthkit.climate.aggregate.reduce` (except how)
 
     Returns
     -------
@@ -232,12 +293,17 @@ def percentiles(
     return result
 
 
+@tools.time_dim_decorator
+@tools.groupby_kwargs_decorator
+@tools.season_order_decorator
 def anomaly(
     dataarray: xr.DataArray,
     climatology: xr.DataArray = None,
     climatology_range: tuple = (None, None),
-    frequency: str = None,
-    bin_widths: int = None,
+    time_dim: T.Union[str, None] = None,
+    groupby_kwargs: dict = {},
+    relative: bool = False,
+    **reduce_kwargs,
 ):
     """
     Calculate the anomaly from a reference climatology.
@@ -259,6 +325,13 @@ def anomaly(
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
+    time_dim : str (optional)
+        Name of the time dimension in the data object, default behviour is to detect the
+        time dimension from the input object
+    relative : bool (optional)
+        Return the relative anomaly, i.e. the percentage change w.r.t the climatological period
+    **reduce_kwargs :
+        Any other kwargs that are accepted by `earthkit.climate.climatology.mean`
 
     Returns
     -------
@@ -269,13 +342,75 @@ def anomaly(
             selection = dataarray.sel(time=slice(*climatology_range))
         else:
             selection = dataarray
-        climatology = mean(selection, frequency=frequency, bin_widths=bin_widths)
-    anomaly = aggregate._groupby_time(dataarray, frequency, bin_widths) - climatology
-    anomaly.assign_attrs(dataarray.attrs)
+        climatology = mean(
+            selection,
+            groupby_kwargs=groupby_kwargs,
+            **reduce_kwargs,
+            time_dim=time_dim,
+        )
+    anomaly_array = (
+        aggregate._groupby_time(dataarray, time_dim=time_dim, **groupby_kwargs)
+        - climatology
+    )
+    if relative:
+        anomaly_array = (
+            aggregate._groupby_time(anomaly_array, time_dim=time_dim, **groupby_kwargs)
+            / climatology
+        )
+        name_tag = "relative anomaly"
+        update_attrs = {"units": "%"}
+    else:
+        name_tag = "anomaly"
+        update_attrs = {}
 
-    if "standard_name" in anomaly.attrs:
-        anomaly.attrs["standard_name"] += "_anomaly"
-    if "long_name" in anomaly.attrs:
-        anomaly.attrs["long_name"] += " anomaly"
+    anomaly_array = aggregate.resample(
+        anomaly_array, how="mean", **reduce_kwargs, **groupby_kwargs, dim=time_dim
+    )
+    update_attrs = {**dataarray.attrs, **update_attrs}
+    if "standard_name" in update_attrs:
+        update_attrs["standard_name"] += f"_{name_tag.replace(' ', '_')}"
+    if "long_name" in anomaly_array.attrs:
+        update_attrs["long_name"] += f" {name_tag}"
 
-    return anomaly
+    anomaly_array = anomaly_array.assign_attrs(update_attrs)
+
+    return anomaly_array
+
+
+@tools.time_dim_decorator
+@tools.groupby_kwargs_decorator
+@tools.season_order_decorator
+def relative_anomaly(dataarray: xr.DataArray, *args, **kwargs):
+    """
+    Calculate the relative anomaly from a reference climatology, i.e. percentage change.
+
+    Parameters
+    ----------
+    dataarray : xr.DataArray
+        The DataArray over which to calculate the anomaly from the reference
+        climatology. Must contain a `time` dimension.
+    climatology :  (xr.DataArray, optional)
+        Reference climatology data against which the anomaly is to be calculated.
+        If not provided then the climatological mean is calculated from dataarray.
+    climatology_range : (list or tuple, optional)
+        Start and end year of the period to be used for the reference climatology. Default
+        is to use the entire time-series.
+    frequency : str (optional)
+        Valid options are `day`, `week` and `month`.
+    bin_widths : int or list (optional)
+        If `bin_widths` is an `int`, it defines the width of each group bin on
+        the frequency provided by `frequency`. If `bin_widths` is a sequence
+        it defines the edges of each bin, allowing for non-uniform bin widths.
+    time_dim : str (optional)
+        Name of the time dimension in the data object, default behviour is to detect the
+        time dimension from the input object
+    **reduce_kwargs :
+        Any other kwargs that are accepted by `earthkit.climate.climatology.mean`
+
+    Returns
+    -------
+    xr.DataArray
+    """
+    anomaly_xarray = anomaly(dataarray, *args, relative=True, **kwargs)
+
+    return anomaly_xarray

@@ -1,7 +1,51 @@
+import functools
 import typing as T
 
 import numpy as np
 import xarray as xr
+
+
+def time_dim_decorator(func):
+    @functools.wraps(func)
+    def wrapper(
+        dataarray: T.Union[xr.Dataset, xr.DataArray],
+        *args,
+        time_dim: T.Union[str, None] = None,
+        **kwargs,
+    ):
+        if time_dim is None:
+            time_dim = get_dim_key(dataarray, "t")
+        return func(dataarray, *args, time_dim=time_dim, **kwargs)
+
+    return wrapper
+
+
+GROUPBY_KWARGS = ["frequency", "bin_widths", "squeeze"]
+
+
+def groupby_kwargs_decorator(func):
+    @functools.wraps(func)
+    def wrapper(*args, groupby_kwargs: dict = {}, **kwargs):
+        new_kwargs = {}
+        for k, v in kwargs.copy().items():
+            if k in GROUPBY_KWARGS:
+                groupby_kwargs.setdefault(k, v)
+            else:
+                new_kwargs[k] = v
+        return func(*args, groupby_kwargs=groupby_kwargs, **new_kwargs)
+
+    return wrapper
+
+
+def season_order_decorator(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        result = func(*args, **kwargs)
+        if kwargs.get("frequency", "NOTseason") in ["season"]:
+            result.reindex(season=["DJF", "MAM", "JJA", "SON"])
+        return result
+
+    return wrapper
 
 
 # TODO: Replace with method from meteokit

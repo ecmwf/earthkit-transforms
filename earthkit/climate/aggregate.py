@@ -4,11 +4,7 @@ from copy import deepcopy
 import numpy as np
 import xarray as xr
 
-from .tools import (
-    WEIGHTED_HOW_METHODS,
-    WEIGHTS_DICT,
-    get_how,
-)
+from earthkit.climate import tools
 
 #: Mapping from pandas frequency strings to xarray time groups
 _PANDAS_FREQUENCIES = {
@@ -17,6 +13,7 @@ _PANDAS_FREQUENCIES = {
     "M": "month",
     "H": "hour",
 }
+_PANDAS_FREQUENCIES_R = {v: k for k, v in _PANDAS_FREQUENCIES.items()}
 
 #: The maximum limit of climatology time groups
 _BIN_MAXES = {
@@ -28,7 +25,12 @@ _BIN_MAXES = {
 }
 
 
-def daily_mean(dataarray: T.Union[xr.Dataset, xr.DataArray], **kwargs):
+@tools.time_dim_decorator
+def daily_mean(
+    dataarray: T.Union[xr.Dataset, xr.DataArray],
+    time_dim: T.Union[str, None] = None,
+    **kwargs,
+):
     """
     Calculate the daily mean.
 
@@ -43,10 +45,15 @@ def daily_mean(dataarray: T.Union[xr.Dataset, xr.DataArray], **kwargs):
     -------
     xr.DataArray
     """
-    return resample(dataarray, frequency="D", dim="time", how="mean", **kwargs)
+    return resample(dataarray, frequency="D", dim=time_dim, how="mean", **kwargs)
 
 
-def daily_max(dataarray: T.Union[xr.Dataset, xr.DataArray], **kwargs):
+@tools.time_dim_decorator
+def daily_max(
+    dataarray: T.Union[xr.Dataset, xr.DataArray],
+    time_dim: T.Union[str, None] = None,
+    **kwargs,
+):
     """
     Calculate the daily max.
 
@@ -61,10 +68,15 @@ def daily_max(dataarray: T.Union[xr.Dataset, xr.DataArray], **kwargs):
     -------
     xr.DataArray
     """
-    return resample(dataarray, frequency="D", dim="time", how="max", **kwargs)
+    return resample(dataarray, frequency="D", dim=time_dim, how="max", **kwargs)
 
 
-def daily_min(dataarray: T.Union[xr.Dataset, xr.DataArray], **kwargs):
+@tools.time_dim_decorator
+def daily_min(
+    dataarray: T.Union[xr.Dataset, xr.DataArray],
+    time_dim: T.Union[str, None] = None,
+    **kwargs,
+):
     """
     Calculate the daily min.
 
@@ -79,10 +91,15 @@ def daily_min(dataarray: T.Union[xr.Dataset, xr.DataArray], **kwargs):
     -------
     xr.DataArray
     """
-    return resample(dataarray, frequency="D", dim="time", how="min", **kwargs)
+    return resample(dataarray, frequency="D", dim=time_dim, how="min", **kwargs)
 
 
-def monthly_mean(dataarray: T.Union[xr.Dataset, xr.DataArray], **kwargs):
+@tools.time_dim_decorator
+def monthly_mean(
+    dataarray: T.Union[xr.Dataset, xr.DataArray],
+    time_dim: T.Union[str, None] = None,
+    **kwargs,
+):
     """
     Calculate the monthly mean.
 
@@ -97,7 +114,53 @@ def monthly_mean(dataarray: T.Union[xr.Dataset, xr.DataArray], **kwargs):
     -------
     xr.DataArray
     """
-    return resample(dataarray, frequency="M", dim="time", how="mean", **kwargs)
+    return resample(dataarray, frequency="M", dim=time_dim, how="mean", **kwargs)
+
+
+@tools.time_dim_decorator
+def monthly_max(
+    dataarray: T.Union[xr.Dataset, xr.DataArray],
+    time_dim: T.Union[str, None] = None,
+    **kwargs,
+):
+    """
+    Calculate the monthly max.
+
+    Parameters
+    ----------
+    dataarray : xr.DataArray
+        DataArray containing a `time` dimension.
+    **kwargs
+        Keyword arguments to be passed to :func:`resample`.
+
+    Returns
+    -------
+    xr.DataArray
+    """
+    return resample(dataarray, frequency="M", dim=time_dim, how="max", **kwargs)
+
+
+@tools.time_dim_decorator
+def monthly_min(
+    dataarray: T.Union[xr.Dataset, xr.DataArray],
+    time_dim: T.Union[str, None] = None,
+    **kwargs,
+):
+    """
+    Calculate the monthly min.
+
+    Parameters
+    ----------
+    dataarray : xr.DataArray
+        DataArray containing a `time` dimension.
+    **kwargs
+        Keyword arguments to be passed to :func:`resample`.
+
+    Returns
+    -------
+    xr.DataArray
+    """
+    return resample(dataarray, frequency="M", dim=time_dim, how="min", **kwargs)
 
 
 def resample(
@@ -116,7 +179,7 @@ def resample(
     Parameters
     ----------
     dataarray : xr.DataArray
-        DataArray containing a `time` dimension.
+        DataArray to be resampled.
     frequency : str, int, float
         The frequency at which to resample the chosen dimension. The format must be applicable
         to the chosen dimension.
@@ -132,6 +195,8 @@ def resample(
     -------
     xr.DataArray
     """
+    # Translate and xarray frequencies to pandas language:
+    frequency = _PANDAS_FREQUENCIES_R.get(frequency, frequency)
     resample = dataarray.resample(
         label=label, closed=closed, skipna=skipna, **{dim: frequency}, **kwargs
     )
@@ -142,7 +207,7 @@ def resample(
 def _groupby_time(
     dataarray: T.Union[xr.Dataset, xr.DataArray],
     frequency: str = None,
-    bin_widths: int = None,
+    bin_widths: T.Union[int, None] = None,
     squeeze: bool = True,
     time_dim: str = "time",
 ):
@@ -161,24 +226,23 @@ def _groupby_time(
         grouped_data = _groupby_bins(
             dataarray, frequency, bin_widths, squeeze, time_dim=time_dim
         )
+    else:
+        try:
+            grouped_data = dataarray.groupby(f"{time_dim}.{frequency}", squeeze=squeeze)
+        except AttributeError:
+            raise ValueError(
+                f"Invalid frequency '{frequency}' - see xarray documentation for "
+                f"a full list of valid frequencies."
+            )
 
-    try:
-        grouped_data = dataarray.groupby(f"{time_dim}.{frequency}", squeeze=squeeze)
-    except AttributeError:
-        raise ValueError(
-            f"Invalid frequency '{frequency}' - see xarray documentation for "
-            f"a full list of valid frequencies."
-        )
-    if frequency in ["season"]:
-        grouped_data = grouped_data.reindex(season=["DJF", "MAM", "JJA", "SON"])
     return grouped_data
 
 
 def _groupby_bins(
     dataarray: T.Union[xr.Dataset, xr.DataArray],
     frequency: str,
-    bin_widths: int,
-    squeeze: bool,
+    bin_widths: int = 1,
+    squeeze: bool = False,
     time_dim: str = "time",
 ):
     if not isinstance(bin_widths, (list, tuple)):
@@ -246,12 +310,12 @@ def _reduce_dataarray(
     if weights is not None:
         # Create any standard weights, i.e. latitude
         if isinstance(weights, str):
-            weights = WEIGHTS_DICT[weights](dataarray)
+            weights = tools.WEIGHTS_DICT[weights](dataarray)
         # We ensure the callable is always a string
         if callable(how):
             how = how.__name__
         # map any alias methods:
-        how = WEIGHTED_HOW_METHODS.get(how, how)
+        how = tools.WEIGHTED_HOW_METHODS.get(how, how)
 
         dataarray = dataarray.weighted(weights)
 
@@ -264,7 +328,7 @@ def _reduce_dataarray(
         else:
             if isinstance(how, str):
                 how_label = deepcopy(how)
-                how = get_how(how)
+                how = tools.get_how(how)
             assert isinstance(how, T.Callable), f"how method not recognised: {how}"
 
             red_array = dataarray.reduce(how, **kwargs)
