@@ -15,7 +15,7 @@ classifiers = [
 dependencies = [
   "xarray>=2022.3.0",
   "numpy>=1.18",
-  "earthkit-data",
+  "earthkit-data>=0.3.0",
   "geopandas"
 ]
 description = "Statistical analysis tools for meteorological and climate data."
