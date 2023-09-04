@@ -29,6 +29,7 @@ release = climate.__version__
 extensions = [
     "autoapi.extension",
     "myst_parser",
+    "nbsphinx",
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
 ]
