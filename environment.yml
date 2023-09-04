@@ -6,7 +6,8 @@ dependencies:
 - mypy
 - myst-parser
 - pre-commit
-- pydata-sphinx-theme
+# - pydata-sphinx-theme
+- sphinx-rtd-theme
 - pytest
 - pytest-cov
 - sphinx
