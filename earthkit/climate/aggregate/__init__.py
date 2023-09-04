@@ -1,4 +1,9 @@
-"""Aggregation tools for meteorological and climate data.."""
+"""
+Aggregation tools for meteorological and climate data..
+
+.. automodule:: earthkit.climate.aggregate.temporal
+  :noindex:
+"""
 
 
 from earthkit.climate.aggregate import climatology, spatial, temporal

@@ -4,6 +4,24 @@ import typing as T
 import numpy as np
 import xarray as xr
 
+#: Mapping from pandas frequency strings to xarray time groups
+_PANDAS_FREQUENCIES = {
+    "D": "dayofyear",
+    "W": "weekofyear",
+    "M": "month",
+    "H": "hour",
+}
+_PANDAS_FREQUENCIES_R = {v: k for k, v in _PANDAS_FREQUENCIES.items()}
+
+#: The maximum limit of climatology time groups
+_BIN_MAXES = {
+    "hour": 24,
+    "dayofyear": 366,
+    "weekofyear": 53,
+    "month": 12,
+    "season": 4,
+}
+
 
 def time_dim_decorator(func):
     @functools.wraps(func)

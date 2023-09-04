@@ -6,25 +6,6 @@ import xarray as xr
 
 from earthkit.climate.aggregate import tools
 
-#: Mapping from pandas frequency strings to xarray time groups
-_PANDAS_FREQUENCIES = {
-    "D": "dayofyear",
-    "W": "weekofyear",
-    "M": "month",
-    "H": "hour",
-}
-_PANDAS_FREQUENCIES_R = {v: k for k, v in _PANDAS_FREQUENCIES.items()}
-
-#: The maximum limit of climatology time groups
-_BIN_MAXES = {
-    "hour": 24,
-    "dayofyear": 366,
-    "weekofyear": 53,
-    "month": 12,
-    "season": 4,
-}
-
-
 @tools.time_dim_decorator
 def daily_mean(
     dataarray: T.Union[xr.Dataset, xr.DataArray],
@@ -196,7 +177,7 @@ def resample(
     xr.DataArray
     """
     # Translate and xarray frequencies to pandas language:
-    frequency = _PANDAS_FREQUENCIES_R.get(frequency, frequency)
+    frequency = tools._PANDAS_FREQUENCIES_R.get(frequency, frequency)
     resample = dataarray.resample(
         label=label, closed=closed, skipna=skipna, **{dim: frequency}, **kwargs
     )
@@ -246,7 +227,7 @@ def _groupby_bins(
     time_dim: str = "time",
 ):
     if not isinstance(bin_widths, (list, tuple)):
-        max_value = _BIN_MAXES[frequency]
+        max_value = tools._BIN_MAXES[frequency]
         bin_widths = list(range(0, max_value + 1, bin_widths))
     try:
         grouped_data = dataarray.groupby_bins(
@@ -265,7 +246,7 @@ def _pandas_frequency_and_bins(
 ) -> tuple:
     freq = frequency.lstrip("0123456789")
     bins = int(frequency[: -len(freq)]) or None
-    freq = _PANDAS_FREQUENCIES.get(freq.lstrip(" "), frequency)
+    freq = tools._PANDAS_FREQUENCIES.get(freq.lstrip(" "), frequency)
     return freq, bins
 
 
