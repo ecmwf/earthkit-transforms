@@ -6,20 +6,27 @@
 
 # -- Import and path setup ---------------------------------------------------
 
+import datetime
 import os
 import sys
 
-from earthkit import climate
+# This doesn't work, so need to find another way
+# from earthkit import climate
+# version = climate.__version__
+# release = climate.__version__
 
+sys.path.insert(0, os.path.abspath("./"))
 sys.path.insert(0, os.path.abspath("../"))
 
 # -- Project information -----------------------------------------------------
 
 project = "earthkit-climate"
-copyright = "2022, European Centre for Medium Range Weather Forecasts"
 author = "European Centre for Medium Range Weather Forecasts"
-version = climate.__version__
-release = climate.__version__
+
+year = datetime.datetime.now().year
+years = "2022-%s" % (year,)
+copyright = "%s, European Centre for Medium-Range Weather Forecasts (ECMWF)" % (years,)
+
 
 # -- General configuration ---------------------------------------------------
 
