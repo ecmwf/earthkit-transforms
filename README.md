@@ -10,7 +10,7 @@ Interfaces and functionality are likely to change, and the project itself may be
 ## Quick Start
 
 ```python
->>> from earthkit import climate
+>>> from earthkit.climate import aggregate
 
 ```
 

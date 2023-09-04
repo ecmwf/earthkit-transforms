@@ -4,7 +4,7 @@ from copy import deepcopy
 import numpy as np
 import xarray as xr
 
-from earthkit.climate import tools
+from earthkit.climate.aggregate import tools
 
 #: Mapping from pandas frequency strings to xarray time groups
 _PANDAS_FREQUENCIES = {

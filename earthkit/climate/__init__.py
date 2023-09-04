@@ -1,5 +1,3 @@
-"""Statistical analysis tools for meteorological and climate data.."""
-
 # Copyright 2022, European Centre for Medium Range Weather Forecasts.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,19 +19,3 @@ try:
 except ImportError:  # pragma: no cover
     # Local copy or not installed with setuptools
     __version__ = "999"
-
-
-from earthkit.climate import aggregate, climatology, shapes
-
-try:
-    from earthkit.data.utils.module_inputs_wrapper import transform_module_inputs
-except ImportError:
-    pass
-else:
-    aggregate = transform_module_inputs(aggregate)
-
-    climatology = transform_module_inputs(climatology)
-
-    shapes = transform_module_inputs(shapes)
-
-__all__ = ["__version__", "aggregate", "climatology", "shapes"]

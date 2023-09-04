@@ -2,7 +2,7 @@ import typing as T
 
 import xarray as xr
 
-from earthkit.climate import aggregate, tools
+from earthkit.climate.aggregate import temporal, tools
 
 
 @tools.time_dim_decorator
@@ -32,18 +32,18 @@ def mean(
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.climate.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.aggregate.temporal.reduce` (except how)
 
     Returns
     -------
     xr.DataArray
     """
-    grouped_data = aggregate._groupby_time(
+    grouped_data = temporal._groupby_time(
         dataarray,
         time_dim=time_dim,
         **groupby_kwargs,
     )
-    return aggregate.reduce(grouped_data, how="mean", dim=time_dim, **reduce_kwargs)
+    return temporal.reduce(grouped_data, how="mean", dim=time_dim, **reduce_kwargs)
 
 
 @tools.time_dim_decorator
@@ -73,18 +73,18 @@ def stdev(
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.climate.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.aggregate.temporal.reduce` (except how)
 
     Returns
     -------
     xr.DataArray
     """
-    grouped_data = aggregate._groupby_time(
+    grouped_data = temporal._groupby_time(
         dataarray,
         time_dim=time_dim,
         **groupby_kwargs,
     )
-    return aggregate.reduce(grouped_data, how="std", dim=time_dim, **reduce_kwargs)
+    return temporal.reduce(grouped_data, how="std", dim=time_dim, **reduce_kwargs)
 
 
 def median(dataarray: T.Union[xr.Dataset, xr.DataArray], **kwargs) -> xr.DataArray:
@@ -106,7 +106,7 @@ def median(dataarray: T.Union[xr.Dataset, xr.DataArray], **kwargs) -> xr.DataArr
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.climate.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.aggregate.temporal.reduce` (except how)
 
     Returns
     -------
@@ -143,18 +143,18 @@ def max(
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.climate.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.aggregate.temporal.reduce` (except how)
 
     Returns
     -------
     xr.DataArray
     """
-    grouped_data = aggregate._groupby_time(
+    grouped_data = temporal._groupby_time(
         dataarray,
         time_dim=time_dim,
         **groupby_kwargs,
     )
-    return aggregate.reduce(grouped_data, how="max", dim=time_dim, **reduce_kwargs)
+    return temporal.reduce(grouped_data, how="max", dim=time_dim, **reduce_kwargs)
 
 
 @tools.time_dim_decorator
@@ -184,18 +184,18 @@ def min(
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.climate.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.aggregate.temporal.reduce` (except how)
 
     Returns
     -------
     xr.DataArray
     """
-    grouped_data = aggregate._groupby_time(
+    grouped_data = temporal._groupby_time(
         dataarray,
         time_dim=time_dim,
         **groupby_kwargs,
     )
-    return aggregate.reduce(grouped_data, how="min", dim=time_dim, **reduce_kwargs)
+    return temporal.reduce(grouped_data, how="min", dim=time_dim, **reduce_kwargs)
 
 
 @tools.time_dim_decorator
@@ -228,13 +228,13 @@ def quantiles(
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.climate.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.aggregate.temporal.reduce` (except how)
 
     Returns
     -------
     xr.DataArray
     """
-    grouped_data = aggregate._groupby_time(
+    grouped_data = temporal._groupby_time(
         dataarray.chunk({time_dim: -1}), time_dim=time_dim, **groupby_kwargs
     )
     results = []
@@ -275,7 +275,7 @@ def percentiles(
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.climate.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.aggregate.temporal.reduce` (except how)
 
     Returns
     -------
@@ -331,7 +331,7 @@ def anomaly(
     relative : bool (optional)
         Return the relative anomaly, i.e. the percentage change w.r.t the climatological period
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.climate.climatology.mean`
+        Any other kwargs that are accepted by `earthkit.aggregate.climatology.mean`
 
     Returns
     -------
@@ -349,12 +349,12 @@ def anomaly(
             time_dim=time_dim,
         )
     anomaly_array = (
-        aggregate._groupby_time(dataarray, time_dim=time_dim, **groupby_kwargs)
+        temporal._groupby_time(dataarray, time_dim=time_dim, **groupby_kwargs)
         - climatology
     )
     if relative:
         anomaly_array = (
-            aggregate._groupby_time(anomaly_array, time_dim=time_dim, **groupby_kwargs)
+            temporal._groupby_time(anomaly_array, time_dim=time_dim, **groupby_kwargs)
             / climatology
         )
         name_tag = "relative anomaly"
@@ -363,7 +363,7 @@ def anomaly(
         name_tag = "anomaly"
         update_attrs = {}
 
-    anomaly_array = aggregate.resample(
+    anomaly_array = temporal.resample(
         anomaly_array, how="mean", **reduce_kwargs, **groupby_kwargs, dim=time_dim
     )
     anomaly_array = anomaly_array.rename(f"{anomaly_array.name}_{name_tag}")
@@ -406,7 +406,7 @@ def relative_anomaly(dataarray: xr.DataArray, *args, **kwargs):
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.climate.climatology.mean`
+        Any other kwargs that are accepted by `earthkit.aggregate.climatology.mean`
 
     Returns
     -------

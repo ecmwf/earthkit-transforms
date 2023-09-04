@@ -18,10 +18,10 @@ dependencies = [
   "earthkit-data>=0.3.0",
   "geopandas"
 ]
-description = "Statistical analysis tools for meteorological and climate data."
+description = "Aggregation tools for meteorological and climate data."
 dynamic = ["version"]
 license = {file = "LICENSE"}
-name = "earthkit-climate"
+name = "earthkit-aggregate"
 readme = "README.md"
 
 [tool.coverage.run]
