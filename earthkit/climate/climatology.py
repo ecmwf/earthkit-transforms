@@ -366,10 +366,11 @@ def anomaly(
     anomaly_array = aggregate.resample(
         anomaly_array, how="mean", **reduce_kwargs, **groupby_kwargs, dim=time_dim
     )
+    anomaly_array = anomaly_array.rename(f"{anomaly_array.name}_{name_tag}")
     update_attrs = {**dataarray.attrs, **update_attrs}
     if "standard_name" in update_attrs:
         update_attrs["standard_name"] += f"_{name_tag.replace(' ', '_')}"
-    if "long_name" in anomaly_array.attrs:
+    if "long_name" in update_attrs:
         update_attrs["long_name"] += f" {name_tag}"
 
     anomaly_array = anomaly_array.assign_attrs(update_attrs)

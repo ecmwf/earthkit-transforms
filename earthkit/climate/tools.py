@@ -25,7 +25,8 @@ GROUPBY_KWARGS = ["frequency", "bin_widths", "squeeze"]
 
 def groupby_kwargs_decorator(func):
     @functools.wraps(func)
-    def wrapper(*args, groupby_kwargs: dict = {}, **kwargs):
+    def wrapper(*args, groupby_kwargs: dict = None, **kwargs):
+        groupby_kwargs = groupby_kwargs or {}
         new_kwargs = {}
         for k, v in kwargs.copy().items():
             if k in GROUPBY_KWARGS:
