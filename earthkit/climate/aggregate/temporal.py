@@ -6,6 +6,7 @@ import xarray as xr
 
 from earthkit.climate.aggregate import tools
 
+
 @tools.time_dim_decorator
 def daily_mean(
     dataarray: T.Union[xr.Dataset, xr.DataArray],

@@ -356,7 +356,7 @@ def anomaly(
         anomaly_array = (
             temporal._groupby_time(anomaly_array, time_dim=time_dim, **groupby_kwargs)
             / climatology
-        ) * 100. 
+        ) * 100.0
         name_tag = "relative anomaly"
         update_attrs = {"units": "%"}
     else:
