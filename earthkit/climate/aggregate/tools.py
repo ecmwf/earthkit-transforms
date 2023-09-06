@@ -1,7 +1,5 @@
-from copy import deepcopy
 import functools
 import typing as T
-from datetime import timedelta
 
 import numpy as np
 import pandas as pd
@@ -32,7 +30,7 @@ def time_dim_decorator(func):
         dataarray: T.Union[xr.Dataset, xr.DataArray],
         *args,
         time_dim: T.Union[str, None] = None,
-        time_shift: T.Union[None, timedelta, np.timedelta64, dict, str] = None,
+        time_shift: T.Union[None, dict, str, pd.Timedelta] = None,
         **kwargs,
     ):
         if time_dim is None:
@@ -40,16 +38,16 @@ def time_dim_decorator(func):
 
         if time_shift is not None:
             # Create timedelta from dict
-            if isinstance(time_shift, str):
+            if isinstance(time_shift, dict):
                 time_shift = pd.Timedelta(**time_shift)
-            elif isinstance(time_shift, dict):
-                time_shift = timedelta(**time_shift)
+            else:
+                time_shift = pd.Timedelta(time_shift)
 
             # Convert timedelta to timedelta64 (TODO: may need to be more robust here)
-            time_coord = dataarray.coords[time_dim] + pd.Timedelta(time_shift)
+            time_coord = dataarray.coords[time_dim] + time_shift
             time_coord = time_coord.assign_attrs({"time_shift": f"{time_shift}"})
 
-            dataarray.assign_coords({time_dim: time_coord})
+            dataarray = dataarray.assign_coords({time_dim: time_coord})
 
         return func(dataarray, *args, time_dim=time_dim, **kwargs)
 

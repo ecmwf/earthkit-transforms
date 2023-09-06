@@ -1,6 +1,5 @@
 import typing as T
 from copy import deepcopy
-from datetime import timedelta
 
 import numpy as np
 import xarray as xr
@@ -23,6 +22,10 @@ def daily_mean(
         DataArray containing a `time` dimension.
     time_dim : str
         Name of the time dimension in the xarray object, default is `"time"`.
+    time_shift : (optional) timedelta or dict
+        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        as kwargs to `pandas.Timedelta`
     **kwargs
         Keyword arguments to be passed to :func:`resample`.
 
@@ -40,7 +43,7 @@ def daily_max(
     **kwargs,
 ):
     """
-    Calculate the daily max.
+    Calculate the daily maximum.
 
     Parameters
     ----------
@@ -48,6 +51,10 @@ def daily_max(
         DataArray containing a `time` dimension.
     time_dim : str
         Name of the time dimension in the xarray object, default is `"time"`.
+    time_shift : (optional) timedelta or dict
+        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        as kwargs to `pandas.Timedelta`
     **kwargs
         Keyword arguments to be passed to :func:`resample`.
 
@@ -62,11 +69,10 @@ def daily_max(
 def daily_min(
     dataarray: T.Union[xr.Dataset, xr.DataArray],
     time_dim: T.Union[str, None] = None,
-    time_shift: T.Union[None, timedelta, dict] = None,
     **kwargs,
 ):
     """
-    Calculate the daily min.
+    Calculate the daily minimum.
 
     Parameters
     ----------
@@ -75,7 +81,9 @@ def daily_min(
     time_dim : (optional) str
         Name of the time dimension in the xarray object, default is `"time"`.
     time_shift : (optional) timedelta or dict
-        Any time shift to apply to the data prior to calculation, e.g. to change the local time zone.
+        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        as kwargs to `pandas.Timedelta`
     **kwargs
         Keyword arguments to be passed to :func:`resample`.
 
@@ -84,6 +92,64 @@ def daily_min(
     xr.DataArray
     """
     return resample(dataarray, frequency="D", dim=time_dim, how="min", **kwargs)
+
+
+@tools.time_dim_decorator
+def daily_std(
+    dataarray: T.Union[xr.Dataset, xr.DataArray],
+    time_dim: T.Union[str, None] = None,
+    **kwargs,
+):
+    """
+    Calculate the daily standard deviation.
+
+    Parameters
+    ----------
+    dataarray : xr.DataArray
+        DataArray containing a time dimension.
+    time_dim : (optional) str
+        Name of the time dimension in the xarray object, default is `"time"`.
+    time_shift : (optional) timedelta or dict
+        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        as kwargs to `pandas.Timedelta`
+    **kwargs
+        Keyword arguments to be passed to :func:`resample`.
+
+    Returns
+    -------
+    xr.DataArray
+    """
+    return resample(dataarray, frequency="D", dim=time_dim, how="std", **kwargs)
+
+
+@tools.time_dim_decorator
+def daily_sum(
+    dataarray: T.Union[xr.Dataset, xr.DataArray],
+    time_dim: T.Union[str, None] = None,
+    **kwargs,
+):
+    """
+    Calculate the daily sum (accumulation).
+
+    Parameters
+    ----------
+    dataarray : xr.DataArray
+        DataArray containing a time dimension.
+    time_dim : (optional) str
+        Name of the time dimension in the xarray object, default is `"time"`.
+    time_shift : (optional) timedelta or dict
+        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        as kwargs to `pandas.Timedelta`
+    **kwargs
+        Keyword arguments to be passed to :func:`resample`.
+
+    Returns
+    -------
+    xr.DataArray
+    """
+    return resample(dataarray, frequency="D", dim=time_dim, how="sum", **kwargs)
 
 
 @tools.time_dim_decorator
@@ -101,6 +167,10 @@ def monthly_mean(
         DataArray containing a `time` dimension.
     time_dim : str
         Name of the time dimension in the xarray object, default is `"time"`.
+    time_shift : (optional) timedelta or dict
+        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        as kwargs to `pandas.Timedelta`
     **kwargs
         Keyword arguments to be passed to :func:`resample`.
 
@@ -126,6 +196,10 @@ def monthly_max(
         DataArray containing a `time` dimension.
     time_dim : str
         Name of the time dimension in the xarray object, default is `"time"`.
+    time_shift : (optional) timedelta or dict
+        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        as kwargs to `pandas.Timedelta`
     **kwargs
         Keyword arguments to be passed to :func:`resample`.
 
@@ -151,6 +225,10 @@ def monthly_min(
         DataArray containing a `time` dimension.
     time_dim : str
         Name of the time dimension in the xarray object, default is `"time"`.
+    time_shift : (optional) timedelta or dict
+        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        as kwargs to `pandas.Timedelta`
     **kwargs
         Keyword arguments to be passed to :func:`resample`.
 
