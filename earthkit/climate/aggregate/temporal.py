@@ -1,5 +1,6 @@
 import typing as T
 from copy import deepcopy
+from datetime import timedelta
 
 import numpy as np
 import xarray as xr
@@ -20,6 +21,8 @@ def daily_mean(
     ----------
     dataarray : xr.DataArray
         DataArray containing a `time` dimension.
+    time_dim : str
+        Name of the time dimension in the xarray object, default is `"time"`.
     **kwargs
         Keyword arguments to be passed to :func:`resample`.
 
@@ -43,6 +46,8 @@ def daily_max(
     ----------
     dataarray : xr.DataArray
         DataArray containing a `time` dimension.
+    time_dim : str
+        Name of the time dimension in the xarray object, default is `"time"`.
     **kwargs
         Keyword arguments to be passed to :func:`resample`.
 
@@ -57,6 +62,7 @@ def daily_max(
 def daily_min(
     dataarray: T.Union[xr.Dataset, xr.DataArray],
     time_dim: T.Union[str, None] = None,
+    time_shift: T.Union[None, timedelta, dict] = None,
     **kwargs,
 ):
     """
@@ -65,7 +71,11 @@ def daily_min(
     Parameters
     ----------
     dataarray : xr.DataArray
-        DataArray containing a `time` dimension.
+        DataArray containing a time dimension.
+    time_dim : (optional) str
+        Name of the time dimension in the xarray object, default is `"time"`.
+    time_shift : (optional) timedelta or dict
+        Any time shift to apply to the data prior to calculation, e.g. to change the local time zone.
     **kwargs
         Keyword arguments to be passed to :func:`resample`.
 
@@ -89,6 +99,8 @@ def monthly_mean(
     ----------
     dataarray : xr.DataArray
         DataArray containing a `time` dimension.
+    time_dim : str
+        Name of the time dimension in the xarray object, default is `"time"`.
     **kwargs
         Keyword arguments to be passed to :func:`resample`.
 
@@ -112,6 +124,8 @@ def monthly_max(
     ----------
     dataarray : xr.DataArray
         DataArray containing a `time` dimension.
+    time_dim : str
+        Name of the time dimension in the xarray object, default is `"time"`.
     **kwargs
         Keyword arguments to be passed to :func:`resample`.
 
@@ -135,6 +149,8 @@ def monthly_min(
     ----------
     dataarray : xr.DataArray
         DataArray containing a `time` dimension.
+    time_dim : str
+        Name of the time dimension in the xarray object, default is `"time"`.
     **kwargs
         Keyword arguments to be passed to :func:`resample`.
 
