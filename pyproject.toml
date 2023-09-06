@@ -21,7 +21,7 @@ dependencies = [
 description = "Aggregation tools for meteorological and climate data."
 dynamic = ["version"]
 license = {file = "LICENSE"}
-name = "earthkit-aggregate"
+name = "earthkit-climate"
 readme = "README.md"
 
 [tool.coverage.run]
