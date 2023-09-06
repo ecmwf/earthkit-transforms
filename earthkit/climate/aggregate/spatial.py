@@ -493,13 +493,15 @@ def _reduce_dataarray(
                 },
             }
         )
-        out = deepcopy(geodataframe)
+        # out = deepcopy(geodataframe)
+        out = geodataframe.set_index(mask_dim_index)
         if return_as in ["pandas"]:  # Return as a fully expanded pandas.DataFrame
             # Convert to DataFrame
-            out = out.join(out_xr.to_dataframe())
+            out = geodataframe.join(out_xr.to_dataframe())
         elif return_as in ["pandas_compact"]:
             # add the reduced data into a new column as a numpy array,
             # store the dim information in the attributes
+            
             out_dims = {
                 dim: dataarray.coords.get(dim).values if dim in dataarray.coords else None
                 for dim in reduced_list[0].dims
