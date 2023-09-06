@@ -477,49 +477,36 @@ def _reduce_dataarray(
     out_xr = xr.concat(reduced_list, dim=mask_dim_index)
     out_xr = out_xr.rename(new_short_name)
 
-    # #  TODO: the following creates an xarray that cannot be saved to netCDF
-    # out_xr = out_xr.assign_coords(
-    #     **{
-    #         "geometry": (mask_dim, [geom for geom in geodataframe["geometry"]]),
-    #     }
-    # )
-    if return_as in ["pandas"]:  # Return as a fully expanded pandas.DataFrame
+    if "pandas" in return_as:
         logger.warn(
             "Returning reduced data in pandas format is considered experimental and may change in future"
             "versions of earthkit-climate"
         )
-        # Convert to DataFrame
-        out = geodataframe.set_index(mask_dim_index)
-        out = out.join(out_xr.to_dataframe())
-        out.attrs.update({**extra_out_attrs})
-    elif return_as in ["pandas_compact"]:
-        logger.warn(
-            "Returning reduced data in pandas format is considered experimental and may change in future"
-            "versions of earthkit-climate"
-        )
-        # Out dims for attributes:
-        out_dims = {
-            dim: dataarray.coords.get(dim).values if dim in dataarray.coords else None
-            for dim in reduced_list[0].dims
-        }
-        # # If all dataarrays are single valued, convert to integer values
-        # if all([not red.shape for red in reduced_list]):
-        reduced_list = [red.values for red in reduced_list]
-        # reduced_list = [red.to_dataframe() for red in reduced_list]
         reduce_attrs = geodataframe.attrs.get("reduce_attrs", {})
         reduce_attrs.update(
             {
                 f"{dataarray.name}": dataarray.attrs,
                 f"{new_short_name}": {
-                    "dims": out_dims,
                     "long_name": new_long_name,
                     "units": dataarray.attrs.get("units"),
                     **extra_out_attrs,
                 },
             }
         )
-        out = geodataframe.set_index(mask_dim_index)
-        out = out.assign(**{new_short_name: reduced_list})
+        out = deepcopy(geodataframe)
+        if return_as in ["pandas"]:  # Return as a fully expanded pandas.DataFrame
+            # Convert to DataFrame
+            out = out.join(out_xr.to_dataframe())
+        elif return_as in ["pandas_compact"]:
+            # add the reduced data into a new column as a numpy array,
+            # store the dim information in the attributes
+            out_dims = {
+                dim: dataarray.coords.get(dim).values if dim in dataarray.coords else None
+                for dim in reduced_list[0].dims
+            }
+            reduce_attrs[f"{new_short_name}"].update({"dims": out_dims})
+            reduced_list = [red.values for red in reduced_list]
+            out = out.assign(**{new_short_name: reduced_list})
         out.attrs.update({"reduce_attrs": reduce_attrs})
     else:
         out = out_xr.assign_attrs({**geodataframe.attrs, **extra_out_attrs})
