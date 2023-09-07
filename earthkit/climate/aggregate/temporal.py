@@ -271,9 +271,7 @@ def resample(
     """
     # Translate and xarray frequencies to pandas language:
     frequency = tools._PANDAS_FREQUENCIES_R.get(frequency, frequency)
-    resample = dataarray.resample(
-        skipna=skipna, **{dim: frequency}, **kwargs
-    )
+    resample = dataarray.resample(skipna=skipna, **{dim: frequency}, **kwargs)
     result = resample.__getattribute__(how)(dim)
     return result
 
