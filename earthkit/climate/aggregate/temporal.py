@@ -244,8 +244,6 @@ def resample(
     frequency: str or int or float,
     dim: str = "time",
     how: str = "mean",
-    closed: str = "left",
-    label: str = "left",
     skipna: bool = True,
     **kwargs,
 ) -> xr.DataArray:
@@ -265,7 +263,7 @@ def resample(
         The reduction method for resampling, default is `mean`
     **kwargs
         Keyword arguments to be passed to :func:`resample`. Defaults have been set as:
-        `{"closed": "left", "skipna": True, "label": "left"}`
+        `{"skipna": True}`
 
     Returns
     -------
@@ -274,7 +272,7 @@ def resample(
     # Translate and xarray frequencies to pandas language:
     frequency = tools._PANDAS_FREQUENCIES_R.get(frequency, frequency)
     resample = dataarray.resample(
-        label=label, closed=closed, skipna=skipna, **{dim: frequency}, **kwargs
+        skipna=skipna, **{dim: frequency}, **kwargs
     )
     result = resample.__getattribute__(how)(dim)
     return result
