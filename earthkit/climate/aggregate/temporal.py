@@ -504,7 +504,7 @@ def rolling_reduce(
 
 
 def _rolling_reduce_dataarray(
-    dataarray: xr.DataArray, how_reduce="mean", how_dropna="any", **kwargs
+    dataarray: xr.DataArray, how_reduce="mean", how_dropna=None, chunk=True, **kwargs
 ) -> xr.DataArray:
     """Return reduced data using a moving window over which to apply the reduction.
 
@@ -526,7 +526,7 @@ def _rolling_reduce_dataarray(
         Function to be applied for reduction. Default is 'mean'.
     how_dropna : str
         Determine if dimension is removed from the output when we have at least one NaN or
-        all NaN. **how_dropna** can be 'None', 'any' or 'all'. Default is 'any'.
+        all NaN. **how_dropna** can be 'None', 'any' or 'all'. Default is None.
     **kwargs :
         Any kwargs that are compatible with the select `how_reduce` method.
 
@@ -534,6 +534,8 @@ def _rolling_reduce_dataarray(
     -------
     xr.DataArray
     """
+    if chunk:
+        dataarray = dataarray.chunk()
     # Expand dim kwarg to individual kwargs
     if isinstance(kwargs.get("dim"), dict):
         kwargs.update(kwargs.pop("dim"))
