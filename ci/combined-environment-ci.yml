@@ -16,6 +16,7 @@ dependencies:
 - pytest-cov
 - sphinx
 - sphinx-autoapi
+- sphinx-rtd-theme
 - xarray
 - pip:
   - git+https://github.com/ecmwf/multiurl

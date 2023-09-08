@@ -2,7 +2,73 @@ import typing as T
 
 import xarray as xr
 
-from earthkit.climate.aggregate import temporal, tools
+from earthkit.climate.aggregate import tools
+from earthkit.climate.aggregate.general import reduce, resample
+
+
+def _pandas_frequency_and_bins(
+    frequency: str,
+) -> tuple:
+    freq = frequency.lstrip("0123456789")
+    bins = int(frequency[: -len(freq)]) or None
+    freq = tools._PANDAS_FREQUENCIES.get(freq.lstrip(" "), frequency)
+    return freq, bins
+
+
+def _groupby_time(
+    dataarray: T.Union[xr.Dataset, xr.DataArray],
+    frequency: str = None,
+    bin_widths: T.Union[int, None] = None,
+    squeeze: bool = True,
+    time_dim: str = "time",
+):
+    if frequency is None:
+        try:
+            frequency = xr.infer_freq(dataarray.time)
+        except:  # noqa: E722
+            raise ValueError(
+                "Unable to infer time frequency from data; please pass the "
+                "'frequency' argument explicitly"
+            )
+        frequency, possible_bins = _pandas_frequency_and_bins(frequency)
+        bin_widths = bin_widths or possible_bins
+
+    if bin_widths is not None:
+        grouped_data = _groupby_bins(
+            dataarray, frequency, bin_widths, squeeze, time_dim=time_dim
+        )
+    else:
+        try:
+            grouped_data = dataarray.groupby(f"{time_dim}.{frequency}", squeeze=squeeze)
+        except AttributeError:
+            raise ValueError(
+                f"Invalid frequency '{frequency}' - see xarray documentation for "
+                f"a full list of valid frequencies."
+            )
+
+    return grouped_data
+
+
+def _groupby_bins(
+    dataarray: T.Union[xr.Dataset, xr.DataArray],
+    frequency: str,
+    bin_widths: int = 1,
+    squeeze: bool = False,
+    time_dim: str = "time",
+):
+    if not isinstance(bin_widths, (list, tuple)):
+        max_value = tools._BIN_MAXES[frequency]
+        bin_widths = list(range(0, max_value + 1, bin_widths))
+    try:
+        grouped_data = dataarray.groupby_bins(
+            f"{time_dim}.{frequency}", bin_widths, squeeze=squeeze
+        )
+    except AttributeError:
+        raise ValueError(
+            f"Invalid frequency '{frequency}' - see xarray documentation for "
+            f"a full list of valid frequencies."
+        )
+    return grouped_data
 
 
 @tools.time_dim_decorator
@@ -32,18 +98,18 @@ def mean(
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.temporal.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
 
     Returns
     -------
     xr.DataArray
     """
-    grouped_data = temporal._groupby_time(
+    grouped_data = _groupby_time(
         dataarray,
         time_dim=time_dim,
         **groupby_kwargs,
     )
-    return temporal.reduce(grouped_data, how="mean", dim=time_dim, **reduce_kwargs)
+    return reduce(grouped_data, how="mean", dim=time_dim, **reduce_kwargs)
 
 
 @tools.time_dim_decorator
@@ -73,18 +139,18 @@ def stdev(
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.temporal.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
 
     Returns
     -------
     xr.DataArray
     """
-    grouped_data = temporal._groupby_time(
+    grouped_data = _groupby_time(
         dataarray,
         time_dim=time_dim,
         **groupby_kwargs,
     )
-    return temporal.reduce(grouped_data, how="std", dim=time_dim, **reduce_kwargs)
+    return reduce(grouped_data, how="std", dim=time_dim, **reduce_kwargs)
 
 
 def median(dataarray: T.Union[xr.Dataset, xr.DataArray], **kwargs) -> xr.DataArray:
@@ -106,7 +172,7 @@ def median(dataarray: T.Union[xr.Dataset, xr.DataArray], **kwargs) -> xr.DataArr
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.temporal.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
 
     Returns
     -------
@@ -143,18 +209,18 @@ def max(
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.temporal.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
 
     Returns
     -------
     xr.DataArray
     """
-    grouped_data = temporal._groupby_time(
+    grouped_data = _groupby_time(
         dataarray,
         time_dim=time_dim,
         **groupby_kwargs,
     )
-    return temporal.reduce(grouped_data, how="max", dim=time_dim, **reduce_kwargs)
+    return reduce(grouped_data, how="max", dim=time_dim, **reduce_kwargs)
 
 
 @tools.time_dim_decorator
@@ -184,18 +250,18 @@ def min(
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.temporal.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
 
     Returns
     -------
     xr.DataArray
     """
-    grouped_data = temporal._groupby_time(
+    grouped_data = _groupby_time(
         dataarray,
         time_dim=time_dim,
         **groupby_kwargs,
     )
-    return temporal.reduce(grouped_data, how="min", dim=time_dim, **reduce_kwargs)
+    return reduce(grouped_data, how="min", dim=time_dim, **reduce_kwargs)
 
 
 @tools.time_dim_decorator
@@ -228,13 +294,13 @@ def quantiles(
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.temporal.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
 
     Returns
     -------
     xr.DataArray
     """
-    grouped_data = temporal._groupby_time(
+    grouped_data = _groupby_time(
         dataarray.chunk({time_dim: -1}), time_dim=time_dim, **groupby_kwargs
     )
     results = []
@@ -275,7 +341,7 @@ def percentiles(
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.temporal.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
 
     Returns
     -------
@@ -349,12 +415,11 @@ def anomaly(
             time_dim=time_dim,
         )
     anomaly_array = (
-        temporal._groupby_time(dataarray, time_dim=time_dim, **groupby_kwargs)
-        - climatology
+        _groupby_time(dataarray, time_dim=time_dim, **groupby_kwargs) - climatology
     )
     if relative:
         anomaly_array = (
-            temporal._groupby_time(anomaly_array, time_dim=time_dim, **groupby_kwargs)
+            _groupby_time(anomaly_array, time_dim=time_dim, **groupby_kwargs)
             / climatology
         ) * 100.0
         name_tag = "relative anomaly"
@@ -363,7 +428,7 @@ def anomaly(
         name_tag = "anomaly"
         update_attrs = {}
 
-    anomaly_array = temporal.resample(
+    anomaly_array = resample(
         anomaly_array, how="mean", **reduce_kwargs, **groupby_kwargs, dim=time_dim
     )
     anomaly_array = anomaly_array.rename(f"{anomaly_array.name}_{name_tag}")

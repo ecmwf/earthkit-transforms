@@ -24,6 +24,15 @@ _BIN_MAXES = {
 }
 
 
+def ensure_list(thing):
+    if isinstance(thing, list):
+        return thing
+    try:
+        return thing.to_list()
+    except AttributeError:
+        return [thing]
+
+
 def time_dim_decorator(func):
     @functools.wraps(func)
     def wrapper(
@@ -34,7 +43,11 @@ def time_dim_decorator(func):
         **kwargs,
     ):
         if time_dim is None:
-            time_dim = get_dim_key(dataarray, "t")
+            try:
+                time_dim = get_dim_key(dataarray, "t")
+            except Exception:
+                # Not able to find time dimension in object so let fail its own way
+                func(dataarray, *args, **kwargs)
 
         if time_shift is not None:
             # Create timedelta from dict
