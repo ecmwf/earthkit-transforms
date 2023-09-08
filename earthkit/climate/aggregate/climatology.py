@@ -363,8 +363,8 @@ def percentiles(
 @tools.groupby_kwargs_decorator
 @tools.season_order_decorator
 def anomaly(
-    dataarray: xr.DataArray,
-    climatology: xr.DataArray = None,
+    dataarray: T.Union[xr.Dataset, xr.DataArray],
+    climatology: T.Union[xr.Dataset, xr.DataArray, None] = None,
     climatology_range: tuple = (None, None),
     time_dim: T.Union[str, None] = None,
     groupby_kwargs: dict = {},
@@ -431,22 +431,35 @@ def anomaly(
     anomaly_array = resample(
         anomaly_array, how="mean", **reduce_kwargs, **groupby_kwargs, dim=time_dim
     )
+    if isinstance(dataarray, xr.Dataset):
+        for var in anomaly_array.data_vars:
+            anomaly_array[var] = update_anomaly_array(
+                anomaly_array[var], dataarray[var], name_tag, update_attrs
+            )
+    else:
+        anomaly_array = update_anomaly_array(
+            anomaly_array, dataarray, name_tag, update_attrs
+        )
+
+    return anomaly_array
+
+
+def update_anomaly_array(anomaly_array, original_array, name_tag, update_attrs):
     anomaly_array = anomaly_array.rename(f"{anomaly_array.name}_{name_tag}")
-    update_attrs = {**dataarray.attrs, **update_attrs}
+    update_attrs = {**original_array.attrs, **update_attrs}
     if "standard_name" in update_attrs:
         update_attrs["standard_name"] += f"_{name_tag.replace(' ', '_')}"
     if "long_name" in update_attrs:
         update_attrs["long_name"] += f" {name_tag}"
 
     anomaly_array = anomaly_array.assign_attrs(update_attrs)
-
     return anomaly_array
 
 
 @tools.time_dim_decorator
 @tools.groupby_kwargs_decorator
 @tools.season_order_decorator
-def relative_anomaly(dataarray: xr.DataArray, *args, **kwargs):
+def relative_anomaly(dataarray: [xr.Dataset, xr.DataArray], *args, **kwargs):
     """
     Calculate the relative anomaly from a reference climatology, i.e. percentage change.
 
