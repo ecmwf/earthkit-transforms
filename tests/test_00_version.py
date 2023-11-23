@@ -1,5 +1,5 @@
-from earthkit import climate
+from earthkit import aggregate
 
 
 def test_version() -> None:
-    assert __version__ != "999"
+    assert aggregate.__version__ != "999"

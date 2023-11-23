@@ -18,7 +18,6 @@ Interfaces and functionality are likely to change, and the project itself may be
 
 Please refer the [earthkit-aggregate readthedocs page](https://earthkit-aggregate.readthedocs.io) for more detailed documentation, example notebooks and the API reference guide.
 
-
 ## Workflow for developers/contributors
 
 For best experience create a new conda environment (e.g. DEVELOP) with Python 3.10:

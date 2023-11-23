@@ -496,7 +496,7 @@ def _reduce_dataarray(
     if "pandas" in return_as:
         logger.warn(
             "Returning reduced data in pandas format is considered experimental and may change in future"
-            "versions of earthkit-climate"
+            "versions of earthkit"
         )
         reduce_attrs = geodataframe.attrs.get("reduce_attrs", {})
         reduce_attrs.update(
