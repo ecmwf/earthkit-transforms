@@ -15,6 +15,8 @@ Interfaces and functionality are likely to change, and the project itself may be
 pip install earthkit-aggregate
 ```
 
+### Import and use
+
 ```python
 >>> from earthkit import aggregate
 
