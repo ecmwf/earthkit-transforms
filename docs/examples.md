@@ -1,6 +1,6 @@
 # Examples
 
-Examples of how to use earthkit-climate
+Examples of how to use earthkit-aggregate
 
 ```{toctree}
 :caption: 'Notebooks'

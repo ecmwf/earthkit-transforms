@@ -1,12 +1,12 @@
 FROM continuumio/miniconda3
 
-WORKDIR /src/earthkit-climate
+WORKDIR /src/earthkit-aggregate
 
-COPY environment.yml /src/earthkit-climate/
+COPY environment.yml /src/earthkit-aggregate/
 
 RUN conda install -c conda-forge gcc python=3.10 \
     && conda env update -n base -f environment.yml
 
-COPY . /src/earthkit-climate
+COPY . /src/earthkit-aggregate
 
 RUN pip install --no-deps -e .

@@ -5,7 +5,7 @@ from copy import deepcopy
 import numpy as np
 import xarray as xr
 
-from earthkit.climate.aggregate import tools
+from earthkit.aggregate import tools
 
 
 def _reduce_dataarray(

@@ -2,8 +2,8 @@ import typing as T
 
 import xarray as xr
 
-from earthkit.climate.aggregate import tools
-from earthkit.climate.aggregate.general import reduce, resample
+from earthkit.aggregate import tools
+from earthkit.aggregate.general import reduce, resample
 
 
 def _pandas_frequency_and_bins(

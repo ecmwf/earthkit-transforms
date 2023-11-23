@@ -1,4 +1,4 @@
-# earthkit-climate
+# earthkit-aggregate
 
 A toolkit for statistical analysis of temporal-geospatial data.
 
@@ -10,13 +10,13 @@ Interfaces and functionality are likely to change, and the project itself may be
 ## Quick Start
 
 ```python
->>> from earthkit.climate import aggregate
+>>> from earthkit.aggregate import aggregate
 
 ```
 
 ## Detailed documentation
 
-Please refer the [earthkit-climate readthedocs page](https://earthkit-climate.readthedocs.io) for more detailed documentation, example notebooks and the API reference guide.
+Please refer the [earthkit-aggregate readthedocs page](https://earthkit-aggregate.readthedocs.io) for more detailed documentation, example notebooks and the API reference guide.
 
 
 ## Workflow for developers/contributors

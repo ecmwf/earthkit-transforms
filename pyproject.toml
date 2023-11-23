@@ -21,7 +21,7 @@ dependencies = [
 description = "Aggregation tools for meteorological and climate data."
 dynamic = ["version"]
 license = {file = "LICENSE"}
-name = "earthkit-climate"
+name = "earthkit-aggregate"
 readme = "README.md"
 
 [tool.coverage.run]
@@ -59,10 +59,10 @@ select = [
 ]
 
 [tool.setuptools]
-packages = ["earthkit.climate"]
+packages = ["earthkit.aggregate"]
 
 [tool.setuptools_scm]
-write_to = "earthkit/climate/version.py"
+write_to = "earthkit/aggregate/version.py"
 write_to_template = '''
 # Do not change! Do not track in version control!
 __version__ = "{version}"

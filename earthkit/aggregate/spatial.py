@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from earthkit.climate.aggregate.tools import (
+from earthkit.aggregate.tools import (
     WEIGHTS_DICT,
     get_how,
     get_spatial_info,

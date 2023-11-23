@@ -3,13 +3,13 @@ import typing as T
 
 import xarray as xr
 
-from earthkit.climate.aggregate import tools
-from earthkit.climate.aggregate.general import resample
+from earthkit.aggregate import tools
+from earthkit.aggregate.general import resample
 
 if True:
     # These are included here for legacy purposes, but the code is abstract so not part of temporal namespace
-    from earthkit.climate.aggregate.general import reduce as _reduce
-    from earthkit.climate.aggregate.general import rolling_reduce as _rolling_reduce
+    from earthkit.aggregate.general import reduce as _reduce
+    from earthkit.aggregate.general import rolling_reduce as _rolling_reduce
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ def reduce(
         Data object to reduce
     dim: str or list
         Dimension(s) to reduce along, any time dimension found is added. If you do not want to aggregate
-        along the time dimension use earthkit.climate.aggregate.reduce
+        along the time dimension use earthkit.aggregate.reduce
     how: str or callable
         Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
         If string, it must be an in-built xarray reduce method, a earthkit how method or any numpy method.
@@ -68,10 +68,10 @@ def rolling_reduce(
     *args,
     **kwargs,
 ):
-    """Deprecated method location, please see `earthkit.climate.aggregate.rolling_reduce`."""
+    """Deprecated method location, please see `earthkit.aggregate.rolling_reduce`."""
     logger.warn(
-        "`earthkit.climate.aggregate.temporal.rolling_reduce` is a deprecated location for this method, "
-        "please use `earthkit.climate.aggregate.rolling_reduce` instead."
+        "`earthkit.aggregate.temporal.rolling_reduce` is a deprecated location for this method, "
+        "please use `earthkit.aggregate.rolling_reduce` instead."
     )
     return _rolling_reduce(dataarray, *args, **kwargs)
 

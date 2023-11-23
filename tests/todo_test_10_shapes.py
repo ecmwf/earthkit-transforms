@@ -1,5 +1,5 @@
 from earthkit import data as ek_data
-from earthkit.climate.aggregate import shapes
+from earthkit.aggregate import shapes
 from earthkit.data.testing import earthkit_remote_test_data_file
 
 REMOTE_ERA5_FILE = earthkit_remote_test_data_file(

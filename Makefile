@@ -1,4 +1,4 @@
-PROJECT := earthkit-climate
+PROJECT := earthkit-aggregate
 CONDA := conda
 CONDAFLAGS :=
 COV_REPORT := html
