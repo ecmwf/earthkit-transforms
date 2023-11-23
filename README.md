@@ -9,6 +9,12 @@ Interfaces and functionality are likely to change, and the project itself may be
 
 ## Quick Start
 
+### Installation
+
+```bash
+pip install earthkit-aggregate
+```
+
 ```python
 >>> from earthkit.aggregate import aggregate
 
