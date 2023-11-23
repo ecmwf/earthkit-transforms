@@ -288,10 +288,7 @@ def get_dim_key(
     """Return the key of the dimension."""
     # First check if the axis value is in any dim:
     for dim in dataarray.dims:
-        if (
-            "axis" in dataarray[dim].attrs
-            and dataarray[dim].attrs["axis"].lower() == axis.lower()
-        ):
+        if "axis" in dataarray[dim].attrs and dataarray[dim].attrs["axis"].lower() == axis.lower():
             return dim
 
     # Then check if any dims match our "standard" axis
@@ -314,16 +311,12 @@ def get_spatial_info(dataarray, lat_key=None, lon_key=None):
     #  will be 'lat' and 'lon'. For irregular data it could be any dimensions
     lat_dims = dataarray.coords[lat_key].dims
     lon_dims = dataarray.coords[lon_key].dims
-    spatial_dims = [dim for dim in lat_dims] + [
-        dim for dim in lon_dims if dim not in lat_dims
-    ]
+    spatial_dims = [dim for dim in lat_dims] + [dim for dim in lon_dims if dim not in lat_dims]
 
     # Assert that latitude and longitude have the same dimensions
     #   (irregular data, e.g. x&y or obs)
     # or the dimensions are themselves (regular data, 'lat'&'lon')
-    assert (lat_dims == lon_dims) or (
-        (lat_dims == (lat_key,)) and (lon_dims) == (lon_key,)
-    )
+    assert (lat_dims == lon_dims) or ((lat_dims == (lat_key,)) and (lon_dims) == (lon_key,))
     if lat_dims == lon_dims:
         regular = False
     elif (lat_dims == (lat_key,)) and (lon_dims) == (lon_key,):

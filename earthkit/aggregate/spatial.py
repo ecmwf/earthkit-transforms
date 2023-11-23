@@ -28,9 +28,7 @@ def _transform_from_latlon(lat, lon):
     """
     from affine import Affine
 
-    trans = Affine.translation(
-        lon[0] - (lon[1] - lon[0]) / 2, lat[0] - (lat[1] - lat[0]) / 2
-    )
+    trans = Affine.translation(lon[0] - (lon[1] - lon[0]) / 2, lat[0] - (lat[1] - lat[0]) / 2)
     scale = Affine.scale(lon[1] - lon[0], lat[1] - lat[0])
 
     return trans * scale
@@ -70,9 +68,7 @@ def rasterize(
 
     transform = _transform_from_latlon(coords[lat_key], coords[lon_key])
     out_shape = (len(coords[lat_key]), len(coords[lon_key]))
-    raster = features.rasterize(
-        shape_list, out_shape=out_shape, transform=transform, dtype=dtype, **kwargs
-    )
+    raster = features.rasterize(shape_list, out_shape=out_shape, transform=transform, dtype=dtype, **kwargs)
     spatial_coords = {lat_key: coords[lat_key], lon_key: coords[lon_key]}
     return xr.DataArray(raster, coords=spatial_coords, dims=(lat_key, lon_key))
 
@@ -244,9 +240,7 @@ def mask(
     """
     spatial_info = get_spatial_info(dataarray, lat_key=lat_key, lon_key=lon_key)
     # Get spatial info required by mask functions:
-    mask_kwargs.update(
-        {key: spatial_info[key] for key in ["lat_key", "lon_key", "regular"]}
-    )
+    mask_kwargs.update({key: spatial_info[key] for key in ["lat_key", "lon_key", "regular"]})
     mask = shapes_to_mask(geodataframe, dataarray, **mask_kwargs)
     out = dataarray.where(mask)
     out.attrs.update(geodataframe.attrs)
@@ -294,9 +288,7 @@ def masks(
     """
     spatial_info = get_spatial_info(dataarray, lat_key=lat_key, lon_key=lon_key)
     # Get spatial info required by mask functions:
-    mask_kwargs.update(
-        {key: spatial_info[key] for key in ["lat_key", "lon_key", "regular"]}
-    )
+    mask_kwargs.update({key: spatial_info[key] for key in ["lat_key", "lon_key", "regular"]})
 
     mask_dim_index = get_mask_dim_index(mask_dim, geodataframe)
 
@@ -363,9 +355,7 @@ def reduce(
         if kwargs.get("return_as", "xarray") in ["xarray"]:
             out_ds = xr.Dataset().assign_attrs(dataarray.attrs)
             for var in dataarray.data_vars:
-                out_da = _reduce_dataarray(
-                    dataarray[var], geodataframe, *args, **kwargs
-                )
+                out_da = _reduce_dataarray(dataarray[var], geodataframe, *args, **kwargs)
                 out_ds[out_da.name] = out_da
             return out_ds
         else:
@@ -454,9 +444,7 @@ def _reduce_dataarray(
         if how_label is None:
             how_label = how
 
-    new_long_name = (
-        f"{how_label.title()} {dataarray.attrs.get('long_name', dataarray.name)}"
-    )
+    new_long_name = f"{how_label.title()} {dataarray.attrs.get('long_name', dataarray.name)}"
     new_short_name = f"{dataarray.name}_{how_label or how.__name__}"
 
     if isinstance(extra_reduce_dims, str):
@@ -464,9 +452,7 @@ def _reduce_dataarray(
 
     spatial_info = get_spatial_info(dataarray, lat_key=lat_key, lon_key=lon_key)
     # Get spatial info required by mask functions:
-    mask_kwargs.update(
-        {key: spatial_info[key] for key in ["lat_key", "lon_key", "regular"]}
-    )
+    mask_kwargs.update({key: spatial_info[key] for key in ["lat_key", "lon_key", "regular"]})
     spatial_dims = spatial_info.get("spatial_dims")
 
     reduce_dims = spatial_dims + extra_reduce_dims
@@ -519,9 +505,7 @@ def _reduce_dataarray(
             # store the dim information in the attributes
 
             out_dims = {
-                dim: dataarray.coords.get(dim).values
-                if dim in dataarray.coords
-                else None
+                dim: dataarray.coords.get(dim).values if dim in dataarray.coords else None
                 for dim in reduced_list[0].dims
             }
             reduce_attrs[f"{new_short_name}"].update({"dims": out_dims})

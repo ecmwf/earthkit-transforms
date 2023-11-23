@@ -27,16 +27,13 @@ def _groupby_time(
             frequency = xr.infer_freq(dataarray.time)
         except:  # noqa: E722
             raise ValueError(
-                "Unable to infer time frequency from data; please pass the "
-                "'frequency' argument explicitly"
+                "Unable to infer time frequency from data; please pass the " "'frequency' argument explicitly"
             )
         frequency, possible_bins = _pandas_frequency_and_bins(frequency)
         bin_widths = bin_widths or possible_bins
 
     if bin_widths is not None:
-        grouped_data = _groupby_bins(
-            dataarray, frequency, bin_widths, squeeze, time_dim=time_dim
-        )
+        grouped_data = _groupby_bins(dataarray, frequency, bin_widths, squeeze, time_dim=time_dim)
     else:
         try:
             grouped_data = dataarray.groupby(f"{time_dim}.{frequency}", squeeze=squeeze)
@@ -60,9 +57,7 @@ def _groupby_bins(
         max_value = tools._BIN_MAXES[frequency]
         bin_widths = list(range(0, max_value + 1, bin_widths))
     try:
-        grouped_data = dataarray.groupby_bins(
-            f"{time_dim}.{frequency}", bin_widths, squeeze=squeeze
-        )
+        grouped_data = dataarray.groupby_bins(f"{time_dim}.{frequency}", bin_widths, squeeze=squeeze)
     except AttributeError:
         raise ValueError(
             f"Invalid frequency '{frequency}' - see xarray documentation for "
@@ -300,9 +295,7 @@ def quantiles(
     -------
     xr.DataArray
     """
-    grouped_data = _groupby_time(
-        dataarray.chunk({time_dim: -1}), time_dim=time_dim, **groupby_kwargs
-    )
+    grouped_data = _groupby_time(dataarray.chunk({time_dim: -1}), time_dim=time_dim, **groupby_kwargs)
     results = []
     for quantile in quantiles:
         results.append(
@@ -414,13 +407,10 @@ def anomaly(
             **reduce_kwargs,
             time_dim=time_dim,
         )
-    anomaly_array = (
-        _groupby_time(dataarray, time_dim=time_dim, **groupby_kwargs) - climatology
-    )
+    anomaly_array = _groupby_time(dataarray, time_dim=time_dim, **groupby_kwargs) - climatology
     if relative:
         anomaly_array = (
-            _groupby_time(anomaly_array, time_dim=time_dim, **groupby_kwargs)
-            / climatology
+            _groupby_time(anomaly_array, time_dim=time_dim, **groupby_kwargs) / climatology
         ) * 100.0
         name_tag = "relative anomaly"
         update_attrs = {"units": "%"}
@@ -428,18 +418,14 @@ def anomaly(
         name_tag = "anomaly"
         update_attrs = {}
 
-    anomaly_array = resample(
-        anomaly_array, how="mean", **reduce_kwargs, **groupby_kwargs, dim=time_dim
-    )
+    anomaly_array = resample(anomaly_array, how="mean", **reduce_kwargs, **groupby_kwargs, dim=time_dim)
     if isinstance(dataarray, xr.Dataset):
         for var in anomaly_array.data_vars:
             anomaly_array[var] = update_anomaly_array(
                 anomaly_array[var], dataarray[var], name_tag, update_attrs
             )
     else:
-        anomaly_array = update_anomaly_array(
-            anomaly_array, dataarray, name_tag, update_attrs
-        )
+        anomaly_array = update_anomaly_array(anomaly_array, dataarray, name_tag, update_attrs)
 
     return anomaly_array
 

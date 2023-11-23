@@ -127,9 +127,7 @@ def reduce(
         return _reduce_dataarray(dataarray, *args, **kwargs)
 
 
-def rolling_reduce(
-    dataarray: T.Union[xr.Dataset, xr.DataArray], *args, **kwargs
-) -> xr.DataArray:
+def rolling_reduce(dataarray: T.Union[xr.Dataset, xr.DataArray], *args, **kwargs) -> xr.DataArray:
     """Return reduced data using a moving window over which to apply the reduction.
 
     Parameters
