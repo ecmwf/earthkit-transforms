@@ -16,7 +16,7 @@ pip install earthkit-aggregate
 ```
 
 ```python
->>> from earthkit.aggregate import aggregate
+>>> from earthkit import aggregate
 
 ```
 
