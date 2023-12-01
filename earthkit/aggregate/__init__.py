@@ -20,6 +20,37 @@ except ImportError:  # pragma: no cover
     # Local copy or not installed with setuptools
     __version__ = "999"
 
-from earthkit import aggregate
+from earthkit.aggregate import climatology, general, spatial, temporal
 
-__all__ = [aggregate, __version__]
+try:
+    from earthkit.data.utils.module_inputs_wrapper import (
+        transform_function_inputs,
+        transform_module_inputs,
+    )
+except ImportError:
+    pass
+else:
+    general = transform_module_inputs(general)
+
+    temporal = transform_module_inputs(temporal)
+
+    climatology = transform_module_inputs(climatology)
+
+    spatial = transform_module_inputs(spatial)
+
+from earthkit.aggregate.general import reduce, resample, rolling_reduce
+
+reduce = transform_function_inputs(reduce)
+rolling_reduce = transform_function_inputs(rolling_reduce)
+resample = transform_function_inputs(resample)
+
+__all__ = [
+    "__version__",
+    "general",
+    "temporal",
+    "climatology",
+    "spatial",
+    "reduce",
+    "resample",
+    "rolling_reduce",
+]
