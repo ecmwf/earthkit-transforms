@@ -11,7 +11,12 @@ docs/_api/
 # gitignore template for Jupyter Notebooks
 # website: http://jupyter.org/
 
+# Ignore files used in development
 dev-notebook.ipynb
+test*.grib
+test*.nc
+
+
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 
