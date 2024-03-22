@@ -9,6 +9,7 @@ dependencies:
 - myst-parser
 - nbsphinx
 - numpy
+- pandas-stubs
 - pip
 - pre-commit
 - pydata-sphinx-theme

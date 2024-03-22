@@ -57,7 +57,7 @@ def time_dim_decorator(func):
                 time_shift = pd.Timedelta(time_shift)
 
             # Convert timedelta to timedelta64 (TODO: may need to be more robust here)
-            time_coord = dataarray.coords[time_dim] + time_shift
+            time_coord = dataarray.coords[time_dim] + time_shift  # type: ignore
             time_coord = time_coord.assign_attrs({"time_shift": f"{time_shift}"})
 
             dataarray = dataarray.assign_coords({time_dim: time_coord})
@@ -72,7 +72,7 @@ GROUPBY_KWARGS = ["frequency", "bin_widths", "squeeze"]
 
 def groupby_kwargs_decorator(func):
     @functools.wraps(func)
-    def wrapper(*args, groupby_kwargs: dict = None, **kwargs):
+    def wrapper(*args, groupby_kwargs: dict | None = None, **kwargs):
         groupby_kwargs = groupby_kwargs or {}
         new_kwargs = {}
         for k, v in kwargs.copy().items():
@@ -134,12 +134,12 @@ def nanaverage(data, weights=None, **kwargs):
         # Scale weights to mean of valid weights:
         this_weights = this_weights / this_denom
         # Apply weights to data:
-        nanaverage = np.nansum(data * this_weights, **kwargs)
+        _nanaverage = np.nansum(data * this_weights, **kwargs)
     else:
         # If no weights, then nanmean will suffice
-        nanaverage = np.nanmean(data, **kwargs)
+        _nanaverage = np.nanmean(data, **kwargs)
 
-    return nanaverage
+    return _nanaverage
 
 
 # TODO: Replace with method from meteokit
@@ -217,6 +217,7 @@ def _latitude_weights(dataarray: xr.DataArray, lat_dim_names=["latitude", "lat"]
 
 HOW_METHODS = {
     "average": nanaverage,
+    "nanaverage": nanaverage,
     "mean": np.nanmean,
     "stddev": np.nanstd,
     "std": np.nanstd,
@@ -274,7 +275,7 @@ def get_how(how: str, how_methods=HOW_METHODS):
     return how
 
 
-STANDARD_AXIS_KEYS = {
+STANDARD_AXIS_KEYS: dict[str, list[str]] = {
     "y": ["lat", "latitude"],
     "x": ["lon", "long", "longitude"],
     "t": ["time", "valid_time"],
@@ -293,7 +294,7 @@ def get_dim_key(
 
     # Then check if any dims match our "standard" axis
     for dim in dataarray.dims:
-        if dim in STANDARD_AXIS_KEYS.get(axis.lower()):
+        if dim in STANDARD_AXIS_KEYS.get(axis.lower(), []):
             return dim
 
     # We have not been able to detect, so return the axis key
