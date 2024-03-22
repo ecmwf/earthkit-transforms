@@ -72,7 +72,7 @@ GROUPBY_KWARGS = ["frequency", "bin_widths", "squeeze"]
 
 def groupby_kwargs_decorator(func):
     @functools.wraps(func)
-    def wrapper(*args, groupby_kwargs: dict = None, **kwargs):
+    def wrapper(*args, groupby_kwargs: dict | None = None, **kwargs):
         groupby_kwargs = groupby_kwargs or {}
         new_kwargs = {}
         for k, v in kwargs.copy().items():
@@ -274,7 +274,7 @@ def get_how(how: str, how_methods=HOW_METHODS):
     return how
 
 
-STANDARD_AXIS_KEYS = {
+STANDARD_AXIS_KEYS: dict[str, list[str]] = {
     "y": ["lat", "latitude"],
     "x": ["lon", "long", "longitude"],
     "t": ["time", "valid_time"],
@@ -293,7 +293,7 @@ def get_dim_key(
 
     # Then check if any dims match our "standard" axis
     for dim in dataarray.dims:
-        if dim in STANDARD_AXIS_KEYS.get(axis.lower()):
+        if dim in STANDARD_AXIS_KEYS.get(axis.lower(), []):
             return dim
 
     # We have not been able to detect, so return the axis key

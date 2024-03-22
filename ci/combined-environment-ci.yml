@@ -9,6 +9,7 @@ dependencies:
 - myst-parser
 - nbsphinx
 - numpy
+- pandas-stubs
 - pip
 - pre-commit
 - pydata-sphinx-theme
@@ -20,3 +21,4 @@ dependencies:
 - xarray
 - pip:
   - git+https://github.com/ecmwf/multiurl
+
