@@ -17,7 +17,7 @@ dependencies = [
   "numpy>=1.18",
   "earthkit-data>=0.3.0",
   "geopandas",
-  "rasterio
+  "rasterio"
 ]
 description = "Aggregation tools for meteorological and climate data."
 dynamic = ["version"]
