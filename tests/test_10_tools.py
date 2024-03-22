@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 import xarray as xr
 import pandas as pd
-from earthkit.aggregate.tools import time_dim_decorator, groupby_kwargs_decorator, get_how, nanaverage
+from earthkit.aggregate.tools import time_dim_decorator, groupby_kwargs_decorator, get_how, nanaverage, get_dim_key, get_spatial_info
 
 # Define a dummy function to decorate
 def dummy_func(dataarray, *args, time_dim=None, **kwargs):
@@ -116,7 +116,7 @@ def test_groupby_kwargs_decorator_override():
         ["mean", np.nanmean],
         ["numpy.mean", np.mean],
         ["numpy.nanmean", np.nanmean],
-        # ["nanaverage", nanaverage],
+        ["nanaverage", nanaverage],
         ["average", nanaverage],
         ["numpy.average", np.average],
         ["stddev", np.nanstd],
@@ -134,4 +134,46 @@ def test_groupby_kwargs_decorator_override():
 )
 def test_get_how(how_str: str, how_expected: Any):
     assert how_expected == get_how(how_str)
+
+
+
+# Define a helper function to create dummy dataarray with given axis attribute
+def create_dataarray_with_axis(axes, dims):
+    dim_arrs = {}
+    for axis, dim in zip(axes, dims):
+        dim_arrs[dim] = xr.DataArray([1, 2], dims=dim)
+        if axis is not None:
+            dim_arrs[dim] = dim_arrs[dim].assign_attrs({"axis": axis})
+    
+    return xr.DataArray(np.ones([2]*len(dims)), dims=dims, coords=dim_arrs)
+
+@pytest.mark.parametrize(
+    "axis, dim_expected", (
+        ["x", "lon"],
+        ["y", "lat"],
+        ["t", "time"],
+        ["z", "z"],
+    )
+)
+# Test case for the function when axis matches an attribute in the dataset's dimensions
+def test_get_dim_keys(axis, dim_expected):
+    # Create a dataarray with an axis attribute
+    dataarray = create_dataarray_with_axis(["x", "y", "t"], ["lon", "lat", "time"])
+    # Check if the correct dimension key is returned
+    assert dim_expected == get_dim_key(dataarray, axis)
+
+
+# Test case for the function when axis matches an attribute in the dataset's dimensions
+def test_get_spatial_info():
+    # Create a dataarray with an axis attribute
+    dataarray = create_dataarray_with_axis(["x", "y", "t"], ["lon", "lat", "time"])
+    # Check if the correct dimension key is returned
+    expected_result = {
+        'lat_key': 'lat',
+        'lon_key': 'lon',
+        'regular': True,
+        'spatial_dims': ['lat', 'lon']
+    }
+    assert expected_result == get_spatial_info(dataarray)
+
 
