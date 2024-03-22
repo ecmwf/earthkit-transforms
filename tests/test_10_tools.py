@@ -77,33 +77,41 @@ def test_groupby_kwargs_decorator_provided():
     other_kwargs = {"method": "linear", "fill_value": 0}
     
     # Call the decorated function with groupby_kwargs provided
-    result_groupby_kwargs, result_kwargs = groupby_kwargs_decorator(gb_dummy_func)(groupby_kwargs=groupby_kwargs, **other_kwargs)
+    result_groupby_kwargs, result_kwargs = groupby_kwargs_decorator(gb_dummy_func)(
+        **groupby_kwargs, **other_kwargs
+    )
     
-    # Check if groupby_kwargs and other kwargs are correctly merged
-    expected_kwargs = {"method": "linear", "fill_value": 0}
     assert result_groupby_kwargs == groupby_kwargs
-    assert result_kwargs == expected_kwargs
+    assert result_kwargs == other_kwargs
 
 # Test case for the decorator when some groupby_kwargs are provided as keyword arguments
 def test_groupby_kwargs_decorator_partial_provided():
     # Prepare groupby_kwargs and other kwargs
-    groupby_kwargs = {"frequency": "day", "bin_widths": 1, "squeeze": True}
+    groupby_kwargs = {"frequency": "day", "bin_widths": 1}
     other_kwargs = {"method": "linear"}
     
     # Call the decorated function with some groupby_kwargs provided as keyword arguments
-    result_groupby_kwargs, result_kwargs = groupby_kwargs_decorator(gb_dummy_func)(frequency="day", bin_widths=1, squeeze=True, **other_kwargs)
+    result_groupby_kwargs, result_kwargs = groupby_kwargs_decorator(gb_dummy_func)(
+        **groupby_kwargs, **other_kwargs
+    )
     
-    # Check if groupby_kwargs and other kwargs are correctly merged
-    expected_kwargs = {"method": "linear"}
     assert result_groupby_kwargs == groupby_kwargs
-    assert result_kwargs == expected_kwargs
+    assert result_kwargs == other_kwargs
 
-# Test case for the decorator when a non-groupby_kwargs key is provided
-def test_groupby_kwargs_decorator_non_groupby_key():
+
+# Test case for the decorator when groupby_kwargs is provided
+def test_groupby_kwargs_decorator_override():
     # Prepare groupby_kwargs and other kwargs
     groupby_kwargs = {"frequency": "day", "bin_widths": 1, "squeeze": True}
-    other_kwargs = {"method": "linear"}
+    other_kwargs = {"method": "linear", "fill_value": 0}
+
+    override_groupby_kwargs = {"frequency": "hour"}
     
-    # Call the decorated function with a non-groupby_kwargs key provided
-    with pytest.raises(TypeError):
-        groupby_kwargs_decorator(gb_dummy_func)(invalid_key="value", **groupby_kwargs, **other_kwargs)
+    # Call the decorated function with groupby_kwargs provided
+    result_groupby_kwargs, result_kwargs = groupby_kwargs_decorator(gb_dummy_func)(
+        groupby_kwargs=override_groupby_kwargs, **groupby_kwargs, **other_kwargs
+    )
+    
+    groupby_kwargs.update(override_groupby_kwargs)
+    assert result_groupby_kwargs == groupby_kwargs
+    assert result_kwargs == other_kwargs

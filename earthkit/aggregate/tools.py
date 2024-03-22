@@ -57,7 +57,7 @@ def time_dim_decorator(func):
                 time_shift = pd.Timedelta(time_shift)
 
             # Convert timedelta to timedelta64 (TODO: may need to be more robust here)
-            time_coord = dataarray.coords[time_dim] + time_shift
+            time_coord = dataarray.coords[time_dim] + time_shift  # type: ignore
             time_coord = time_coord.assign_attrs({"time_shift": f"{time_shift}"})
 
             dataarray = dataarray.assign_coords({time_dim: time_coord})

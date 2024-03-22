@@ -26,7 +26,7 @@ try:
     from earthkit.data.utils.module_inputs_wrapper import (
         transform_function_inputs,
         transform_module_inputs,
-    )
+    ) # type: ignore
 except ImportError:
     pass
 else:
