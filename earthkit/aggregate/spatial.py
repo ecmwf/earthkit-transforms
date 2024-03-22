@@ -360,15 +360,23 @@ def reduce(
                 out_ds[out_da.name] = out_da
             return out_ds
         elif "pandas" in return_as:
+            logger.warn(
+                "Returning reduced data in pandas format is considered experimental and may change in future"
+                "versions of earthkit"
+            )
             if geodataframe is not None:
                 out = geodataframe
                 for var in dataarray.data_vars:
                     out = _reduce_dataarray(dataarray[var], geodataframe=out, *args, **kwargs)
             else:
-                out_list = [
-                    _reduce_dataarray(dataarray[var], *args, **kwargs) for var in dataarray.data_vars
-                ]
-            return out_list
+                out = None
+                for var in dataarray.data_vars:
+                    _out = _reduce_dataarray(dataarray[var], *args, **kwargs)
+                    if out is None:
+                        out = _out
+                    else:
+                        out = pd.merge(out, _out)
+            return out
         else:
             raise TypeError("Return as type not recognised or incompatible with inputs")
     else:
@@ -378,6 +386,7 @@ def reduce(
 def _reduce_dataarray(
     dataarray: xr.DataArray,
     geodataframe: gpd.GeoDataFrame | None = None,
+    pd_dataframe: pd.DataFrame | None = None,
     how: T.Union[T.Callable, str] = "mean",
     weights: T.Union[None, str, np.ndarray] = None,
     lat_key: T.Union[None, str] = None,
@@ -500,10 +509,6 @@ def _reduce_dataarray(
     out_xr = out_xr.rename(new_short_name)
 
     if "pandas" in return_as:
-        logger.warn(
-            "Returning reduced data in pandas format is considered experimental and may change in future"
-            "versions of earthkit"
-        )
         reduce_attrs = {
             f"{dataarray.name}": dataarray.attrs,
             f"{new_short_name}": {
