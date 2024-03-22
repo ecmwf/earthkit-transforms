@@ -515,7 +515,7 @@ def _reduce_dataarray(
                 "long_name": new_long_name,
                 "units": dataarray.attrs.get("units", "No units found"),
                 **extra_out_attrs,
-            }
+            },
         }
 
         if geodataframe is None:
