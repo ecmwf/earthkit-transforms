@@ -53,6 +53,7 @@ def _reduce_dataarray(
         # We ensure the callable is always a string
         if callable(how):
             how = how.__name__
+        how_label = deepcopy(how)
         # map any alias methods:
         how = tools.WEIGHTED_HOW_METHODS.get(how, how)
 
@@ -63,6 +64,7 @@ def _reduce_dataarray(
     else:
         # If how is string, fetch function from dictionary:
         if isinstance(how, str) and how in dir(dataarray):
+            how_label = deepcopy(how)
             red_array = dataarray.__getattribute__(how)(**kwargs)
         else:
             if isinstance(how, str):
