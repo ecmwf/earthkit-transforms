@@ -1,17 +1,18 @@
-from typing import Any
 import numpy as np
 import pytest
 import xarray as xr
-import pandas as pd
+
+from earthkit.aggregate.general import _reduce_dataarray, _rolling_reduce_dataarray, reduce, rolling_reduce
 from earthkit.aggregate.tools import nanaverage
-from earthkit.aggregate.general import _reduce_dataarray, reduce, _rolling_reduce_dataarray, rolling_reduce
+
 
 # Helper function to create a dummy DataArray
 def create_dataarray(weights=None):
-    data = xr.DataArray([[1,np.nan],[1,2]], dims=("x", "y"))
+    data = xr.DataArray([[1, np.nan], [1, 2]], dims=("x", "y"))
     if weights is not None:
         data = data.weighted(weights=weights)
     return data
+
 
 @pytest.mark.parametrize(
     "how, expected_result_method",
@@ -47,6 +48,7 @@ def test_reduce_dataarray(how, expected_result_method):
     assert result[f"test_{how}"].shape == ()  # Ensure reduced to scalar
     assert result[f"test_{how}"].values == expected_result_method(dataarray.values)
 
+
 @pytest.mark.parametrize(
     "how",
     (
@@ -62,6 +64,7 @@ def test_reduce_dataarray_nan(how):
     assert result.shape == ()  # Ensure reduced to scalar
     assert np.isnan(result.values)
 
+
 @pytest.mark.parametrize(
     "how, expected_result_method",
     (
@@ -76,7 +79,7 @@ def test_reduce_dataarray_nan(how):
 # Test case for reducing with weights
 def test_reduce_dataarray_with_weights(how, expected_result_method):
     dataarray = create_dataarray()
-    weights = xr.DataArray([1,2], dims="x", name="x") # Dummy weights
+    weights = xr.DataArray([1, 2], dims="x", name="x")  # Dummy weights
     weighted_dataarray = create_dataarray(weights=weights)
 
     result = _reduce_dataarray(dataarray, how=how, weights=weights)
@@ -97,10 +100,11 @@ def test_reduce_dataarray_with_weights(how, expected_result_method):
 
 # Helper function to create a dummy DataArray
 def create_dataarray_rolling(weights=None):
-    data = xr.DataArray(np.arange(25).reshape([5,5]), dims=("x", "y"), name="test")
+    data = xr.DataArray(np.arange(25).reshape([5, 5]), dims=("x", "y"), name="test")
     if weights is not None:
         data = data.weighted(weights=weights)
     return data
+
 
 @pytest.mark.parametrize(
     "how, expected_result",
@@ -128,9 +132,7 @@ def test_rolling_reduce_dataarray(how, expected_result):
     assert result.shape == (4, 5)
     assert result.values[0, 0] == expected_result
 
-    result = rolling_reduce(
-        dataarray, how_reduce=how, x=2, center=True, chunk=False, how_dropna="any"
-    )
+    result = rolling_reduce(dataarray, how_reduce=how, x=2, center=True, chunk=False, how_dropna="any")
     assert isinstance(result, xr.DataArray)
     assert result.shape == (4, 5)
     assert result.values[0, 0] == expected_result
@@ -139,6 +141,5 @@ def test_rolling_reduce_dataarray(how, expected_result):
         xr.Dataset({"test": dataarray}), how_reduce=how, x=2, center=True, chunk=False, how_dropna="any"
     )
     assert isinstance(result, xr.Dataset)
-    assert result[f"test_{how}"].shape == (4,5)
-    assert result[f"test_{how}"].values[0,0] == expected_result
-
+    assert result[f"test_{how}"].shape == (4, 5)
+    assert result[f"test_{how}"].values[0, 0] == expected_result

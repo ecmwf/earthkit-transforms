@@ -1,13 +1,15 @@
 import pytest
-from earthkit.aggregate import spatial
-from earthkit import data as ek_data
+
 # from earthkit.data.core.temporary import temp_directory
 import xarray as xr
 
+from earthkit import data as ek_data
+from earthkit.aggregate import spatial
 from earthkit.data.testing import earthkit_remote_test_data_file
 
 # Use caching for speedy repeats
 ek_data.settings.set("cache-policy", "user")
+
 
 def get_grid_data():
     remote_era5_file = earthkit_remote_test_data_file("test-data", "era5_temperature_europe_20150101.grib")
@@ -17,7 +19,6 @@ def get_grid_data():
 def get_shape_data():
     remote_nuts_url = earthkit_remote_test_data_file("test-data", "NUTS_RG_60M_2021_4326_LEVL_0.geojson")
     return ek_data.from_source("url", remote_nuts_url)
-
 
 
 def test_spatial_mask():
