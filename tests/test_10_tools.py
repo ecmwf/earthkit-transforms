@@ -1,33 +1,13 @@
+from typing import Any
+import numpy as np
 import pytest
 import xarray as xr
 import pandas as pd
-from earthkit.aggregate.tools import time_dim_decorator, groupby_kwargs_decorator, GROUPBY_KWARGS
+from earthkit.aggregate.tools import time_dim_decorator, groupby_kwargs_decorator, get_how, nanaverage
 
 # Define a dummy function to decorate
 def dummy_func(dataarray, *args, time_dim=None, **kwargs):
-    return dataarray
-
-# Test case for the decorator when time_dim is None
-def test_time_dim_decorator_time_dim_none():
-    # Prepare test data
-    dataarray = xr.DataArray([1, 2, 3], dims=["time"], coords={"time": pd.date_range("2000-01-01", periods=3)})
-
-    # Call the decorated function
-    result = time_dim_decorator(dummy_func)(dataarray)
-
-    # Check if the time dimension is correctly detected
-    assert result.dims == ("time",)
-
-# Test case for the decorator when time_dim is provided
-def test_time_dim_decorator_time_dim_provided():
-    # Prepare test data
-    dataarray = xr.DataArray([1, 2, 3], dims=["time"], coords={"time": pd.date_range("2000-01-01", periods=3)})
-
-    # Call the decorated function with time_dim provided
-    result = time_dim_decorator(dummy_func)(dataarray, time_dim="time")
-
-    # Check if the time dimension remains unchanged
-    assert result.dims == ("time",)
+    return dataarray, time_dim
 
 # Test case for the decorator when time_shift is provided
 def test_time_dim_decorator_time_shift_provided():
@@ -35,7 +15,9 @@ def test_time_dim_decorator_time_shift_provided():
     dataarray = xr.DataArray([1, 2, 3], dims=["time"], coords={"time": pd.date_range("2000-01-01", periods=3)})
 
     # Call the decorated function with time_shift provided
-    result = time_dim_decorator(dummy_func)(dataarray, time_shift={"days": 1})
+    result, result_time_dim = time_dim_decorator(dummy_func)(dataarray, time_shift={"days": 1})
+
+    assert result_time_dim == "time"
 
     # Check if the time dimension is correctly shifted
     expected_coords = pd.date_range("2000-01-02", periods=3)
@@ -44,17 +26,28 @@ def test_time_dim_decorator_time_shift_provided():
 # Test case for the decorator when both time_dim and time_shift are provided
 def test_time_dim_decorator_time_dim_and_time_shift_provided():
     # Prepare test data
-    dataarray = xr.DataArray([1, 2, 3], dims=["time"], coords={"time": pd.date_range("2000-01-01", periods=3)})
+    dataarray = xr.DataArray([1, 2, 3], dims=["dummy"], coords={"dummy": pd.date_range("2000-01-01", periods=3)})
 
     # Call the decorated function with both time_dim and time_shift provided
-    result = time_dim_decorator(dummy_func)(dataarray, time_dim="time", time_shift={"days": 1})
+    result, result_time_dim = time_dim_decorator(dummy_func)(dataarray, time_dim="dummy", time_shift={"days": 1})
 
     # Check if the time dimension remains unchanged
-    assert result.dims == ("time",)
+    assert result_time_dim == "dummy"
 
     # Check if the time dimension is correctly shifted
     expected_coords = pd.date_range("2000-01-02", periods=3)
-    assert all(result.coords["time"].values == expected_coords)
+    assert all(result.coords["dummy"].values == expected_coords)
+
+
+# Test case for the decorator when both time_dim and time_shift are provided
+def test_time_dim_decorator_not_found_error():
+
+    dataarray = xr.DataArray([1, 2, 3], dims=["dummy"], coords={"dummy": [1,2,3]})
+
+    # Check error raised when cannot find time dimension
+    with pytest.raises(KeyError):
+        time_dim_decorator(dummy_func)(dataarray, time_shift={"days": 1})
+
 
 
 # Define a dummy function to decorate
@@ -111,7 +104,34 @@ def test_groupby_kwargs_decorator_override():
     result_groupby_kwargs, result_kwargs = groupby_kwargs_decorator(gb_dummy_func)(
         groupby_kwargs=override_groupby_kwargs, **groupby_kwargs, **other_kwargs
     )
-    
+
     groupby_kwargs.update(override_groupby_kwargs)
     assert result_groupby_kwargs == groupby_kwargs
     assert result_kwargs == other_kwargs
+
+
+@pytest.mark.parametrize(
+    "how_str, how_expected",
+    (
+        ["mean", np.nanmean],
+        ["numpy.mean", np.mean],
+        ["numpy.nanmean", np.nanmean],
+        # ["nanaverage", nanaverage],
+        ["average", nanaverage],
+        ["numpy.average", np.average],
+        ["stddev", np.nanstd],
+        ["std", np.nanstd],
+        ["stdev", np.nanstd],
+        ["sum", np.nansum],
+        ["max", np.nanmax],
+        ["min", np.nanmin],
+        ["median", np.nanmedian],
+        ["q", np.nanquantile],
+        ["quantile", np.nanquantile],
+        ["percentile", np.nanpercentile],
+        ["p", np.nanpercentile],
+    ),
+)
+def test_get_how(how_str: str, how_expected: Any):
+    assert how_expected == get_how(how_str)
+

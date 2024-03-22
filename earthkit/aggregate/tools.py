@@ -134,12 +134,12 @@ def nanaverage(data, weights=None, **kwargs):
         # Scale weights to mean of valid weights:
         this_weights = this_weights / this_denom
         # Apply weights to data:
-        nanaverage = np.nansum(data * this_weights, **kwargs)
+        _nanaverage = np.nansum(data * this_weights, **kwargs)
     else:
         # If no weights, then nanmean will suffice
-        nanaverage = np.nanmean(data, **kwargs)
+        _nanaverage = np.nanmean(data, **kwargs)
 
-    return nanaverage
+    return _nanaverage
 
 
 # TODO: Replace with method from meteokit
@@ -217,6 +217,7 @@ def _latitude_weights(dataarray: xr.DataArray, lat_dim_names=["latitude", "lat"]
 
 HOW_METHODS = {
     "average": nanaverage,
+    "nanaverage": nanaverage,
     "mean": np.nanmean,
     "stddev": np.nanstd,
     "std": np.nanstd,
