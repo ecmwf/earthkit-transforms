@@ -1,15 +1,14 @@
 import logging
 import typing as T
+from copy import deepcopy
 
 import xarray as xr
 
 from earthkit.aggregate import tools
+from earthkit.aggregate.general import reduce as g_reduce
 from earthkit.aggregate.general import resample
-
-if True:
-    # These are included here for legacy purposes, but the code is abstract so not part of temporal namespace
-    from earthkit.aggregate.general import reduce as _reduce
-    from earthkit.aggregate.general import rolling_reduce as _rolling_reduce
+from earthkit.aggregate.general import rolling_reduce as _rolling_reduce
+from earthkit.aggregate.tools import groupby_time
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +59,7 @@ def reduce(
         reduce_dims.append(time_dim)
     kwargs["dim"] = reduce_dims
 
-    return _reduce(dataarray, *args, **kwargs)
+    return g_reduce(dataarray, *args, **kwargs)
 
 
 def rolling_reduce(
@@ -77,32 +76,93 @@ def rolling_reduce(
 
 
 @tools.time_dim_decorator
-def daily_mean(
+def daily_reduce(
     dataarray: T.Union[xr.Dataset, xr.DataArray],
+    how: str | T.Callable = "mean",
     time_dim: T.Union[str, None] = None,
     **kwargs,
 ):
     """
-    Calculate the daily mean.
+    Group data by day and reduce using the given how method.
+
+
+    Parameters
+    ----------
+    dataarray : xr.DataArray
+        DataArray containing a `time` dimension.
+    how: str or callable
+        Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
+        If string, it must be an in-built xarray reduce method, a earthkit how method or any numpy method.
+        In the case of duplicate names, method selection is first in the order: xarray, earthkit, numpy.
+        Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
+        to return the result of reducing an np.ndarray over an integer valued axis
+    time_dim : str
+        Name of the time dimension, or coordinate, in the xarray object,
+        default behaviour is to deduce time dimension from
+        attributes of coordinates, then fall back to `"time"`.
+    time_shift : (optional) timedelta or dict
+        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        as kwargs to `pandas.Timedelta`
+    **kwargs
+        Keyword arguments to be passed to :func:`reduce`.
+
+    Returns
+    -------
+    xr.DataArray
+    """
+    if dataarray[time_dim].dtype in ['<M8[ns]']:  # datetime
+        grouped_data = groupby_time(dataarray, time_dim=time_dim, frequency="date")
+    elif dataarray[time_dim].dtype in ['<m8[ns]']:  #timedelta
+        grouped_data = groupby_time(dataarray, time_dim=time_dim, frequency="days")
+    else:
+        raise TypeError(f"Invalid type for time dimension ({time_dim}): {dataarray[time_dim].dtype}")
+
+    # If how is string, fetch function from dictionary:
+    if isinstance(how, str) and how in dir(grouped_data):
+        how_label = deepcopy(how)
+        red_array = grouped_data.__getattribute__(how)(**kwargs)
+    else:
+        if isinstance(how, str):
+            how_label = deepcopy(how)
+            how = tools.get_how(how)
+        assert isinstance(how, T.Callable), f"how method not recognised: {how}"
+
+        red_array = grouped_data.reduce(how, **kwargs)
+    
+    if isinstance(dataarray, (xr.Dataset)):
+        red_array = red_array.rename({
+            data_arr: f"{data_arr}_{how_label}" for data_arr in red_array
+        })
+    else:
+        red_array = red_array.rename(f"{red_array.name}_{how_label}")
+    return red_array
+
+
+def daily_mean(dataarray: T.Union[xr.Dataset, xr.DataArray], *args, **kwargs):
+    """
+    Return the daily mean of the datacube.
 
     Parameters
     ----------
     dataarray : xr.DataArray
         DataArray containing a `time` dimension.
     time_dim : str
-        Name of the time dimension in the xarray object, default is `"time"`.
+        Name of the time dimension, or coordinate, in the xarray object,
+        default behaviour is to deduce time dimension from
+        attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
         It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
         as kwargs to `pandas.Timedelta`
     **kwargs
-        Keyword arguments to be passed to :func:`resample`.
+        Keyword arguments to be passed to :func:`reduce`.
 
     Returns
     -------
     xr.DataArray
     """
-    return resample(dataarray, frequency="D", dim=time_dim, how="mean", **kwargs)
+    return daily_reduce(dataarray, *args, **kwargs)
 
 
 @tools.time_dim_decorator
@@ -119,13 +179,15 @@ def daily_max(
     dataarray : xr.DataArray
         DataArray containing a `time` dimension.
     time_dim : str
-        Name of the time dimension in the xarray object, default is `"time"`.
+        Name of the time dimension, or coordinate, in the xarray object,
+        default behaviour is to deduce time dimension from
+        attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
         It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
         as kwargs to `pandas.Timedelta`
     **kwargs
-        Keyword arguments to be passed to :func:`resample`.
+        Keyword arguments to be passed to :func:`reduce`.
 
     Returns
     -------
@@ -146,15 +208,17 @@ def daily_min(
     Parameters
     ----------
     dataarray : xr.DataArray
-        DataArray containing a time dimension.
-    time_dim : (optional) str
-        Name of the time dimension in the xarray object, default is `"time"`.
+        DataArray containing a `time` dimension.
+    time_dim : str
+        Name of the time dimension, or coordinate, in the xarray object,
+        default behaviour is to deduce time dimension from
+        attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
         It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
         as kwargs to `pandas.Timedelta`
     **kwargs
-        Keyword arguments to be passed to :func:`resample`.
+        Keyword arguments to be passed to :func:`reduce`.
 
     Returns
     -------
@@ -175,15 +239,17 @@ def daily_std(
     Parameters
     ----------
     dataarray : xr.DataArray
-        DataArray containing a time dimension.
-    time_dim : (optional) str
-        Name of the time dimension in the xarray object, default is `"time"`.
+        DataArray containing a `time` dimension.
+    time_dim : str
+        Name of the time dimension, or coordinate, in the xarray object,
+        default behaviour is to deduce time dimension from
+        attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
         It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
         as kwargs to `pandas.Timedelta`
     **kwargs
-        Keyword arguments to be passed to :func:`resample`.
+        Keyword arguments to be passed to :func:`reduce`.
 
     Returns
     -------
@@ -204,15 +270,17 @@ def daily_sum(
     Parameters
     ----------
     dataarray : xr.DataArray
-        DataArray containing a time dimension.
-    time_dim : (optional) str
-        Name of the time dimension in the xarray object, default is `"time"`.
+        DataArray containing a `time` dimension.
+    time_dim : str
+        Name of the time dimension, or coordinate, in the xarray object,
+        default behaviour is to deduce time dimension from
+        attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
         It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
         as kwargs to `pandas.Timedelta`
     **kwargs
-        Keyword arguments to be passed to :func:`resample`.
+        Keyword arguments to be passed to :func:`reduce`.
 
     Returns
     -------

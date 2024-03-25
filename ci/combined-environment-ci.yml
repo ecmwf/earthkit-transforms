@@ -15,6 +15,7 @@ dependencies:
 - pydata-sphinx-theme
 - pytest
 - pytest-cov
+- rasterio
 - sphinx
 - sphinx-autoapi
 - sphinx-rtd-theme

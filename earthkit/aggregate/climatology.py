@@ -4,66 +4,7 @@ import xarray as xr
 
 from earthkit.aggregate import tools
 from earthkit.aggregate.general import reduce, resample
-
-
-def _pandas_frequency_and_bins(
-    frequency: str,
-) -> tuple:
-    freq = frequency.lstrip("0123456789")
-    bins = int(frequency[: -len(freq)]) or None
-    freq = tools._PANDAS_FREQUENCIES.get(freq.lstrip(" "), frequency)
-    return freq, bins
-
-
-def _groupby_time(
-    dataarray: T.Union[xr.Dataset, xr.DataArray],
-    frequency: str = None,
-    bin_widths: T.Union[int, None] = None,
-    squeeze: bool = True,
-    time_dim: str = "time",
-):
-    if frequency is None:
-        try:
-            frequency = xr.infer_freq(dataarray.time)
-        except:  # noqa: E722
-            raise ValueError(
-                "Unable to infer time frequency from data; please pass the " "'frequency' argument explicitly"
-            )
-        frequency, possible_bins = _pandas_frequency_and_bins(frequency)
-        bin_widths = bin_widths or possible_bins
-
-    if bin_widths is not None:
-        grouped_data = _groupby_bins(dataarray, frequency, bin_widths, squeeze, time_dim=time_dim)
-    else:
-        try:
-            grouped_data = dataarray.groupby(f"{time_dim}.{frequency}", squeeze=squeeze)
-        except AttributeError:
-            raise ValueError(
-                f"Invalid frequency '{frequency}' - see xarray documentation for "
-                f"a full list of valid frequencies."
-            )
-
-    return grouped_data
-
-
-def _groupby_bins(
-    dataarray: T.Union[xr.Dataset, xr.DataArray],
-    frequency: str,
-    bin_widths: int = 1,
-    squeeze: bool = False,
-    time_dim: str = "time",
-):
-    if not isinstance(bin_widths, (list, tuple)):
-        max_value = tools._BIN_MAXES[frequency]
-        bin_widths = list(range(0, max_value + 1, bin_widths))
-    try:
-        grouped_data = dataarray.groupby_bins(f"{time_dim}.{frequency}", bin_widths, squeeze=squeeze)
-    except AttributeError:
-        raise ValueError(
-            f"Invalid frequency '{frequency}' - see xarray documentation for "
-            f"a full list of valid frequencies."
-        )
-    return grouped_data
+from earthkit.aggregate.tools import groupby_time
 
 
 @tools.time_dim_decorator
@@ -99,7 +40,7 @@ def mean(
     -------
     xr.DataArray
     """
-    grouped_data = _groupby_time(
+    grouped_data = groupby_time(
         dataarray,
         time_dim=time_dim,
         **groupby_kwargs,
@@ -140,7 +81,7 @@ def stdev(
     -------
     xr.DataArray
     """
-    grouped_data = _groupby_time(
+    grouped_data = groupby_time(
         dataarray,
         time_dim=time_dim,
         **groupby_kwargs,
@@ -210,7 +151,7 @@ def max(
     -------
     xr.DataArray
     """
-    grouped_data = _groupby_time(
+    grouped_data = groupby_time(
         dataarray,
         time_dim=time_dim,
         **groupby_kwargs,
@@ -251,7 +192,7 @@ def min(
     -------
     xr.DataArray
     """
-    grouped_data = _groupby_time(
+    grouped_data = groupby_time(
         dataarray,
         time_dim=time_dim,
         **groupby_kwargs,
@@ -295,7 +236,7 @@ def quantiles(
     -------
     xr.DataArray
     """
-    grouped_data = _groupby_time(dataarray.chunk({time_dim: -1}), time_dim=time_dim, **groupby_kwargs)
+    grouped_data = groupby_time(dataarray.chunk({time_dim: -1}), time_dim=time_dim, **groupby_kwargs)
     results = []
     for quantile in quantiles:
         results.append(
@@ -407,10 +348,10 @@ def anomaly(
             **reduce_kwargs,
             time_dim=time_dim,
         )
-    anomaly_array = _groupby_time(dataarray, time_dim=time_dim, **groupby_kwargs) - climatology
+    anomaly_array = groupby_time(dataarray, time_dim=time_dim, **groupby_kwargs) - climatology
     if relative:
         anomaly_array = (
-            _groupby_time(anomaly_array, time_dim=time_dim, **groupby_kwargs) / climatology
+            groupby_time(anomaly_array, time_dim=time_dim, **groupby_kwargs) / climatology
         ) * 100.0
         name_tag = "relative anomaly"
         update_attrs = {"units": "%"}

@@ -25,7 +25,6 @@ pip install earthkit-aggregate
 
 ```
 
-
 ```{toctree}
 :caption: 'Contents:'
 :maxdepth: 2

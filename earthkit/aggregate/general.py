@@ -236,10 +236,12 @@ def _dropna(data, dims, how):
 
 def resample(
     dataarray: T.Union[xr.Dataset, xr.DataArray],
-    frequency: str or int or float,
+    frequency: str | int | float,
     dim: str = "time",
     how: str = "mean",
     skipna: bool = True,
+    how_args: list[T.Any] = [],
+    how_kwargs: dict[str, T.Any] = {},
     **kwargs,
 ) -> xr.DataArray:
     """
@@ -264,8 +266,12 @@ def resample(
     -------
     xr.DataArray
     """
+    # Get any how kwargs into appropriate dictionary:
+    for _k in ["q", "p"]:
+        if _k in kwargs:
+            how_kwargs[_k] = kwargs.pop(_k)
     # Translate and xarray frequencies to pandas language:
     frequency = tools._PANDAS_FREQUENCIES_R.get(frequency, frequency)
     resample = dataarray.resample(skipna=skipna, **{dim: frequency}, **kwargs)
-    result = resample.__getattribute__(how)(dim)
+    result = resample.__getattribute__(how)(*how_args, dim=dim, **how_kwargs)
     return result

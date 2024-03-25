@@ -335,3 +335,63 @@ def get_spatial_info(dataarray, lat_key=None, lon_key=None):
         "spatial_dims": spatial_dims,
     }
     return spatial_info
+
+
+def _pandas_frequency_and_bins(
+    frequency: str,
+) -> tuple:
+    freq = frequency.lstrip("0123456789")
+    bins = int(frequency[: -len(freq)]) or None
+    freq = _PANDAS_FREQUENCIES.get(freq.lstrip(" "), frequency)
+    return freq, bins
+
+
+def groupby_time(
+    dataarray: T.Union[xr.Dataset, xr.DataArray],
+    frequency: str | None = None,
+    bin_widths: T.Union[int, None] = None,
+    squeeze: bool = True,
+    time_dim: str = "time",
+):
+    if frequency is None:
+        try:
+            frequency = xr.infer_freq(dataarray.time)
+        except:  # noqa: E722
+            raise ValueError(
+                "Unable to infer time frequency from data; please pass the 'frequency' argument explicitly"
+            )
+        frequency, possible_bins = _pandas_frequency_and_bins(frequency)
+        bin_widths = bin_widths or possible_bins
+
+    if bin_widths is not None:
+        grouped_data = groupby_bins(dataarray, frequency, bin_widths, squeeze, time_dim=time_dim)
+    else:
+        try:
+            grouped_data = dataarray.groupby(f"{time_dim}.{frequency}", squeeze=squeeze)
+        except AttributeError:
+            raise ValueError(
+                f"Invalid frequency '{frequency}' - see xarray documentation for "
+                f"a full list of valid frequencies."
+            )
+
+    return grouped_data
+
+
+def groupby_bins(
+    dataarray: T.Union[xr.Dataset, xr.DataArray],
+    frequency: str,
+    bin_widths: int = 1,
+    squeeze: bool = False,
+    time_dim: str = "time",
+):
+    if not isinstance(bin_widths, (list, tuple)):
+        max_value = _BIN_MAXES[frequency]
+        bin_widths = list(range(0, max_value + 1, bin_widths))
+    try:
+        grouped_data = dataarray.groupby_bins(f"{time_dim}.{frequency}", bin_widths, squeeze=squeeze)
+    except AttributeError:
+        raise ValueError(
+            f"Invalid frequency '{frequency}' - see xarray documentation for "
+            f"a full list of valid frequencies."
+        )
+    return grouped_data
