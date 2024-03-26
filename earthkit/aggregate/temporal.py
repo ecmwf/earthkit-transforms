@@ -30,9 +30,11 @@ def reduce(
     ----------
     dataarray : xr.DataArray or xr.Dataset
         Data object to reduce
-    dim: str or list
-        Dimension(s) to reduce along, any time dimension found is added. If you do not want to aggregate
-        along the time dimension use earthkit.aggregate.reduce
+    time_dim : str
+        Name of the time dimension, or coordinate, in the xarray object,
+        default behaviour is to deduce time dimension from
+        attributes of coordinates, then fall back to `"time"`.
+        If you do not want to aggregate along the time dimension use earthkit.aggregate.reduce
     how: str or callable
         Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
         If string, it must be an in-built xarray reduce method, a earthkit how method or any numpy method.
@@ -62,17 +64,49 @@ def reduce(
     return g_reduce(dataarray, *args, **kwargs)
 
 
+@tools.time_dim_decorator
 def rolling_reduce(
     dataarray: T.Union[xr.Dataset, xr.DataArray],
-    *args,
+    window_length: int | None = None,
+    time_dim: T.Union[str, None] = None,
     **kwargs,
 ):
-    """Deprecated method location, please see `earthkit.aggregate.rolling_reduce`."""
-    logger.warn(
-        "`earthkit.aggregate.temporal.rolling_reduce` is a deprecated location for this method, "
-        "please use `earthkit.aggregate.rolling_reduce` instead."
-    )
-    return _rolling_reduce(dataarray, *args, **kwargs)
+    """Return reduced data using a moving window over the time dimension.
+
+    Parameters
+    ----------
+    dataarray : xr.DataArray or xr.Dataset
+        Data over which the moving window is applied according to the reduction method.
+    window_length :
+        Length of window for the rolling groups along the time dimension.
+        **see documentation for xarray.dataarray.rolling**.
+    time_dim : str
+        Name of the time dimension, or coordinate, in the xarray object,
+        default behaviour is to deduce time dimension from
+        attributes of coordinates, then fall back to `"time"`.
+    min_periods : integer
+        The minimum number of observations in the window required to have a value
+        (otherwise result is NaN). Default is to set **min_periods** equal to the size of the window.
+        **see documentation for xarray.dataarray.rolling**
+    center : bool
+        Set the labels at the centre of the window, **see documentation for xarray.dataarray.rolling**.
+    how_reduce : str,
+        Function to be applied for reduction. Default is 'mean'.
+    how_dropna : str
+        Determine if dimension is removed from the output when we have at least one NaN or
+        all NaN. **how_dropna** can be 'None', 'any' or 'all'. Default is 'any'.
+    windows : dict[str, int]
+        Any other windows to apply to other dimensions in the dataset/dataarray
+    **kwargs :
+        Any kwargs that are compatible with the select `how_reduce` method.
+
+    Returns
+    -------
+    xr.DataArray or xr.Dataset (as provided)
+    """
+    if window_length is not None:
+        kwargs.update({time_dim: window_length})
+    return _rolling_reduce(dataarray, **kwargs)
 
 
 @tools.time_dim_decorator
@@ -84,7 +118,6 @@ def daily_reduce(
 ):
     """
     Group data by day and reduce using the given how method.
-
 
     Parameters
     ----------
@@ -111,31 +144,45 @@ def daily_reduce(
     -------
     xr.DataArray
     """
-    if dataarray[time_dim].dtype in ['<M8[ns]']:  # datetime
-        grouped_data = groupby_time(dataarray, time_dim=time_dim, frequency="date")
-    elif dataarray[time_dim].dtype in ['<m8[ns]']:  #timedelta
-        grouped_data = groupby_time(dataarray, time_dim=time_dim, frequency="days")
+    # If time_dim in dimensions then use resample, this should be faster.
+    #  At present, performance differences are small, but resampling can be improved by handling as
+    #  a pandas dataframes. reample function should be updated to do this.
+    #  NOTE: force_groupby is an undocumented kwarg for debug purposes
+    if time_dim in dataarray.dims and not kwargs.pop("force_groupby", False):
+        return resample(dataarray, frequency="D", dim=time_dim, how=how, **kwargs)
+
+    # Otherwise, we groupby, with specifics set up for daily and handling both datetimes and timedeltas
+    if dataarray[time_dim].dtype in ["<M8[ns]"]:  # datetime
+        group_key = "date"
+    elif dataarray[time_dim].dtype in ["<m8[ns]"]:  # timedelta
+        group_key = "days"
     else:
         raise TypeError(f"Invalid type for time dimension ({time_dim}): {dataarray[time_dim].dtype}")
 
-    # If how is string, fetch function from dictionary:
+    grouped_data = groupby_time(dataarray, time_dim=time_dim, frequency=group_key)
+    # If how is string and inbuilt method of grouped_data, we apply
     if isinstance(how, str) and how in dir(grouped_data):
         how_label = deepcopy(how)
         red_array = grouped_data.__getattribute__(how)(**kwargs)
     else:
+        # If how is string, fetch function from dictionary:
         if isinstance(how, str):
             how_label = deepcopy(how)
             how = tools.get_how(how)
         assert isinstance(how, T.Callable), f"how method not recognised: {how}"
 
         red_array = grouped_data.reduce(how, **kwargs)
-    
+
+    # Update variable names, depends on dataset or dataarray format
     if isinstance(dataarray, (xr.Dataset)):
-        red_array = red_array.rename({
-            data_arr: f"{data_arr}_{how_label}" for data_arr in red_array
-        })
+        red_array = red_array.rename(
+            {**{data_arr: f"{data_arr}_{how_label}" for data_arr in red_array}, **{group_key: time_dim}}
+        )
     else:
-        red_array = red_array.rename(f"{red_array.name}_{how_label}")
+        red_array = red_array.rename(f"{red_array.name}_{how_label}", **{group_key: time_dim})
+
+    # Revert group dimension name to time_dim
+    red_array = red_array.rename()
     return red_array
 
 
@@ -162,15 +209,10 @@ def daily_mean(dataarray: T.Union[xr.Dataset, xr.DataArray], *args, **kwargs):
     -------
     xr.DataArray
     """
-    return daily_reduce(dataarray, *args, **kwargs)
+    return daily_reduce(dataarray, *args, how="mean", **kwargs)
 
 
-@tools.time_dim_decorator
-def daily_max(
-    dataarray: T.Union[xr.Dataset, xr.DataArray],
-    time_dim: T.Union[str, None] = None,
-    **kwargs,
-):
+def daily_max(dataarray: T.Union[xr.Dataset, xr.DataArray], *args, **kwargs):
     """
     Calculate the daily maximum.
 
@@ -193,15 +235,10 @@ def daily_max(
     -------
     xr.DataArray
     """
-    return resample(dataarray, frequency="D", dim=time_dim, how="max", **kwargs)
+    return daily_reduce(dataarray, *args, how="max", **kwargs)
 
 
-@tools.time_dim_decorator
-def daily_min(
-    dataarray: T.Union[xr.Dataset, xr.DataArray],
-    time_dim: T.Union[str, None] = None,
-    **kwargs,
-):
+def daily_min(dataarray: T.Union[xr.Dataset, xr.DataArray], *args, **kwargs):
     """
     Calculate the daily minimum.
 
@@ -224,15 +261,10 @@ def daily_min(
     -------
     xr.DataArray
     """
-    return resample(dataarray, frequency="D", dim=time_dim, how="min", **kwargs)
+    return daily_reduce(dataarray, *args, how="min", **kwargs)
 
 
-@tools.time_dim_decorator
-def daily_std(
-    dataarray: T.Union[xr.Dataset, xr.DataArray],
-    time_dim: T.Union[str, None] = None,
-    **kwargs,
-):
+def daily_std(dataarray: T.Union[xr.Dataset, xr.DataArray], *args, **kwargs):
     """
     Calculate the daily standard deviation.
 
@@ -255,15 +287,10 @@ def daily_std(
     -------
     xr.DataArray
     """
-    return resample(dataarray, frequency="D", dim=time_dim, how="std", **kwargs)
+    return daily_reduce(dataarray, *args, how="std", **kwargs)
 
 
-@tools.time_dim_decorator
-def daily_sum(
-    dataarray: T.Union[xr.Dataset, xr.DataArray],
-    time_dim: T.Union[str, None] = None,
-    **kwargs,
-):
+def daily_sum(dataarray: T.Union[xr.Dataset, xr.DataArray], *args, **kwargs):
     """
     Calculate the daily sum (accumulation).
 
@@ -286,7 +313,7 @@ def daily_sum(
     -------
     xr.DataArray
     """
-    return resample(dataarray, frequency="D", dim=time_dim, how="sum", **kwargs)
+    return daily_reduce(dataarray, *args, how="sum", **kwargs)
 
 
 @tools.time_dim_decorator
