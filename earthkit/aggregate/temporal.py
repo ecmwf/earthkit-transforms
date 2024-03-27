@@ -1,6 +1,7 @@
 import logging
 import typing as T
 
+import pandas as pd
 import xarray as xr
 
 from earthkit.aggregate import tools
@@ -363,6 +364,12 @@ def daily_reduce(
             assert isinstance(how, T.Callable), f"how method not recognised: {how}"
 
             red_array = grouped_data.reduce(how, **kwargs)
+        try:
+            red_array[group_key] = pd.DatetimeIndex(red_array[group_key].values)
+        except TypeError:
+            logger.warning(
+                f"Failed to convert {group_key} to datetime, it may already be a datetime object"
+            )
         rename_extra = {group_key: time_dim}
 
     if how_label is not None:
