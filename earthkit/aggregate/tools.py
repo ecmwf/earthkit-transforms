@@ -1,5 +1,6 @@
 import functools
 import typing as T
+from copy import deepcopy
 
 import numpy as np
 import pandas as pd
@@ -94,6 +95,25 @@ def season_order_decorator(func):
         return result
 
     return wrapper
+
+
+def how_label_decorator(label_prefix: str = "", label_suffix: str = ""):
+    def actual_decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, how: str | T.Callable, how_label: str | None = None, **kwargs):
+            if not isinstance(how, str) and not callable(how):
+                raise ValueError("how must be a string or a callable")
+            if how_label is None:
+                if isinstance(how, str):
+                    how_label = deepcopy(how)
+                elif callable(how):
+                    how_label = how.__name__
+                how_label = f"{label_prefix}{how_label}{label_suffix}"
+            return func(*args, how=how, how_label=how_label, **kwargs)
+
+        return wrapper
+
+    return actual_decorator
 
 
 # TODO: Replace with method from meteokit
@@ -267,11 +287,16 @@ def get_how(how: str, how_methods=HOW_METHODS):
     except KeyError:
         try:
             module, function = how.split(".")
+        except Exception:
+            raise ValueError(f"how method not recognised or found: how={how}")
+
+        try:
             how = getattr(globals()[ALLOWED_LIBS[module]], function)
         except KeyError:
             raise ValueError(f"method must come from one of {ALLOWED_LIBS}")
         except AttributeError:
             raise AttributeError(f"module '{module}' has no attribute " f"'{function}'")
+
     return how
 
 
