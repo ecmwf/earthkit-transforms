@@ -367,9 +367,7 @@ def daily_reduce(
         try:
             red_array[group_key] = pd.DatetimeIndex(red_array[group_key].values)
         except TypeError:
-            logger.warning(
-                f"Failed to convert {group_key} to datetime, it may already be a datetime object"
-            )
+            logger.warning(f"Failed to convert {group_key} to datetime, it may already be a datetime object")
         rename_extra = {group_key: time_dim}
 
     if how_label is not None:

@@ -406,7 +406,7 @@ def relative_anomaly(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
     return anomaly_xarray
 
 
-def anomalazy(
+def auto_anomaly(
     dataarray: xr.Dataset | xr.DataArray,
     *args,
     climatology_range: tuple | None = None,
@@ -456,3 +456,7 @@ def anomalazy(
     climatology = reduce(selection, *args, how=climatology_how, **kwargs)
 
     return anomaly(dataarray, climatology, *args, relative=relative, **kwargs)
+
+
+# Alias easter eggs
+anomalazy = auto_anomaly
