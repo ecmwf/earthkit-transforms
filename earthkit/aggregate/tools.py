@@ -11,6 +11,7 @@ _PANDAS_FREQUENCIES = {
     "D": "dayofyear",
     "W": "weekofyear",
     "M": "month",
+    "ME": "month",
     "H": "hour",
 }
 _PANDAS_FREQUENCIES_R = {v: k for k, v in _PANDAS_FREQUENCIES.items()}

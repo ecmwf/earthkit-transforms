@@ -215,7 +215,8 @@ def _rolling_reduce_dataarray(
     # Create rolling groups:
     data_rolling = dataarray.rolling(**rolling_kwargs)
 
-    data_windowed = _reduce_dataarray(data_rolling, how=how_reduce, **reduce_kwargs)
+    reduce_kwargs.setdefault("how", how_reduce)
+    data_windowed = _reduce_dataarray(data_rolling, **reduce_kwargs)
 
     data_windowed = _dropna(data_windowed, window_dims, how_dropna)
 

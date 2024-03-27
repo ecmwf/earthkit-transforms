@@ -1,6 +1,5 @@
 import logging
 import typing as T
-from copy import deepcopy
 
 import xarray as xr
 
@@ -565,7 +564,7 @@ def monthly_reduce(
         as kwargs to `pandas.Timedelta`
     how_label : str
         Label to append to the name of the variable in the reduced object, default is _monthly_{how}
-    
+
     **kwargs
         Keyword arguments to be passed to :func:`reduce`.
 
@@ -579,7 +578,7 @@ def monthly_reduce(
     #  a pandas dataframes. reample function should be updated to do this.
     #  NOTE: force_groupby is an undocumented kwarg for debug purposes
     if time_dim in dataarray.dims and not kwargs.pop("force_groupby", False):
-        red_array = resample(dataarray, frequency="M", dim=time_dim, how=how, **kwargs)
+        red_array = resample(dataarray, frequency="ME", dim=time_dim, how=how, **kwargs)
     else:
         # Otherwise, we groupby, with specifics set up for daily and handling both datetimes and timedeltas
         if dataarray[time_dim].dtype in ["<M8[ns]"]:  # datetime
@@ -597,7 +596,7 @@ def monthly_reduce(
             )
         else:
             raise TypeError(f"Invalid type for time dimension ({time_dim}): {dataarray[time_dim].dtype}")
-        
+
         # If how is string and inbuilt method of grouped_data, we apply
         if isinstance(how, str) and how in dir(grouped_data):
             red_array = grouped_data.__getattribute__(how)(**kwargs)
@@ -611,7 +610,6 @@ def monthly_reduce(
         # Remove the year_months coordinate
         del red_array["year_months"]
         rename_extra = {group_key: time_dim}
-
 
     if how_label is not None:
         # Update variable names, depends on dataset or dataarray format

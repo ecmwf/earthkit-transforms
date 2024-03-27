@@ -16,7 +16,6 @@ def get_data():
     return ek_data.from_source("url", remote_era5_file)
 
 
-
 @pytest.mark.parametrize(
     "in_data, expected_return_type",
     (
@@ -37,9 +36,7 @@ def test_temporal_reduce(in_data, expected_return_type):
 
 @pytest.mark.parametrize(
     "how",
-    (
-        "mean", "median", "min", "max", "std", "sum"
-    ),
+    ("mean", "median", "min", "max", "std", "sum"),
 )
 def test_temporal_reduce_hows(how):
     in_data = get_data().to_xarray()
@@ -52,11 +49,10 @@ def test_temporal_reduce_hows(how):
     else:
         assert f"t2m_{how}" in reduced_data
 
+
 @pytest.mark.parametrize(
     "method",
-    (
-        "mean", "median", "min", "max", "std", "sum"
-    ),
+    ("mean", "median", "min", "max", "std", "sum"),
 )
 @pytest.mark.parametrize(
     "in_data, expected_return_type",
@@ -96,13 +92,9 @@ def test_temporal_daily_reduce_intypes(in_data, expected_return_type, how="mean"
 
 @pytest.mark.parametrize(
     "how",
-    (
-        "mean", "median", "min", "max", "std", "sum"
-    ),
+    ("mean", "median", "min", "max", "std", "sum"),
 )
-def test_temporal_daily_reduce_hows(
-    how, in_data=get_data().to_xarray(), expected_return_type=xr.Dataset
-):
+def test_temporal_daily_reduce_hows(how, in_data=get_data().to_xarray(), expected_return_type=xr.Dataset):
     reduced_data = temporal.daily_reduce(in_data, how=how)
     assert isinstance(reduced_data, expected_return_type)
     assert "time" in list(reduced_data.dims)
@@ -110,30 +102,6 @@ def test_temporal_daily_reduce_hows(
         assert f"t2m_daily_{how}" == reduced_data.name
     else:
         assert f"t2m_daily_{how}" in reduced_data
-
-
-@pytest.mark.parametrize(
-    "method",
-    (
-        "daily_mean", "daily_median", "daily_min", "daily_max", "daily_std", "daily_sum"
-    ),
-)
-@pytest.mark.parametrize(
-    "in_data, expected_return_type",
-    (
-        [get_data(), xr.Dataset],
-        [get_data().to_xarray(), xr.Dataset],
-        [get_data().to_xarray().t2m, xr.DataArray],
-    ),
-)
-def test_temporal_daily_methods(method, in_data, expected_return_type):
-    reduced_data = temporal.__getattribute__(method)(in_data)
-    assert isinstance(reduced_data, expected_return_type)
-    assert "time" in list(reduced_data.dims)
-    if expected_return_type == xr.DataArray:
-        assert f"t2m_{method}" == reduced_data.name
-    else:
-        assert f"t2m_{method}" in reduced_data
 
 
 @pytest.mark.parametrize(
@@ -156,13 +124,9 @@ def test_temporal_monthly_reduce_intypes(in_data, expected_return_type, how="mea
 
 @pytest.mark.parametrize(
     "how",
-    (
-        "mean", "median", "min", "max", "std", "sum"
-    ),
+    ("mean", "median", "min", "max", "std", "sum"),
 )
-def test_temporal_monthly_reduce_hows(
-    how, in_data=get_data().to_xarray(), expected_return_type=xr.Dataset
-):
+def test_temporal_monthly_reduce_hows(how, in_data=get_data().to_xarray(), expected_return_type=xr.Dataset):
     reduced_data = temporal.monthly_reduce(in_data, how=how)
     assert isinstance(reduced_data, expected_return_type)
     assert "time" in list(reduced_data.dims)
@@ -175,7 +139,18 @@ def test_temporal_monthly_reduce_hows(
 @pytest.mark.parametrize(
     "method",
     (
-        "daily_mean", "daily_median", "daily_min", "daily_max", "daily_std", "daily_sum"
+        "daily_mean",
+        "daily_median",
+        "daily_min",
+        "daily_max",
+        "daily_std",
+        "daily_sum",
+        "monthly_mean",
+        "monthly_median",
+        "monthly_min",
+        "monthly_max",
+        "monthly_std",
+        "monthly_sum",
     ),
 )
 @pytest.mark.parametrize(
@@ -186,7 +161,7 @@ def test_temporal_monthly_reduce_hows(
         [get_data().to_xarray().t2m, xr.DataArray],
     ),
 )
-def test_temporal_daily_methods(method, in_data, expected_return_type):
+def test_temporal_daily_monthly_methods(method, in_data, expected_return_type):
     reduced_data = temporal.__getattribute__(method)(in_data)
     assert isinstance(reduced_data, expected_return_type)
     assert "time" in list(reduced_data.dims)
