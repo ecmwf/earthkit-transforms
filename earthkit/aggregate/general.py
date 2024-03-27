@@ -10,8 +10,8 @@ from earthkit.aggregate import tools
 
 def _reduce_dataarray(
     dataarray: xr.DataArray,
-    how: T.Union[T.Callable, str] = "mean",
-    weights: T.Union[None, str, np.ndarray] = None,
+    how: T.Callable | str = "mean",
+    weights: None | str | np.ndarray = None,
     how_label: str = "",
     how_dropna=False,
     **kwargs,
@@ -84,7 +84,7 @@ def _reduce_dataarray(
 
 
 def reduce(
-    dataarray: T.Union[xr.DataArray, xr.Dataset],
+    dataarray: xr.Dataset | xr.DataArray,
     *args,
     **kwargs,
 ):
@@ -129,7 +129,7 @@ def reduce(
         return _reduce_dataarray(dataarray, *args, **kwargs)
 
 
-def rolling_reduce(dataarray: T.Union[xr.Dataset, xr.DataArray], *args, **kwargs) -> xr.DataArray:
+def rolling_reduce(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.DataArray:
     """Return reduced data using a moving window over which to apply the reduction.
 
     Parameters
@@ -235,7 +235,7 @@ def _dropna(data, dims, how):
 
 
 def resample(
-    dataarray: T.Union[xr.Dataset, xr.DataArray],
+    dataarray: xr.Dataset | xr.DataArray,
     frequency: str | int | float,
     dim: str = "time",
     how: str = "mean",
