@@ -38,10 +38,10 @@ def ensure_list(thing):
 def time_dim_decorator(func):
     @functools.wraps(func)
     def wrapper(
-        dataarray: T.Union[xr.Dataset, xr.DataArray],
+        dataarray: xr.Dataset | xr.DataArray,
         *args,
-        time_dim: T.Union[str, None] = None,
-        time_shift: T.Union[None, dict, str, pd.Timedelta] = None,
+        time_dim: str | None = None,
+        time_shift: dict | str | pd.Timedelta | None = None,
         **kwargs,
     ):
         if time_dim is None:
@@ -309,7 +309,7 @@ STANDARD_AXIS_KEYS: dict[str, list[str]] = {
 
 
 def get_dim_key(
-    dataarray: T.Union[xr.DataArray, xr.Dataset],
+    dataarray: xr.Dataset | xr.DataArray,
     axis: str,
 ):
     """Return the key of the dimension."""
@@ -373,9 +373,9 @@ def _pandas_frequency_and_bins(
 
 
 def groupby_time(
-    dataarray: T.Union[xr.Dataset, xr.DataArray],
+    dataarray: xr.Dataset | xr.DataArray,
     frequency: str | None = None,
-    bin_widths: T.Union[int, None] = None,
+    bin_widths: int | None = None,
     squeeze: bool = True,
     time_dim: str = "time",
 ):
@@ -404,7 +404,7 @@ def groupby_time(
 
 
 def groupby_bins(
-    dataarray: T.Union[xr.Dataset, xr.DataArray],
+    dataarray: xr.Dataset | xr.DataArray,
     frequency: str,
     bin_widths: int = 1,
     squeeze: bool = False,

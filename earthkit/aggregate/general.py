@@ -8,11 +8,12 @@ import xarray as xr
 from earthkit.aggregate import tools
 
 
+@tools.how_label_decorator()
 def _reduce_dataarray(
     dataarray: xr.DataArray,
     how: T.Callable | str = "mean",
     weights: None | str | np.ndarray = None,
-    how_label: str = "",
+    how_label: str | None = None,
     how_dropna=False,
     **kwargs,
 ):
@@ -74,8 +75,13 @@ def _reduce_dataarray(
 
             red_array = dataarray.reduce(how, **kwargs)
 
-    if how_label:
-        red_array = red_array.rename(f"{red_array.name}_{how_label}")
+    if how_label is not None:
+        # Update variable names, depends on dataset or dataarray format
+        if isinstance(red_array, xr.Dataset):
+            renames = {data_arr: f"{data_arr}_{how_label}" for data_arr in red_array}
+            red_array = red_array.rename(**renames)
+        else:
+            red_array = red_array.rename(f"{red_array.name}_{how_label}")
 
     if how_dropna:
         red_array = red_array.dropna(how_dropna)
@@ -119,14 +125,13 @@ def reduce(
         A data array with reduce dimensions removed.
 
     """
-    if isinstance(dataarray, (xr.Dataset)):
-        out_ds = xr.Dataset().assign_attrs(dataarray.attrs)
-        for var in dataarray.data_vars:
-            out_da = _reduce_dataarray(dataarray[var], *args, **kwargs)
-            out_ds[out_da.name] = out_da
-        return out_ds
-    else:
-        return _reduce_dataarray(dataarray, *args, **kwargs)
+    # handle how as arg or kwarg
+    kwargs["how"] = args[0] if args else kwargs.get("how", "mean")
+    out = _reduce_dataarray(dataarray, **kwargs)
+    # Ensure any input attributes are preserved (maybe not necessary)
+    if isinstance(dataarray, xr.Dataset):
+        out.attrs.update(dataarray.attrs)
+    return out
 
 
 def rolling_reduce(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.DataArray:
