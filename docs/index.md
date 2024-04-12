@@ -7,6 +7,24 @@
 It has been designed following the philosphy of Earthkit, hence the methods should be interoperable with any
 data object understood by earthkit-data.
 
+## Getting started
+
+**earthkit-aggregate** is available from PyPi. To make use of the interoperable funcitonality you should ensure
+that you have installed the dependancies of *earthkit-data*.
+
+### Installation
+
+```bash
+pip install earthkit-aggregate
+```
+
+### Import and use
+
+```python
+>>> from earthkit import aggregate
+
+```
+
 ```{toctree}
 :caption: 'Contents:'
 :maxdepth: 2

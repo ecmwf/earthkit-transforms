@@ -8,11 +8,12 @@ import xarray as xr
 from earthkit.aggregate import tools
 
 
+@tools.how_label_decorator()
 def _reduce_dataarray(
     dataarray: xr.DataArray,
-    how: T.Union[T.Callable, str] = "mean",
-    weights: T.Union[None, str, np.ndarray] = None,
-    how_label: str = "",
+    how: T.Callable | str = "mean",
+    weights: None | str | np.ndarray = None,
+    how_label: str | None = None,
     how_dropna=False,
     **kwargs,
 ):
@@ -74,8 +75,13 @@ def _reduce_dataarray(
 
             red_array = dataarray.reduce(how, **kwargs)
 
-    if how_label:
-        red_array = red_array.rename(f"{red_array.name}_{how_label}")
+    if how_label is not None:
+        # Update variable names, depends on dataset or dataarray format
+        if isinstance(red_array, xr.Dataset):
+            renames = {data_arr: f"{data_arr}_{how_label}" for data_arr in red_array}
+            red_array = red_array.rename(**renames)
+        else:
+            red_array = red_array.rename(f"{red_array.name}_{how_label}")
 
     if how_dropna:
         red_array = red_array.dropna(how_dropna)
@@ -84,7 +90,7 @@ def _reduce_dataarray(
 
 
 def reduce(
-    dataarray: T.Union[xr.DataArray, xr.Dataset],
+    dataarray: xr.Dataset | xr.DataArray,
     *args,
     **kwargs,
 ):
@@ -119,17 +125,16 @@ def reduce(
         A data array with reduce dimensions removed.
 
     """
-    if isinstance(dataarray, (xr.Dataset)):
-        out_ds = xr.Dataset().assign_attrs(dataarray.attrs)
-        for var in dataarray.data_vars:
-            out_da = _reduce_dataarray(dataarray[var], *args, **kwargs)
-            out_ds[out_da.name] = out_da
-        return out_ds
-    else:
-        return _reduce_dataarray(dataarray, *args, **kwargs)
+    # handle how as arg or kwarg
+    kwargs["how"] = args[0] if args else kwargs.get("how", "mean")
+    out = _reduce_dataarray(dataarray, **kwargs)
+    # Ensure any input attributes are preserved (maybe not necessary)
+    if isinstance(dataarray, xr.Dataset):
+        out.attrs.update(dataarray.attrs)
+    return out
 
 
-def rolling_reduce(dataarray: T.Union[xr.Dataset, xr.DataArray], *args, **kwargs) -> xr.DataArray:
+def rolling_reduce(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.DataArray:
     """Return reduced data using a moving window over which to apply the reduction.
 
     Parameters
@@ -215,7 +220,8 @@ def _rolling_reduce_dataarray(
     # Create rolling groups:
     data_rolling = dataarray.rolling(**rolling_kwargs)
 
-    data_windowed = _reduce_dataarray(data_rolling, how=how_reduce, **reduce_kwargs)
+    reduce_kwargs.setdefault("how", how_reduce)
+    data_windowed = _reduce_dataarray(data_rolling, **reduce_kwargs)
 
     data_windowed = _dropna(data_windowed, window_dims, how_dropna)
 
@@ -235,11 +241,13 @@ def _dropna(data, dims, how):
 
 
 def resample(
-    dataarray: T.Union[xr.Dataset, xr.DataArray],
-    frequency: str or int or float,
+    dataarray: xr.Dataset | xr.DataArray,
+    frequency: str | int | float,
     dim: str = "time",
     how: str = "mean",
     skipna: bool = True,
+    how_args: list[T.Any] = [],
+    how_kwargs: dict[str, T.Any] = {},
     **kwargs,
 ) -> xr.DataArray:
     """
@@ -264,8 +272,12 @@ def resample(
     -------
     xr.DataArray
     """
+    # Get any how kwargs into appropriate dictionary:
+    for _k in ["q", "p"]:
+        if _k in kwargs:
+            how_kwargs[_k] = kwargs.pop(_k)
     # Translate and xarray frequencies to pandas language:
     frequency = tools._PANDAS_FREQUENCIES_R.get(frequency, frequency)
     resample = dataarray.resample(skipna=skipna, **{dim: frequency}, **kwargs)
-    result = resample.__getattribute__(how)(dim)
+    result = resample.__getattribute__(how)(*how_args, dim=dim, **how_kwargs)
     return result

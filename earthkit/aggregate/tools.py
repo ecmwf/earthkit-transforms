@@ -1,5 +1,6 @@
 import functools
 import typing as T
+from copy import deepcopy
 
 import numpy as np
 import pandas as pd
@@ -10,6 +11,7 @@ _PANDAS_FREQUENCIES = {
     "D": "dayofyear",
     "W": "weekofyear",
     "M": "month",
+    "ME": "month",
     "H": "hour",
 }
 _PANDAS_FREQUENCIES_R = {v: k for k, v in _PANDAS_FREQUENCIES.items()}
@@ -36,10 +38,10 @@ def ensure_list(thing):
 def time_dim_decorator(func):
     @functools.wraps(func)
     def wrapper(
-        dataarray: T.Union[xr.Dataset, xr.DataArray],
+        dataarray: xr.Dataset | xr.DataArray,
         *args,
-        time_dim: T.Union[str, None] = None,
-        time_shift: T.Union[None, dict, str, pd.Timedelta] = None,
+        time_dim: str | None = None,
+        time_shift: dict | str | pd.Timedelta | None = None,
         **kwargs,
     ):
         if time_dim is None:
@@ -94,6 +96,25 @@ def season_order_decorator(func):
         return result
 
     return wrapper
+
+
+def how_label_decorator(label_prefix: str = "", label_suffix: str = ""):
+    def actual_decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, how: str | T.Callable, how_label: str | None = None, **kwargs):
+            if not isinstance(how, str) and not callable(how):
+                raise ValueError("how must be a string or a callable")
+            if how_label is None:
+                if isinstance(how, str):
+                    how_label = deepcopy(how)
+                elif callable(how):
+                    how_label = how.__name__
+                how_label = f"{label_prefix}{how_label}{label_suffix}"
+            return func(*args, how=how, how_label=how_label, **kwargs)
+
+        return wrapper
+
+    return actual_decorator
 
 
 # TODO: Replace with method from meteokit
@@ -267,11 +288,16 @@ def get_how(how: str, how_methods=HOW_METHODS):
     except KeyError:
         try:
             module, function = how.split(".")
+        except Exception:
+            raise ValueError(f"how method not recognised or found: how={how}")
+
+        try:
             how = getattr(globals()[ALLOWED_LIBS[module]], function)
         except KeyError:
             raise ValueError(f"method must come from one of {ALLOWED_LIBS}")
         except AttributeError:
             raise AttributeError(f"module '{module}' has no attribute " f"'{function}'")
+
     return how
 
 
@@ -283,7 +309,7 @@ STANDARD_AXIS_KEYS: dict[str, list[str]] = {
 
 
 def get_dim_key(
-    dataarray: T.Union[xr.DataArray, xr.Dataset],
+    dataarray: xr.Dataset | xr.DataArray,
     axis: str,
 ):
     """Return the key of the dimension."""
@@ -335,3 +361,63 @@ def get_spatial_info(dataarray, lat_key=None, lon_key=None):
         "spatial_dims": spatial_dims,
     }
     return spatial_info
+
+
+def _pandas_frequency_and_bins(
+    frequency: str,
+) -> tuple:
+    freq = frequency.lstrip("0123456789")
+    bins = int(frequency[: -len(freq)]) or None
+    freq = _PANDAS_FREQUENCIES.get(freq.lstrip(" "), frequency)
+    return freq, bins
+
+
+def groupby_time(
+    dataarray: xr.Dataset | xr.DataArray,
+    frequency: str | None = None,
+    bin_widths: int | None = None,
+    squeeze: bool = True,
+    time_dim: str = "time",
+):
+    if frequency is None:
+        try:
+            frequency = xr.infer_freq(dataarray.time)
+        except:  # noqa: E722
+            raise ValueError(
+                "Unable to infer time frequency from data; please pass the 'frequency' argument explicitly"
+            )
+        frequency, possible_bins = _pandas_frequency_and_bins(frequency)
+        bin_widths = bin_widths or possible_bins
+
+    if bin_widths is not None:
+        grouped_data = groupby_bins(dataarray, frequency, bin_widths, squeeze, time_dim=time_dim)
+    else:
+        try:
+            grouped_data = dataarray.groupby(f"{time_dim}.{frequency}", squeeze=squeeze)
+        except AttributeError:
+            raise ValueError(
+                f"Invalid frequency '{frequency}' - see xarray documentation for "
+                f"a full list of valid frequencies."
+            )
+
+    return grouped_data
+
+
+def groupby_bins(
+    dataarray: xr.Dataset | xr.DataArray,
+    frequency: str,
+    bin_widths: int = 1,
+    squeeze: bool = False,
+    time_dim: str = "time",
+):
+    if not isinstance(bin_widths, (list, tuple)):
+        max_value = _BIN_MAXES[frequency]
+        bin_widths = list(range(0, max_value + 1, bin_widths))
+    try:
+        grouped_data = dataarray.groupby_bins(f"{time_dim}.{frequency}", bin_widths, squeeze=squeeze)
+    except AttributeError:
+        raise ValueError(
+            f"Invalid frequency '{frequency}' - see xarray documentation for "
+            f"a full list of valid frequencies."
+        )
+    return grouped_data

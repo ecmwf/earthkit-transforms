@@ -185,7 +185,7 @@ def shapes_to_mask(shapes, target, regular=True, **kwargs):
 
 
 def get_mask_dim_index(
-    mask_dim: T.Union[str, None, T.Dict[str, T.Any]],
+    mask_dim: str | None | T.Dict[str, T.Any],
     geodataframe: gpd.geodataframe.GeoDataFrame,
     default_index_name: str = "index",
 ):
@@ -212,10 +212,10 @@ def get_mask_dim_index(
 
 
 def mask(
-    dataarray: T.Union[xr.Dataset, xr.DataArray],
+    dataarray: xr.Dataset | xr.DataArray,
     geodataframe: gpd.geodataframe.GeoDataFrame,
-    lat_key: T.Union[None, str] = None,
-    lon_key: T.Union[None, str] = None,
+    lat_key: str | None = None,
+    lon_key: str | None = None,
     **mask_kwargs,
 ):
     """
@@ -248,11 +248,11 @@ def mask(
 
 
 def masks(
-    dataarray: T.Union[xr.Dataset, xr.DataArray],
+    dataarray: xr.Dataset | xr.DataArray,
     geodataframe: gpd.geodataframe.GeoDataFrame,
-    mask_dim: T.Union[str, None] = None,
-    lat_key: T.Union[None, str] = None,
-    lon_key: T.Union[None, str] = None,
+    mask_dim: str | None = None,
+    lat_key: str | None = None,
+    lon_key: str | None = None,
     chunk: bool = True,
     **mask_kwargs,
 ):
@@ -310,7 +310,7 @@ def masks(
 
 
 def reduce(
-    dataarray: T.Union[xr.Dataset, xr.DataArray],
+    dataarray: xr.Dataset | xr.DataArray,
     geodataframe: gpd.GeoDataFrame | None = None,
     *args,
     **kwargs,
@@ -387,14 +387,14 @@ def _reduce_dataarray(
     dataarray: xr.DataArray,
     geodataframe: gpd.GeoDataFrame | None = None,
     pd_dataframe: pd.DataFrame | None = None,
-    how: T.Union[T.Callable, str] = "mean",
-    weights: T.Union[None, str, np.ndarray] = None,
-    lat_key: T.Union[None, str] = None,
-    lon_key: T.Union[None, str] = None,
-    extra_reduce_dims: T.Union[list, str] = [],
-    mask_dim: T.Union[None, str] = None,
+    how: T.Callable | str = "mean",
+    weights: None | str | np.ndarray = None,
+    lat_key: str | None = None,
+    lon_key: str | None = None,
+    extra_reduce_dims: list | str = [],
+    mask_dim: str | None = None,
     return_as: str = "xarray",
-    how_label: T.Union[str, None] = None,
+    how_label: str | None = None,
     squeeze: bool = True,
     mask_kwargs: T.Dict[str, T.Any] = {},
     return_geometry_as_coord: bool = False,
