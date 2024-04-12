@@ -169,7 +169,7 @@ def std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | x
     return reduce(dataarray, *args, **kwargs)
 
 
-def daily_stdev(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
+def daily_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
     """
     Calculate the daily climatological standard deviation.
 
@@ -197,7 +197,7 @@ def daily_stdev(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dat
     return std(dataarray, *args, **kwargs)
 
 
-def monthly_stdev(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
+def monthly_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
     """
     Calculate the monthly climatological standard deviation.
 
