@@ -340,8 +340,8 @@ def daily_reduce(
     rename_extra = {}
     # If time_dim in dimensions then use resample, this should be faster.
     #  At present, performance differences are small, but resampling can be improved by handling as
-    #  a pandas dataframes. reample function should be updated to do this.
-    #  NOTE: force_groupby is an undocumented kwarg for debug purposes
+    #  a pandas dataframes. resample function should be updated to do this.
+    #  NOTE: force_groupby is an intentionally undocumented kwarg for debug purposes
     if time_dim in dataarray.dims and not kwargs.pop("force_groupby", False):
         red_array = resample(dataarray, frequency="D", dim=time_dim, how=how, **kwargs)
     else:
@@ -585,7 +585,7 @@ def monthly_reduce(
     if time_dim in dataarray.dims and not kwargs.pop("force_groupby", False):
         red_array = resample(dataarray, frequency="ME", dim=time_dim, how=how, **kwargs)
     else:
-        # Otherwise, we groupby, with specifics set up for daily and handling both datetimes and timedeltas
+        # Otherwise, we groupby, with specifics set up for monthly and handling both datetimes and timedeltas
         if dataarray[time_dim].dtype in ["<M8[ns]"]:  # datetime
             group_key = "date"
             # create a year-month coordinate
