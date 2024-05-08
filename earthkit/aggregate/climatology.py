@@ -204,7 +204,7 @@ def std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | x
 
 def daily_reduce(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
     """
-    Reduce the data to the daily climatology of the provided "how" method. Default is the "mean"
+    Reduce the data to the daily climatology of the provided "how" method.
 
     Parameters
     ----------
@@ -231,7 +231,7 @@ def daily_reduce(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Da
     -------
     xr.DataArray
     """
-    kwargs["frequency"] = "day"
+    kwargs["frequency"] = "dayofyear"
     return reduce(dataarray, *args, **kwargs)
 
 
@@ -258,8 +258,8 @@ def daily_mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Data
     -------
     xr.DataArray
     """
-    kwargs["frequency"] = "day"
-    return mean(dataarray, *args, **kwargs)
+    kwargs["how"] = "mean"
+    return daily_reduce(dataarray, *args, **kwargs)
 
 
 def daily_median(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
@@ -285,8 +285,8 @@ def daily_median(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Da
     -------
     xr.DataArray
     """
-    kwargs["frequency"] = "day"
-    return median(dataarray, *args, **kwargs)
+    kwargs["how"] = "median"
+    return daily_reduce(dataarray, *args, **kwargs)
 
 
 def daily_min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
@@ -312,8 +312,8 @@ def daily_min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Datas
     -------
     xr.DataArray
     """
-    kwargs["frequency"] = "day"
-    return min(dataarray, *args, **kwargs)
+    kwargs["how"] = "min"
+    return daily_reduce(dataarray, *args, **kwargs)
 
 
 def daily_max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
@@ -339,8 +339,8 @@ def daily_max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Datas
     -------
     xr.DataArray
     """
-    kwargs["frequency"] = "day"
-    return max(dataarray, *args, **kwargs)
+    kwargs["how"] = "max"
+    return daily_reduce(dataarray, *args, **kwargs)
 
 
 def daily_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
@@ -367,13 +367,13 @@ def daily_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Datas
     -------
     xr.DataArray
     """
-    kwargs["frequency"] = "day"
-    return std(dataarray, *args, **kwargs)
+    kwargs["how"] = "std"
+    return daily_reduce(dataarray, *args, **kwargs)
 
 
 def monthly_reduce(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
     """
-    Reduce the data to the monthly climatology of the provided "how" method. Default is the "mean"
+    Reduce the data to the monthly climatology of the provided "how" method.
 
     Parameters
     ----------
@@ -403,6 +403,7 @@ def monthly_reduce(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.
     kwargs["frequency"] = "month"
     return reduce(dataarray, *args, **kwargs)
 
+
 def monthly_mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
     """
     Calculate the monthly climatological mean.
@@ -426,8 +427,8 @@ def monthly_mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Da
     -------
     xr.DataArray
     """
-    kwargs["frequency"] = "month"
-    return mean(dataarray, *args, **kwargs)
+    kwargs["how"] = "mean"
+    return monthly_reduce(dataarray, *args, **kwargs)
 
 
 def monthly_median(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
@@ -453,8 +454,8 @@ def monthly_median(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.
     -------
     xr.DataArray
     """
-    kwargs["frequency"] = "month"
-    return median(dataarray, *args, **kwargs)
+    kwargs["how"] = "median"
+    return monthly_reduce(dataarray, *args, **kwargs)
 
 
 def monthly_min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
@@ -480,8 +481,8 @@ def monthly_min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dat
     -------
     xr.DataArray
     """
-    kwargs["frequency"] = "month"
-    return min(dataarray, *args, **kwargs)
+    kwargs["how"] = "min"
+    return monthly_reduce(dataarray, *args, **kwargs)
 
 
 def monthly_max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
@@ -507,8 +508,8 @@ def monthly_max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dat
     -------
     xr.DataArray
     """
-    kwargs["frequency"] = "month"
-    return max(dataarray, *args, **kwargs)
+    kwargs["how"] = "max"
+    return monthly_reduce(dataarray, *args, **kwargs)
 
 
 def monthly_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
@@ -535,8 +536,8 @@ def monthly_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dat
     -------
     xr.DataArray
     """
-    kwargs["frequency"] = "month"
-    return std(dataarray, *args, **kwargs)
+    kwargs["how"] = "std"
+    return monthly_reduce(dataarray, *args, **kwargs)
 
 
 @tools.time_dim_decorator
