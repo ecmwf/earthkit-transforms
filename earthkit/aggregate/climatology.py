@@ -544,8 +544,8 @@ def monthly_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dat
 @tools.groupby_kwargs_decorator
 @tools.season_order_decorator
 def quantiles(
-    dataarray: xr.DataArray,
-    quantiles: list,
+    dataarray: xr.Dataset | xr.DataArray,
+    qs: list,
     time_dim: str | None = None,
     groupby_kwargs: dict = {},
     **reduce_kwargs,
@@ -558,7 +558,7 @@ def quantiles(
     dataarray : xr.DataArray
         The DataArray over which to calculate the climatological quantiles. Must
         contain a `time` dimension.
-    quantiles : list
+    qs : list
         The list of climatological quantiles to calculate.
     frequency : str (optional)
         Valid options are `day`, `week` and `month`.
@@ -578,7 +578,7 @@ def quantiles(
     """
     grouped_data = groupby_time(dataarray.chunk({time_dim: -1}), time_dim=time_dim, **groupby_kwargs)
     results = []
-    for quantile in quantiles:
+    for quantile in qs:
         results.append(
             grouped_data.quantile(
                 q=quantile,
@@ -591,7 +591,7 @@ def quantiles(
 
 
 def percentiles(
-    dataarray: xr.DataArray,
+    dataarray: xr.Dataset | xr.DataArray,
     percentiles: list,
     **kwargs,
 ) -> xr.DataArray:
@@ -621,10 +621,10 @@ def percentiles(
     -------
     xr.DataArray
     """
-    quantiles = [p * 1e-2 for p in percentiles]
+    qs = [p * 1e-2 for p in percentiles]
     quantile_data = quantiles(
         dataarray,
-        quantiles,
+        qs,
         **kwargs,
     )
     result = quantile_data.assign_coords(percentile=("quantile", percentiles))
@@ -667,24 +667,14 @@ def anomaly(
     -------
     xr.DataArray
     """
-
     if isinstance(dataarray, xr.Dataset):
         out_ds = xr.Dataset().assign_attrs(dataarray.attrs)
         for var in dataarray.data_vars:
-            out_da = _anomaly_dataarray(
-                dataarray[var],
-                climatology,
-                **kwargs
-            )
+            out_da = _anomaly_dataarray(dataarray[var], climatology, **kwargs)
             out_ds[out_da.name] = out_da
         return out_ds
     else:
-        return _anomaly_dataarray(
-            dataarray,
-            climatology,
-            **kwargs
-        )
-
+        return _anomaly_dataarray(dataarray, climatology, **kwargs)
 
 
 @tools.time_dim_decorator
@@ -736,10 +726,10 @@ def _anomaly_dataarray(
             potential_clim_vars = [c_var for c_var in climatology.data_vars if var_name in c_var]
             if len(potential_clim_vars) == 1:
                 climatology_da = climatology[potential_clim_vars[0]]
-            elif var_name+"_"+climatology_how_tag in potential_clim_vars:
-                climatology_da = climatology[var_name+"_"+climatology_how_tag]
-            elif len(potential_clim_vars)>1:
-                raise KeyError (
+            elif var_name + "_" + climatology_how_tag in potential_clim_vars:
+                climatology_da = climatology[var_name + "_" + climatology_how_tag]
+            elif len(potential_clim_vars) > 1:
+                raise KeyError(
                     "Multiple potential climatologies found in climatology dataset, "
                     "please identify appropriate statistic with `climatology_how_tag`.\n"
                     f"Potential climatology variables found: {potential_clim_vars}"
@@ -751,6 +741,14 @@ def _anomaly_dataarray(
                 )
     else:
         climatology_da = climatology
+
+    # If frequency not defined, it is deduced from the climatology.
+    # This is somewhat hardcoded, but it is best practice, so for now it can stay here
+    if groupby_kwargs.get("frequency") is None:
+        for freq in ["dayofyear", "week", "month"]:
+            if freq in climatology_da.dims:
+                groupby_kwargs["frequency"] = freq
+                break
 
     anomaly_array = groupby_time(dataarray, time_dim=time_dim, **groupby_kwargs) - climatology_da
 
@@ -767,7 +765,6 @@ def _anomaly_dataarray(
     anomaly_array = resample(anomaly_array, how="mean", **reduce_kwargs, **groupby_kwargs, dim=time_dim)
 
     return update_anomaly_array(anomaly_array, dataarray, var_name, name_tag, update_attrs)
-
 
 
 def update_anomaly_array(anomaly_array, original_array, var_name, name_tag, update_attrs):
