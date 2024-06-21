@@ -545,7 +545,7 @@ def monthly_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dat
 @tools.season_order_decorator
 def quantiles(
     dataarray: xr.Dataset | xr.DataArray,
-    qs: list,
+    q: float | list,
     time_dim: str | None = None,
     groupby_kwargs: dict = {},
     **reduce_kwargs,
@@ -558,8 +558,8 @@ def quantiles(
     dataarray : xr.DataArray
         The DataArray over which to calculate the climatological quantiles. Must
         contain a `time` dimension.
-    qs : list
-        The list of climatological quantiles to calculate.
+    q : float | list
+        The quantile, or list of quantiles, to calculate the climatology.
     frequency : str (optional)
         Valid options are `day`, `week` and `month`.
     bin_widths : int or list (optional)
@@ -578,7 +578,9 @@ def quantiles(
     """
     grouped_data = groupby_time(dataarray.chunk({time_dim: -1}), time_dim=time_dim, **groupby_kwargs)
     results = []
-    for quantile in qs:
+    if not isinstance(q, (list, tuple)):
+        q = [q]
+    for quantile in q:
         results.append(
             grouped_data.quantile(
                 q=quantile,
@@ -592,7 +594,7 @@ def quantiles(
 
 def percentiles(
     dataarray: xr.Dataset | xr.DataArray,
-    percentiles: list,
+    p: float | list,
     **kwargs,
 ) -> xr.DataArray:
     """
@@ -603,8 +605,8 @@ def percentiles(
     dataarray : xr.DataArray
         The DataArray over which to calculate the climatological percentiles. Must
         contain a `time` dimension.
-    percentiles : list
-        The list of climatological percentiles to calculate.
+    percentiles : float | list
+        The pecentile, or list of percentiles, to calculate the climatology.
     frequency : str (optional)
         Valid options are `day`, `week` and `month`.
     bin_widths : int or list (optional)
@@ -621,10 +623,12 @@ def percentiles(
     -------
     xr.DataArray
     """
-    qs = [p * 1e-2 for p in percentiles]
+    if not isinstance(p, (list, tuple)):
+        p = [p]
+    q = [_p * 1e-2 for _p in p]
     quantile_data = quantiles(
         dataarray,
-        qs,
+        q,
         **kwargs,
     )
     result = quantile_data.assign_coords(percentile=("quantile", percentiles))
