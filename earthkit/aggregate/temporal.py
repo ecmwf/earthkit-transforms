@@ -1,6 +1,7 @@
 import logging
 import typing as T
 
+import numpy as np
 import pandas as pd
 import xarray as xr
 
@@ -11,6 +12,59 @@ from earthkit.aggregate.general import rolling_reduce as _rolling_reduce
 from earthkit.aggregate.tools import groupby_time
 
 logger = logging.getLogger(__name__)
+
+
+def standardise_time(
+    dataarray: xr.Dataset | xr.DataArray,
+    target_format: str = "%Y-%m-%d %H:%M:%S",
+) -> xr.Dataset | xr.DataArray:
+    """
+    Convert time coordinates to a standard format using the Gregorian calendar.
+
+    This function is helpful when combining data from different sources with
+    different time standards or calendars - for example, when combining data
+    which uses a 360-day calendar with data which uses a Gregorian calendar. All
+    data passed into this function will be converted to a standard Gregorian
+    calendar format.
+
+    Parameters
+    ----------
+    dataarray : xr.Dataset or xr.DataArray
+        Data object with a time coordinate to be standardised.
+    target_format : str, optional
+        Datetime format to use when creating the standardised datetime object.
+        This can be used to change the resolution of the datetime object - for
+        example, "%Y-%m-%d" will reduce to daily resolution - or to fix elements
+        of the datetime object - for example, "%Y-%m-15" would reduce to monthly
+        resolution and fix the date to the 15th of each month.
+
+    Returns
+    -------
+    xr.Dataset or xr.DataArray
+        Data object with the time coordinate standardised to the specified
+        format.
+    """
+    try:
+        source_times = [time_value.strftime(target_format) for time_value in dataarray.time.values]
+    except AttributeError:
+        source_times = [
+            pd.to_datetime(time_value).strftime(target_format) for time_value in dataarray.time.values
+        ]
+
+    standardised_times = np.array(
+        [pd.to_datetime(time_string).to_datetime64() for time_string in source_times]
+    )
+
+    dataarray = dataarray.assign_coords({"time": standardised_times})
+
+    history = dataarray.attrs.get("history", "")
+    history += (
+        "The time coordinate of this data has been standardised with "
+        "earthkit.aggregate.temporal.standardise_time."
+    )
+    dataarray = dataarray.assign_attrs({"history": history})
+
+    return dataarray
 
 
 @tools.time_dim_decorator

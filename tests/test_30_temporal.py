@@ -1,3 +1,5 @@
+import numpy as np
+import pandas as pd
 import pytest
 
 # from earthkit.data.core.temporary import temp_directory
@@ -32,6 +34,19 @@ def test_temporal_reduce(in_data, expected_return_type):
         assert "t2m_mean" == reduced_data.name
     else:
         assert "t2m_mean" in reduced_data
+
+
+def test_standardise_time_basic():
+    data = get_data().to_xarray()
+    original_time = data.time
+    data_standardised = temporal.standardise_time(data)
+    np.testing.assert_array_equal(original_time.values, data_standardised.time.values)
+
+
+def test_standardise_time_monthly():
+    data = get_data().to_xarray()
+    data_standardised = temporal.standardise_time(data, target_format="%Y-%m-15")
+    assert all(pd.to_datetime(time_value).day == 15 for time_value in data_standardised.time.values)
 
 
 @pytest.mark.parametrize(
