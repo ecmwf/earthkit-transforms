@@ -6,8 +6,8 @@ import pandas as pd
 import xarray as xr
 
 from earthkit.aggregate import tools
+from earthkit.aggregate.general import how_label_rename, resample
 from earthkit.aggregate.general import reduce as _reduce
-from earthkit.aggregate.general import resample
 from earthkit.aggregate.general import rolling_reduce as _rolling_reduce
 from earthkit.aggregate.tools import groupby_time
 
@@ -392,7 +392,6 @@ def daily_reduce(
     -------
     xr.DataArray
     """
-    rename_extra = {}
     # If time_dim in dimensions then use resample, this should be faster.
     #  At present, performance differences are small, but resampling can be improved by handling as
     #  a pandas dataframes. resample function should be updated to do this.
@@ -424,16 +423,8 @@ def daily_reduce(
             red_array[group_key] = pd.DatetimeIndex(red_array[group_key].values)
         except TypeError:
             logger.warning(f"Failed to convert {group_key} to datetime, it may already be a datetime object")
-        rename_extra = {group_key: time_dim}
 
-        if kwargs.get("how_label") is not None:
-            how_label: str = kwargs.get("how_label")
-            # Update variable names, depends on dataset or dataarray format
-            if isinstance(red_array, xr.Dataset):
-                renames = {**{data_arr: f"{data_arr}_{how_label}" for data_arr in red_array}, **rename_extra}
-                red_array = red_array.rename(renames)
-            else:
-                red_array = red_array.rename(f"{red_array.name}_{how_label}", **rename_extra)
+        red_array = how_label_rename(red_array, kwargs.get("how_label"))
 
     return red_array
 
@@ -632,7 +623,6 @@ def monthly_reduce(
     -------
     xr.DataArray
     """
-    rename_extra = {}
     # If time_dim in dimensions then use resample, this should be faster.
     #  At present, performance differences are small, but resampling can be improved by handling as
     #  a pandas dataframes. reample function should be updated to do this.
@@ -643,7 +633,6 @@ def monthly_reduce(
     else:
         # Otherwise, we groupby, with specifics set up for monthly and handling both datetimes and timedeltas
         if dataarray[time_dim].dtype in ["<M8[ns]"]:  # datetime
-            group_key = "date"
             # create a year-month coordinate
             years = dataarray[f"{time_dim}.year"]
             months = dataarray[f"{time_dim}.month"]
@@ -670,16 +659,8 @@ def monthly_reduce(
             red_array = grouped_data.reduce(how, **kwargs)
         # Remove the year_months coordinate
         del red_array["year_months"]
-        rename_extra = {group_key: time_dim}
 
-        if kwargs.get("how_label") is not None:
-            how_label: str = kwargs.get("how_label")
-            # Update variable names, depends on dataset or dataarray format
-            if isinstance(red_array, xr.Dataset):
-                renames = {**{data_arr: f"{data_arr}_{how_label}" for data_arr in red_array}, **rename_extra}
-                red_array = red_array.rename(renames)
-            else:
-                red_array = red_array.rename(f"{red_array.name}_{how_label}", **rename_extra)
+        red_array = how_label_rename(red_array, kwargs.get("how_label"))
 
     return red_array
 
