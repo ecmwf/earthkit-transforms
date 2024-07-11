@@ -341,7 +341,7 @@ def reduce(
     return_as :
         what format to return the data object, `pandas` or `xarray`. Work In Progress
     how_label :
-        label to append to variable name in returned object, default is `how`
+        label to append to variable name in returned object, default is not to append
     kwargs :
         kwargs recognised by the how function
 
@@ -443,15 +443,16 @@ def _reduce_dataarray(
 
     """
     extra_out_attrs = {}
+    how_str: None | str = None
     if weights is None:
         # convert how string to a method to apply
         if isinstance(how, str):
-            how_label = deepcopy(how)
+            how_str = deepcopy(how)
             how = get_how(how)
         assert isinstance(how, T.Callable), f"how must be a callable: {how}"
-        if how_label is None:
+        if how_str is None:
             # get label from how method
-            how_label = how.__name__
+            how_str = how.__name__
     else:
         # Create any standard weights, i.e. latitude
         if isinstance(weights, str):
@@ -459,11 +460,16 @@ def _reduce_dataarray(
         # We ensure the callable is a string
         if callable(how):
             how = how.__name__
-        if how_label is None:
-            how_label = how
+        if how_str is None:
+            how_str = how
 
-    new_long_name = f"{how_label.title()} {dataarray.attrs.get('long_name', dataarray.name)}"
-    new_short_name = f"{dataarray.name}_{how_label or how.__name__}"
+    how_str = how_str or how_label
+    new_long_name_components = [
+        comp for comp in [how_str, dataarray.attrs.get("long_name", dataarray.name)] if comp is not None
+    ]
+    new_long_name = " ".join(new_long_name_components)
+    new_short_name_components = [comp for comp in [dataarray.name, how_label] if comp is not None]
+    new_short_name = "_".join(new_short_name_components)
 
     if isinstance(extra_reduce_dims, str):
         extra_reduce_dims = [extra_reduce_dims]

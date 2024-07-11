@@ -110,6 +110,9 @@ def reduce(
         A data array with reduce dimensions removed.
 
     """
+    if "frequency" in kwargs:
+        return resample(dataarray, *args, time_dim=time_dim, **kwargs)
+
     reduce_dims = tools.ensure_list(kwargs.get("dim", []))
     if time_dim is not None and time_dim not in reduce_dims:
         reduce_dims.append(time_dim)
@@ -353,12 +356,10 @@ def sum(
 
 
 @tools.time_dim_decorator
-@tools.how_label_decorator(label_prefix="daily_")
 def daily_reduce(
     dataarray: xr.Dataset | xr.DataArray,
     how: str | T.Callable = "mean",
     time_dim: str | None = None,
-    how_label: str | None = None,
     **kwargs,
 ):
     """
@@ -397,7 +398,8 @@ def daily_reduce(
     #  a pandas dataframes. resample function should be updated to do this.
     #  NOTE: force_groupby is an intentionally undocumented kwarg for debug purposes
     if time_dim in dataarray.dims and not kwargs.pop("force_groupby", False):
-        red_array = resample(dataarray, frequency="D", dim=time_dim, how=how, **kwargs)
+        kwargs.setdefault("frequency", "D")
+        red_array = resample(dataarray, time_dim=time_dim, how=how, **kwargs)
     else:
         # Otherwise, we groupby, with specifics set up for daily and handling both datetimes and timedeltas
         if dataarray[time_dim].dtype in ["<M8[ns]"]:  # datetime
@@ -424,13 +426,14 @@ def daily_reduce(
             logger.warning(f"Failed to convert {group_key} to datetime, it may already be a datetime object")
         rename_extra = {group_key: time_dim}
 
-    if how_label is not None:
-        # Update variable names, depends on dataset or dataarray format
-        if isinstance(red_array, xr.Dataset):
-            renames = {**{data_arr: f"{data_arr}_{how_label}" for data_arr in red_array}, **rename_extra}
-            red_array = red_array.rename(renames)
-        else:
-            red_array = red_array.rename(f"{red_array.name}_{how_label}", **rename_extra)
+        if kwargs.get("how_label") is not None:
+            how_label: str = kwargs.get("how_label")
+            # Update variable names, depends on dataset or dataarray format
+            if isinstance(red_array, xr.Dataset):
+                renames = {**{data_arr: f"{data_arr}_{how_label}" for data_arr in red_array}, **rename_extra}
+                red_array = red_array.rename(renames)
+            else:
+                red_array = red_array.rename(f"{red_array.name}_{how_label}", **rename_extra)
 
     return red_array
 
@@ -592,12 +595,10 @@ def daily_sum(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
 
 
 @tools.time_dim_decorator
-@tools.how_label_decorator(label_prefix="monthly_")
 def monthly_reduce(
     dataarray: xr.Dataset | xr.DataArray,
     how: str | T.Callable = "mean",
     time_dim: str | None = None,
-    how_label: str | None = None,
     **kwargs,
 ):
     """
@@ -637,7 +638,8 @@ def monthly_reduce(
     #  a pandas dataframes. reample function should be updated to do this.
     #  NOTE: force_groupby is an undocumented kwarg for debug purposes
     if time_dim in dataarray.dims and not kwargs.pop("force_groupby", False):
-        red_array = resample(dataarray, frequency="ME", dim=time_dim, how=how, **kwargs)
+        kwargs.setdefault("frequency", "MS")
+        red_array = resample(dataarray, time_dim=time_dim, how=how, **kwargs)
     else:
         # Otherwise, we groupby, with specifics set up for monthly and handling both datetimes and timedeltas
         if dataarray[time_dim].dtype in ["<M8[ns]"]:  # datetime
@@ -670,13 +672,14 @@ def monthly_reduce(
         del red_array["year_months"]
         rename_extra = {group_key: time_dim}
 
-    if how_label is not None:
-        # Update variable names, depends on dataset or dataarray format
-        if isinstance(red_array, xr.Dataset):
-            renames = {**{data_arr: f"{data_arr}_{how_label}" for data_arr in red_array}, **rename_extra}
-            red_array = red_array.rename(renames)
-        else:
-            red_array = red_array.rename(f"{red_array.name}_{how_label}", **rename_extra)
+        if kwargs.get("how_label") is not None:
+            how_label: str = kwargs.get("how_label")
+            # Update variable names, depends on dataset or dataarray format
+            if isinstance(red_array, xr.Dataset):
+                renames = {**{data_arr: f"{data_arr}_{how_label}" for data_arr in red_array}, **rename_extra}
+                red_array = red_array.rename(renames)
+            else:
+                red_array = red_array.rename(f"{red_array.name}_{how_label}", **rename_extra)
 
     return red_array
 

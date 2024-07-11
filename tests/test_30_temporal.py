@@ -31,6 +31,13 @@ def test_temporal_reduce(in_data, expected_return_type):
     assert isinstance(reduced_data, expected_return_type)
     assert "time" not in list(reduced_data.dims)
     if expected_return_type == xr.DataArray:
+        assert "t2m" == reduced_data.name
+    else:
+        assert "t2m" in reduced_data
+    reduced_data = temporal.reduce(in_data, how="mean", how_label="mean")
+    assert isinstance(reduced_data, expected_return_type)
+    assert "time" not in list(reduced_data.dims)
+    if expected_return_type == xr.DataArray:
         assert "t2m_mean" == reduced_data.name
     else:
         assert "t2m_mean" in reduced_data
@@ -60,6 +67,14 @@ def test_temporal_reduce_hows(how):
     assert isinstance(reduced_data, expected_return_type)
     assert "time" not in list(reduced_data.dims)
     if expected_return_type == xr.DataArray:
+        assert "t2m" == reduced_data.name
+    else:
+        assert "t2m" in reduced_data
+
+    reduced_data = temporal.reduce(in_data, how=how, how_label=how)
+    assert isinstance(reduced_data, expected_return_type)
+    assert "time" not in list(reduced_data.dims)
+    if expected_return_type == xr.DataArray:
         assert f"t2m_{how}" == reduced_data.name
     else:
         assert f"t2m_{how}" in reduced_data
@@ -82,9 +97,9 @@ def test_temporal_methods(method, in_data, expected_return_type):
     assert isinstance(reduced_data, expected_return_type)
     assert "time" not in list(reduced_data.dims)
     if expected_return_type == xr.DataArray:
-        assert f"t2m_{method}" == reduced_data.name
+        assert "t2m" == reduced_data.name
     else:
-        assert f"t2m_{method}" in reduced_data
+        assert "t2m" in reduced_data
 
 
 @pytest.mark.parametrize(
@@ -100,9 +115,9 @@ def test_temporal_daily_reduce_intypes(in_data, expected_return_type, how="mean"
     assert isinstance(reduced_data, expected_return_type)
     assert "time" in list(reduced_data.dims)
     if expected_return_type == xr.DataArray:
-        assert f"t2m_daily_{how}" == reduced_data.name
+        assert "t2m" == reduced_data.name
     else:
-        assert f"t2m_daily_{how}" in reduced_data
+        assert "t2m" in reduced_data
 
 
 @pytest.mark.parametrize(
@@ -114,9 +129,9 @@ def test_temporal_daily_reduce_hows(how, in_data=get_data().to_xarray(), expecte
     assert isinstance(reduced_data, expected_return_type)
     assert "time" in list(reduced_data.dims)
     if expected_return_type == xr.DataArray:
-        assert f"t2m_daily_{how}" == reduced_data.name
+        assert "t2m" == reduced_data.name
     else:
-        assert f"t2m_daily_{how}" in reduced_data
+        assert "t2m" in reduced_data
 
 
 @pytest.mark.parametrize(
@@ -132,9 +147,9 @@ def test_temporal_monthly_reduce_intypes(in_data, expected_return_type, how="mea
     assert isinstance(reduced_data, expected_return_type)
     assert "time" in list(reduced_data.dims)
     if expected_return_type == xr.DataArray:
-        assert f"t2m_monthly_{how}" == reduced_data.name
+        assert "t2m" == reduced_data.name
     else:
-        assert f"t2m_monthly_{how}" in reduced_data
+        assert "t2m" in reduced_data
 
 
 @pytest.mark.parametrize(
@@ -146,9 +161,9 @@ def test_temporal_monthly_reduce_hows(how, in_data=get_data().to_xarray(), expec
     assert isinstance(reduced_data, expected_return_type)
     assert "time" in list(reduced_data.dims)
     if expected_return_type == xr.DataArray:
-        assert f"t2m_monthly_{how}" == reduced_data.name
+        assert "t2m" == reduced_data.name
     else:
-        assert f"t2m_monthly_{how}" in reduced_data
+        assert "t2m" in reduced_data
 
 
 @pytest.mark.parametrize(
@@ -181,6 +196,6 @@ def test_temporal_daily_monthly_methods(method, in_data, expected_return_type):
     assert isinstance(reduced_data, expected_return_type)
     assert "time" in list(reduced_data.dims)
     if expected_return_type == xr.DataArray:
-        assert f"t2m_{method}" == reduced_data.name
+        assert "t2m" == reduced_data.name
     else:
-        assert f"t2m_{method}" in reduced_data
+        assert "t2m" in reduced_data
