@@ -45,6 +45,11 @@ def test_reduce_dataarray(how, expected_result_method):
 
     result = reduce(xr.Dataset({"test": dataarray}), how)
     assert isinstance(result, xr.Dataset)
+    assert result["test"].shape == ()  # Ensure reduced to scalar
+    assert result["test"].values == expected_result_method(dataarray.values)
+
+    result = reduce(xr.Dataset({"test": dataarray}), how, how_label=how)
+    assert isinstance(result, xr.Dataset)
     assert result[f"test_{how}"].shape == ()  # Ensure reduced to scalar
     assert result[f"test_{how}"].values == expected_result_method(dataarray.values)
 
@@ -94,6 +99,11 @@ def test_reduce_dataarray_with_weights(how, expected_result_method):
 
     result = reduce(xr.Dataset({"test": dataarray}), how, weights=weights)
     assert isinstance(result, xr.Dataset)
+    assert result["test"].shape == ()  # Ensure reduced to scalar
+    assert result["test"].values == expected_result_method(weighted_dataarray)
+
+    result = reduce(xr.Dataset({"test": dataarray}), how, weights=weights, how_label=how)
+    assert isinstance(result, xr.Dataset)
     assert result[f"test_{how}"].shape == ()  # Ensure reduced to scalar
     assert result[f"test_{how}"].values == expected_result_method(weighted_dataarray)
 
@@ -139,6 +149,19 @@ def test_rolling_reduce_dataarray(how, expected_result):
 
     result = rolling_reduce(
         xr.Dataset({"test": dataarray}), how_reduce=how, x=2, center=True, chunk=False, how_dropna="any"
+    )
+    assert isinstance(result, xr.Dataset)
+    assert result["test"].shape == (4, 5)
+    assert result["test"].values[0, 0] == expected_result
+
+    result = rolling_reduce(
+        xr.Dataset({"test": dataarray}),
+        how_reduce=how,
+        x=2,
+        center=True,
+        chunk=False,
+        how_dropna="any",
+        how_label=how,
     )
     assert isinstance(result, xr.Dataset)
     assert result[f"test_{how}"].shape == (4, 5)

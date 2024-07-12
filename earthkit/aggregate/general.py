@@ -1,6 +1,5 @@
 """General aggregation methods which will be exposed at the top level via aggregate/__init__.py."""
 import typing as T
-from copy import deepcopy
 
 import numpy as np
 import xarray as xr
@@ -8,7 +7,21 @@ import xarray as xr
 from earthkit.aggregate import tools
 
 
-@tools.how_label_decorator()
+def how_label_rename(
+    dataarray: xr.Dataset | xr.DataArray,
+    how_label: str | None = None,
+) -> xr.Dataset | xr.DataArray:
+    if how_label is not None:
+        # Update variable names, depends on dataset or dataarray format
+        if isinstance(dataarray, xr.Dataset):
+            renames = {data_arr: f"{data_arr}_{how_label}" for data_arr in dataarray}
+            dataarray = dataarray.rename(**renames)
+        else:
+            dataarray = dataarray.rename(f"{dataarray.name}_{how_label}")
+
+    return dataarray
+
+
 def _reduce_dataarray(
     dataarray: xr.DataArray,
     how: T.Callable | str = "mean",
@@ -38,6 +51,8 @@ def _reduce_dataarray(
     how_dropna : str
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
+    how_label : str
+        Label to append to the name of the variable in the reduced object, default is nothing
     **kwargs :
         kwargs recognised by the how :func: `reduce`
 
@@ -54,7 +69,6 @@ def _reduce_dataarray(
         # We ensure the callable is always a string
         if callable(how):
             how = how.__name__
-        how_label = deepcopy(how)
         # map any alias methods:
         how = tools.WEIGHTED_HOW_METHODS.get(how, how)
 
@@ -65,23 +79,15 @@ def _reduce_dataarray(
     else:
         # If how is string, fetch function from dictionary:
         if isinstance(how, str) and how in dir(dataarray):
-            how_label = deepcopy(how)
             red_array = dataarray.__getattribute__(how)(**kwargs)
         else:
             if isinstance(how, str):
-                how_label = deepcopy(how)
                 how = tools.get_how(how)
             assert isinstance(how, T.Callable), f"how method not recognised: {how}"
 
             red_array = dataarray.reduce(how, **kwargs)
 
-    if how_label is not None:
-        # Update variable names, depends on dataset or dataarray format
-        if isinstance(red_array, xr.Dataset):
-            renames = {data_arr: f"{data_arr}_{how_label}" for data_arr in red_array}
-            red_array = red_array.rename(**renames)
-        else:
-            red_array = red_array.rename(f"{red_array.name}_{how_label}")
+    red_array = how_label_rename(red_array, how_label=how_label)
 
     if how_dropna:
         red_array = red_array.dropna(how_dropna)
@@ -240,14 +246,16 @@ def _dropna(data, dims, how):
     return data
 
 
+@tools.time_dim_decorator
 def resample(
     dataarray: xr.Dataset | xr.DataArray,
     frequency: str | int | float,
-    dim: str = "time",
+    time_dim: str = "time",
     how: str = "mean",
     skipna: bool = True,
     how_args: list[T.Any] = [],
     how_kwargs: dict[str, T.Any] = {},
+    how_label: str | None = None,
     **kwargs,
 ) -> xr.DataArray:
     """
@@ -264,6 +272,8 @@ def resample(
         The dimension to resample along, default is `time`
     how: str
         The reduction method for resampling, default is `mean`
+    how_label : str
+        Label to append to the name of the variable in the reduced object, default is nothing
     **kwargs
         Keyword arguments to be passed to :func:`resample`. Defaults have been set as:
         `{"skipna": True}`
@@ -272,12 +282,19 @@ def resample(
     -------
     xr.DataArray
     """
+    # Handle legacy API instances:
+    time_dim = kwargs.pop("dim", time_dim)
+
     # Get any how kwargs into appropriate dictionary:
     for _k in ["q", "p"]:
         if _k in kwargs:
             how_kwargs[_k] = kwargs.pop(_k)
     # Translate and xarray frequencies to pandas language:
     frequency = tools._PANDAS_FREQUENCIES_R.get(frequency, frequency)
-    resample = dataarray.resample(skipna=skipna, **{dim: frequency}, **kwargs)
-    result = resample.__getattribute__(how)(*how_args, dim=dim, **how_kwargs)
+    kwargs[time_dim] = frequency
+    resample = dataarray.resample(skipna=skipna, **kwargs)
+    result = resample.__getattribute__(how)(*how_args, dim=time_dim, **how_kwargs)
+
+    result = how_label_rename(result, how_label=how_label)
+
     return result

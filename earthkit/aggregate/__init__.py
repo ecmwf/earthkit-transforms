@@ -32,7 +32,7 @@ except ImportError:
 else:
     general = transform_module_inputs(general)
 
-    temporal = transform_module_inputs(temporal)
+    temporal = transform_module_inputs(temporal)  # docs: ignore
 
     climatology = transform_module_inputs(climatology)
 
