@@ -63,9 +63,9 @@ def _reduce_dataarray(
     """
     # If weighted, use xarray weighted methods
     if weights is not None:
-        # Create any standard weights, i.e. latitude
+        # Create any standard weights, e.g. latitude
         if isinstance(weights, str):
-            weights = tools.WEIGHTS_DICT[weights](dataarray)
+            weights = tools.standard_weights(dataarray, weights, **kwargs)
         # We ensure the callable is always a string
         if callable(how):
             how = how.__name__
