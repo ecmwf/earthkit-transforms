@@ -233,18 +233,13 @@ def nanaverage(data, weights=None, **kwargs):
 
 
 def standard_weights(dataarray: xr.DataArray, weights: str, **kwargs):
-    """
-    implement any standard weights functions included in earthkit-aggregate.
-    """
+    """Implement any standard weights functions included in earthkit-aggregate."""
     if weights in ["latitude", "lat"]:
-        lat_weight_kwargs = {
-            key: value for key, value in kwargs.items() if key in ["lat_key"]
-        }
+        lat_weight_kwargs = {key: value for key, value in kwargs.items() if key in ["lat_key"]}
         return latitude_weights(dataarray, **lat_weight_kwargs)
-    
-    raise NotImplementedError(
-        f"The selected weights method is not recognised or implemented yet: {weights}."
-    )
+
+    raise NotImplementedError(f"The selected weights method is not recognised or implemented yet: {weights}.")
+
 
 def latitude_weights(dataarray: xr.DataArray, lat_key: str | list | None = None):
     """
@@ -260,10 +255,10 @@ def latitude_weights(dataarray: xr.DataArray, lat_key: str | list | None = None)
                 lat_key = lat
                 break
 
-    lat_array = dataarray.coords.get(lat)
+    lat_array = dataarray.coords.get(lat_key)
     if lat_array is not None:
-        return np.cos(np.radians(lat_array.latitude))
-    
+        return np.cos(np.radians(lat_array[lat_key]))
+
     raise KeyError(
         "Latitude variable name not detected or found in the dataarray. Please provide the correct key."
     )

@@ -8,9 +8,9 @@ import pandas as pd
 import xarray as xr
 
 from earthkit.aggregate.tools import (
-    standard_weights,
     get_how,
     get_spatial_info,
+    standard_weights,
 )
 
 logger = logging.getLogger(__name__)
@@ -457,9 +457,7 @@ def _reduce_dataarray(
         # Create any standard weights, e.g. latitude.
         # TODO: handle kwargs better, currently only lat_key is accepted
         if isinstance(weights, str):
-            weights = standard_weights(
-                dataarray, weights, lat_key=lat_key, **reduce_kwargs
-            )
+            weights = standard_weights(dataarray, weights, lat_key=lat_key, **reduce_kwargs)
         # We ensure the callable is a string
         if callable(how):
             how = how.__name__
