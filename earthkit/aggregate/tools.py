@@ -176,8 +176,7 @@ def nanaverage(data, weights=None, **kwargs):
     return _nanaverage
 
 
-# # TODO: Replace with method from meteokit
-## DEPRACTED latitude_weights method. xarray.Weights can handle nans, therefore bespoke method not needed
+## DEPRECATED latitude_weights method. xarray.Weights can handle nans, therefore bespoke method not needed
 # def latitude_weights(latitudes, data_shape=None, lat_dims=None):
 #     """Function to return latitude weights.
 
