@@ -2,7 +2,12 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from earthkit.aggregate.general import _reduce_dataarray, _rolling_reduce_dataarray, reduce, rolling_reduce
+from earthkit.aggregate.general import (
+    _reduce_dataarray,
+    _rolling_reduce_dataarray,
+    reduce,
+    rolling_reduce,
+)
 from earthkit.aggregate.tools import nanaverage
 
 
