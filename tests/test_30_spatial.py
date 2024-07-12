@@ -73,3 +73,21 @@ def test_spatial_reduce_with_geometry(era5_data, nuts_data, expected_result_type
     assert isinstance(reduced_data, expected_result_type)
     assert all([dim in ["time", "index"] for dim in reduced_data.dims])
     assert len(reduced_data["index"]) == len(nuts_data)
+
+
+@pytest.mark.parametrize(
+    "era5_data, nuts_data, expected_result_type",
+    ([get_grid_data().to_xarray(), get_shape_data().to_pandas(), xr.Dataset],),
+)
+def test_spatial_reduce_with_geometry_and_latitude_weights(era5_data, nuts_data, expected_result_type):
+    reduced_data = spatial.reduce(era5_data, nuts_data, weights="latitude")
+    assert isinstance(reduced_data, expected_result_type)
+    assert all([dim in ["time", "index"] for dim in reduced_data.dims])
+    assert len(reduced_data["index"]) == len(nuts_data)
+
+    # Ensure weights works with an abstract name for latitude
+    era5_data = era5_data.rename({"latitude": "elephant"})
+    reduced_data = spatial.reduce(era5_data, nuts_data, weights="latitude", lat_key="elephant")
+    assert isinstance(reduced_data, expected_result_type)
+    assert all([dim in ["time", "index"] for dim in reduced_data.dims])
+    assert len(reduced_data["index"]) == len(nuts_data)

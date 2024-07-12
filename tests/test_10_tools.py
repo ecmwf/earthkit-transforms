@@ -10,6 +10,7 @@ from earthkit.aggregate.tools import (
     get_how,
     get_spatial_info,
     groupby_kwargs_decorator,
+    latitude_weights,
     nanaverage,
     time_dim_decorator,
 )
@@ -190,3 +191,13 @@ def test_get_spatial_info():
     # Check if the correct dimension key is returned
     expected_result = {"lat_key": "lat", "lon_key": "lon", "regular": True, "spatial_dims": ["lat", "lon"]}
     assert expected_result == get_spatial_info(dataarray)
+
+
+def test_latitude_weights():
+    da = xr.DataArray(np.arange(5), dims=("y"), coords={"y": [-90, -60, 0, 60, 90]})
+
+    weights = latitude_weights(da)
+    assert np.allclose(weights, [0, 0.5, 1, 0.5, 0])
+
+    weights = latitude_weights(da.rename({"y": "latitude"}))
+    assert np.allclose(weights, [0, 0.5, 1, 0.5, 0])

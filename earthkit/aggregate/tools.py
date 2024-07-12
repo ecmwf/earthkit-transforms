@@ -176,77 +176,86 @@ def nanaverage(data, weights=None, **kwargs):
     return _nanaverage
 
 
-# TODO: Replace with method from meteokit
-def latitude_weights(latitudes, data_shape=None, lat_dims=None):
-    """Function to return latitude weights.
+## DEPRECATED latitude_weights method. xarray.Weights can handle nans, therefore bespoke method not needed
+# def latitude_weights(latitudes, data_shape=None, lat_dims=None):
+#     """Function to return latitude weights.
 
-    This is a very basic latitudinal
-    weights function where weights are the normalised cosine of latitude,
-    i.e. weight = cosine(latitude) / SUM(cosine(latitude)).
+#     This is a very basic latitudinal
+#     weights function where weights are the normalised cosine of latitude,
+#     i.e. weight = cosine(latitude) / SUM(cosine(latitude)).
 
-    Parameters
-    ----------
-    latitudes: numpy.array
-        Latitude values to calculate weights
-    data_shape (optional): list
-        The shape of the data which the weights apply to,
-        default is the shape of `latitudes`
-    lat_dims (optional): integer or list
-        The dimension indices that corresponde to the latitude data,
-        default is the shape of the latitudes array. If latitudes is a multi-dimensional,
-        then order of latitudes must be in the same order as the lat_dims.
+#     Parameters
+#     ----------
+#     latitudes: numpy.array
+#         Latitude values to calculate weights
+#     data_shape (optional): list
+#         The shape of the data which the weights apply to,
+#         default is the shape of `latitudes`
+#     lat_dims (optional): integer or list
+#         The dimension indices that corresponde to the latitude data,
+#         default is the shape of the latitudes array. If latitudes is a multi-dimensional,
+#         then order of latitudes must be in the same order as the lat_dims.
 
-    Returns
-    -------
-    numpy.array
-        weights equal to cosine of latitude coordinate in the shape of latitudes,
-        or a user defined data_shape
-    """
-    # Calculate the weights
-    weights = np.cos(np.radians(latitudes))
-    weights = weights / np.nanmean(weights)
+#     Returns
+#     -------
+#     numpy.array
+#         weights equal to cosine of latitude coordinate in the shape of latitudes,
+#         or a user defined data_shape
+#     """
+#     # Calculate the weights
+#     weights = np.cos(np.radians(latitudes))
+#     weights = weights / np.nanmean(weights)
 
-    if data_shape is None:
-        data_shape = latitudes.shape
-    ndims = len(data_shape)
+#     if data_shape is None:
+#         data_shape = latitudes.shape
+#     ndims = len(data_shape)
 
-    # Treat lat_dim as a list so we can handle irregular data
-    if lat_dims is None:
-        lat_dims = latitudes.shape
-    elif isinstance(lat_dims, int):
-        lat_dims = [lat_dims]
+#     # Treat lat_dim as a list so we can handle irregular data
+#     if lat_dims is None:
+#         lat_dims = latitudes.shape
+#     elif isinstance(lat_dims, int):
+#         lat_dims = [lat_dims]
 
-    # create shape for weights, where latitude dependant take
-    # appropriate weight shape, where not fill with ones.
-    i_w = 0
-    w_shape = []
-    for i_d in range(ndims):
-        if i_d in lat_dims:
-            w_shape.append(weights.shape[i_w])
-            i_w += 1
-        else:
-            w_shape.append(1)
+#     # create shape for weights, where latitude dependant take
+#     # appropriate weight shape, where not fill with ones.
+#     i_w = 0
+#     w_shape = []
+#     for i_d in range(ndims):
+#         if i_d in lat_dims:
+#             w_shape.append(weights.shape[i_w])
+#             i_w += 1
+#         else:
+#             w_shape.append(1)
 
-    ones = np.ones(data_shape)
-    return ones * weights.reshape(w_shape)
+#     ones = np.ones(data_shape)
+#     return ones * weights.reshape(w_shape)
 
 
-def _latitude_weights(dataarray: xr.DataArray, lat_dim_names=["latitude", "lat"]):
+def standard_weights(dataarray: xr.DataArray, weights: str, **kwargs):
+    """Implement any standard weights functions included in earthkit-aggregate."""
+    if weights in ["latitude", "lat"]:
+        lat_weight_kwargs = {key: value for key, value in kwargs.items() if key in ["lat_key"]}
+        return latitude_weights(dataarray, **lat_weight_kwargs)
+
+    raise NotImplementedError(f"The selected weights method is not recognised or implemented yet: {weights}.")
+
+
+def latitude_weights(dataarray: xr.DataArray, lat_key: str | None = None):
     """
     xarray.DataArray wrapper for latitude_weights.
 
     Detects the spatial dimensions latitude must be a coordinate of the dataarray.
     """
-    # data_shape = dataarray.shape
-    for lat in lat_dim_names:
-        lat_array = dataarray.coords.get(lat)
-        if lat_array is not None:
-            return np.cos(np.radians(lat_array.latitude))
-    #         break
-    # lat_dim_indices = [dataarray.dims.index(dim) for dim in lat_array.dims]
-    # return latitude_weights(
-    #     lat_array.values, data_shape=data_shape, lat_dims=lat_dim_indices
-    # )
+    if lat_key is None:
+        lat_key = get_dim_key(dataarray, "y")
+
+    lat_array = dataarray.coords.get(lat_key)
+    if lat_array is not None:
+        return np.cos(np.radians(lat_array[lat_key]))
+
+    raise KeyError(
+        "Latitude variable name not detected or found in the dataarray. Please provide the correct key."
+    )
 
 
 HOW_METHODS = {
@@ -291,7 +300,8 @@ ALLOWED_LIBS = {
 
 # Dictionary containing recognised weight functions.
 WEIGHTS_DICT = {
-    "latitude": _latitude_weights,
+    "latitude": latitude_weights,
+    "lat": latitude_weights,
 }
 
 
