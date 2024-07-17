@@ -38,7 +38,17 @@ else:
 
     spatial = transform_module_inputs(spatial)
 
+import warnings
+
 from earthkit.aggregate.general import reduce, resample, rolling_reduce
+
+warnings.warn(
+    "earthkit-aggregate as a standalone package is deprecated, "
+    "please find aggregate as a submodule in the earthkit-transforms package.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 
 reduce = transform_function_inputs(reduce)
 rolling_reduce = transform_function_inputs(rolling_reduce)
@@ -54,12 +64,3 @@ __all__ = [
     "resample",
     "rolling_reduce",
 ]
-
-
-import warnings
-
-warnings.warn(
-    "earthkit-aggregate as a standalone package is deprecated, "
-    "please find aggregate as a submodule in the earthkit-transforms package.",
-    DeprecationWarning, stacklevel=2
-)

@@ -5,7 +5,6 @@
 
 [earthkit-transforms](https://github.com/ecmwf/earthkit-transforms)
 
-
 # earthkit-aggregate
 
 A toolkit for statistical analysis of temporal-geospatial data.
