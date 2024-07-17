@@ -4,8 +4,8 @@ import pytest
 import xarray as xr
 
 from earthkit import data as ek_data
-from earthkit.aggregate import climatology
 from earthkit.data.testing import earthkit_remote_test_data_file
+from earthkit.transforms.aggregate import climatology
 
 # Use caching for speedy repeats
 ek_data.settings.set("cache-policy", "user")

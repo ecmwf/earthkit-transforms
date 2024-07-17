@@ -1,4 +1,4 @@
-PROJECT := earthkit-aggregate
+PROJECT := earthkit-transforms
 CONDA := conda
 CONDAFLAGS :=
 COV_REPORT := html

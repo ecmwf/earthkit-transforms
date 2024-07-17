@@ -6,7 +6,6 @@
 
 A toolkit for statistical analysis of temporal-geospatial data.
 
-
 ## Quick Start
 
 ### Installation

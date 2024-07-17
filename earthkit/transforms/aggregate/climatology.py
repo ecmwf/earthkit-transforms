@@ -2,10 +2,10 @@ import typing as T
 
 import xarray as xr
 
-from earthkit.aggregate import tools
-from earthkit.aggregate.general import reduce as _reduce
-from earthkit.aggregate.general import resample
-from earthkit.aggregate.tools import groupby_time
+from earthkit.transforms import tools
+from earthkit.transforms.aggregate.general import reduce as _reduce
+from earthkit.transforms.aggregate.general import resample
+from earthkit.transforms.tools import groupby_time
 
 
 @tools.time_dim_decorator
@@ -42,7 +42,7 @@ def reduce(
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
     Returns
     -------
@@ -75,7 +75,7 @@ def mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | 
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
     Returns
     -------
@@ -104,7 +104,7 @@ def median(dataarray: xr.Dataset | xr.DataArray, **kwargs) -> xr.DataArray:
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
     Returns
     -------
@@ -133,7 +133,7 @@ def min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | x
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
     Returns
     -------
@@ -162,7 +162,7 @@ def max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | x
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
     Returns
     -------
@@ -191,7 +191,7 @@ def std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | x
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
 
     Returns
@@ -225,7 +225,7 @@ def daily_reduce(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Da
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
     Returns
     -------
@@ -252,7 +252,7 @@ def daily_mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Data
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
     Returns
     -------
@@ -279,7 +279,7 @@ def daily_median(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Da
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
     Returns
     -------
@@ -306,7 +306,7 @@ def daily_min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Datas
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
     Returns
     -------
@@ -333,7 +333,7 @@ def daily_max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Datas
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
     Returns
     -------
@@ -360,7 +360,7 @@ def daily_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Datas
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
 
     Returns
@@ -394,7 +394,7 @@ def monthly_reduce(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
     Returns
     -------
@@ -421,7 +421,7 @@ def monthly_mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Da
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
     Returns
     -------
@@ -448,7 +448,7 @@ def monthly_median(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
     Returns
     -------
@@ -475,7 +475,7 @@ def monthly_min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dat
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
     Returns
     -------
@@ -502,7 +502,7 @@ def monthly_max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dat
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
     Returns
     -------
@@ -529,7 +529,7 @@ def monthly_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dat
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
 
     Returns
@@ -570,7 +570,7 @@ def quantiles(
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
     Returns
     -------
@@ -617,7 +617,7 @@ def percentiles(
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.reduce` (except how)
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
     Returns
     -------
@@ -665,7 +665,7 @@ def anomaly(
     relative : bool (optional)
         Return the relative anomaly, i.e. the percentage change w.r.t the climatological period
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.climatology.mean`
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.climatology.mean`
 
     Returns
     -------
@@ -716,7 +716,7 @@ def _anomaly_dataarray(
     relative : bool (optional)
         Return the relative anomaly, i.e. the percentage change w.r.t the climatological period
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.climatology.mean`
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.climatology.mean`
 
     Returns
     -------
@@ -810,7 +810,7 @@ def relative_anomaly(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
         Name of the time dimension in the data object, default behviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.climatology.mean`
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.climatology.mean`
 
     Returns
     -------
@@ -857,7 +857,7 @@ def auto_anomaly(
     relative : bool (optional)
         Return the relative anomaly, i.e. the percentage change w.r.t the climatological period
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.aggregate.climatology.mean`
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.climatology.mean`
 
     Returns
     -------

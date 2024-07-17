@@ -1,5 +1,5 @@
-from earthkit import aggregate
+from earthkit import transforms
 
 
 def test_version() -> None:
-    assert aggregate.__version__ != "999"
+    assert transforms.__version__ != "999"

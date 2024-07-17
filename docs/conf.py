@@ -11,16 +11,16 @@ import os
 import sys
 
 # This doesn't work, so need to find another way
-# from earthkit import aggregate
-# version = aggregate.__version__
-# release = aggregate.__version__
+# from earthkit import transforms
+# version = transforms.__version__
+# release = transforms.__version__
 
 sys.path.insert(0, os.path.abspath("./"))
 sys.path.insert(0, os.path.abspath("../"))
 
 # -- Project information -----------------------------------------------------
 
-project = "earthkit-aggregate"
+project = "earthkit-transforms"
 author = "European Centre for Medium Range Weather Forecasts"
 
 year = datetime.datetime.now().year
@@ -45,7 +45,7 @@ extensions = [
 autodoc_typehints = "none"
 
 # autoapi configuration
-autoapi_dirs = ["../earthkit/aggregate"]
+autoapi_dirs = ["../earthkit/transforms"]
 autoapi_ignore = ["*/version.py"]
 autoapi_options = [
     "members",

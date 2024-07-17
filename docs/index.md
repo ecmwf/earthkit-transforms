@@ -1,27 +1,26 @@
-# Welcome to Earthkit-aggregate's documentation!
+# Welcome to Earthkit-transforms's documentation!
 
-**earthkit-aggregate** is a library of software tools to support people working with climate and meteorology data
+**earthkit-transforms** is a library of software tools to support people working with climate and meteorology data
 
-**earthkit-aggregate** includes methods for aggregating data in time and space
-(e.g. indicators and risk factors).
+**earthkit-transforms** includes methods for aggregating data in time and space, and more transforms and operators.
 It has been designed following the philosphy of Earthkit, hence the methods should be interoperable with any
 data object understood by earthkit-data.
 
 ## Getting started
 
-**earthkit-aggregate** is available from PyPi. To make use of the interoperable funcitonality you should ensure
+**earthkit-transforms** is available from PyPi. To make use of the interoperable functionality you should ensure
 that you have installed the dependancies of *earthkit-data*.
 
 ### Installation
 
 ```bash
-pip install earthkit-aggregate
+pip install earthkit-transforms
 ```
 
 ### Import and use
 
 ```python
->>> from earthkit import aggregate
+>>> from earthkit.transforms import aggregate
 
 ```
 

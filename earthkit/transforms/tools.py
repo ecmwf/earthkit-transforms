@@ -99,38 +99,6 @@ def season_order_decorator(func):
     return wrapper
 
 
-# This decorator has been deprecated, but preserved in case we want to re-introduce auto labelling
-# def how_label_decorator(
-#     label_prefix: str | None = None,
-#     label_suffix: str | None = None,
-# ):
-#     def actual_decorator(func):
-#         @functools.wraps(func)
-#         def wrapper(*args, how: str | T.Callable, how_label: str | None = None, **kwargs):
-#             if not isinstance(how, str) and not callable(how):
-#                 raise ValueError("how must be a string or a callable")
-#             if how_label is None:
-#                 label_components = []
-#                 if label_prefix is not None:
-#                     label_components.append(label_prefix)
-#                 if "frequency" in kwargs:
-#                     label_components.append(kwargs["frequency"])
-#                 if isinstance(how, str):
-#                     how_label = deepcopy(how)
-#                 elif callable(how):
-#                     how_label = how.__name__
-#                 label_components.append(how_label)
-#                 if label_suffix is not None:
-#                     label_components.append(label_suffix)
-#                 how_label = "_".join(label_components)
-#             return func(*args, how=how, how_label=how_label, **kwargs)
-
-#         return wrapper
-
-#     return actual_decorator
-
-
-# TODO: Replace with method from meteokit
 def nanaverage(data, weights=None, **kwargs):
     """A merge of the functionality of np.nanmean and np.average.
 

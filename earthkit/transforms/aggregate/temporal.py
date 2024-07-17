@@ -5,11 +5,11 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from earthkit.aggregate import tools
-from earthkit.aggregate.general import how_label_rename, resample
-from earthkit.aggregate.general import reduce as _reduce
-from earthkit.aggregate.general import rolling_reduce as _rolling_reduce
-from earthkit.aggregate.tools import groupby_time
+from earthkit.transforms.aggregate import tools
+from earthkit.transforms.aggregate.general import how_label_rename, resample
+from earthkit.transforms.aggregate.general import reduce as _reduce
+from earthkit.transforms.aggregate.general import rolling_reduce as _rolling_reduce
+from earthkit.transforms.aggregate.tools import groupby_time
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ def standardise_time(
     history = dataarray.attrs.get("history", "")
     history += (
         "The time coordinate of this data has been standardised with "
-        "earthkit.aggregate.temporal.standardise_time."
+        "earthkit.transforms.aggregate.temporal.standardise_time."
     )
     dataarray = dataarray.assign_attrs({"history": history})
 
@@ -88,7 +88,7 @@ def reduce(
         Name of the time dimension, or coordinate, in the xarray object,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-        If you do not want to aggregate along the time dimension use earthkit.aggregate.reduce
+        If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     how: str or callable
         Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
         If string, it must be an in-built xarray reduce method, a earthkit how method or any numpy method.
@@ -103,7 +103,7 @@ def reduce(
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
     **kwargs :
-        kwargs recognised by the how :func: `earthkit.aggregate.reduce`
+        kwargs recognised by the how :func: `earthkit.transforms.aggregate.reduce`
 
     Returns
     -------
@@ -140,7 +140,7 @@ def mean(
         Name of the time dimension, or coordinate, in the xarray object,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-        If you do not want to aggregate along the time dimension use earthkit.aggregate.reduce
+        If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     weights : str
         Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
     how_label : str
@@ -149,7 +149,7 @@ def mean(
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
     **kwargs :
-        kwargs recognised by the how :func: `earthkit.aggregate.reduce`
+        kwargs recognised by the how :func: `earthkit.transforms.aggregate.reduce`
 
     Returns
     -------
@@ -179,7 +179,7 @@ def median(
         Name of the time dimension, or coordinate, in the xarray object,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-        If you do not want to aggregate along the time dimension use earthkit.aggregate.reduce
+        If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     weights : str
         Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
     how_label : str
@@ -188,7 +188,7 @@ def median(
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
     **kwargs :
-        kwargs recognised by the how :func: `earthkit.aggregate.reduce`
+        kwargs recognised by the how :func: `earthkit.transforms.aggregate.reduce`
 
     Returns
     -------
@@ -218,7 +218,7 @@ def min(
         Name of the time dimension, or coordinate, in the xarray object,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-        If you do not want to aggregate along the time dimension use earthkit.aggregate.reduce
+        If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     weights : str
         Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
     how_label : str
@@ -227,7 +227,7 @@ def min(
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
     **kwargs :
-        kwargs recognised by the how :func: `earthkit.aggregate.reduce`
+        kwargs recognised by the how :func: `earthkit.transforms.aggregate.reduce`
 
     Returns
     -------
@@ -257,7 +257,7 @@ def max(
         Name of the time dimension, or coordinate, in the xarray object,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-        If you do not want to aggregate along the time dimension use earthkit.aggregate.reduce
+        If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     weights : str
         Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
     how_label : str
@@ -266,7 +266,7 @@ def max(
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
     **kwargs :
-        kwargs recognised by the how :func: `earthkit.aggregate.reduce`
+        kwargs recognised by the how :func: `earthkit.transforms.aggregate.reduce`
 
     Returns
     -------
@@ -296,7 +296,7 @@ def std(
         Name of the time dimension, or coordinate, in the xarray object,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-        If you do not want to aggregate along the time dimension use earthkit.aggregate.reduce
+        If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     weights : str
         Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
     how_label : str
@@ -305,7 +305,7 @@ def std(
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
     **kwargs :
-        kwargs recognised by the how :func: `earthkit.aggregate.reduce`
+        kwargs recognised by the how :func: `earthkit.transforms.aggregate.reduce`
 
     Returns
     -------
@@ -335,7 +335,7 @@ def sum(
         Name of the time dimension, or coordinate, in the xarray object,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-        If you do not want to aggregate along the time dimension use earthkit.aggregate.reduce
+        If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     weights : str
         Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
     how_label : str
@@ -344,7 +344,7 @@ def sum(
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
     **kwargs :
-        kwargs recognised by the how :func: `earthkit.aggregate.reduce`
+        kwargs recognised by the how :func: `earthkit.transforms.aggregate.reduce`
 
     Returns
     -------
