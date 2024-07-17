@@ -5,11 +5,11 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from earthkit.transforms.aggregate import tools
+from earthkit.transforms import tools
 from earthkit.transforms.aggregate.general import how_label_rename, resample
 from earthkit.transforms.aggregate.general import reduce as _reduce
 from earthkit.transforms.aggregate.general import rolling_reduce as _rolling_reduce
-from earthkit.transforms.aggregate.tools import groupby_time
+from earthkit.transforms.tools import groupby_time
 
 logger = logging.getLogger(__name__)
 

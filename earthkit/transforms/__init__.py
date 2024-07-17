@@ -22,8 +22,4 @@ except ImportError:  # pragma: no cover
 
 from earthkit.transforms import aggregate, tools
 
-__all__ = [
-    "__version__",
-    "aggregate",
-    "tools"
-]
+__all__ = ["__version__", "aggregate", "tools"]

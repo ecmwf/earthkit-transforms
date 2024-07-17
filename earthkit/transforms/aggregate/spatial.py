@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from earthkit.transforms.aggregate.tools import (
+from earthkit.transforms.tools import (
     get_how,
     get_spatial_info,
     standard_weights,

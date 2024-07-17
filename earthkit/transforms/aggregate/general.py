@@ -4,7 +4,7 @@ import typing as T
 import numpy as np
 import xarray as xr
 
-from earthkit.transforms.aggregate import tools
+from earthkit.transforms import tools
 
 
 def how_label_rename(

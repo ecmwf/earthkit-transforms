@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 import xarray as xr
 
-from earthkit.aggregate.tools import (
+from earthkit.transforms.tools import (
     get_dim_key,
     get_how,
     get_spatial_info,
