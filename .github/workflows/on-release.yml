@@ -18,17 +18,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: 3.x
     - name: Install conda-merge
       run: |
-        $CONDA/bin/python -m pip install conda-merge
+        python -m pip install conda-merge
     - name: Combine environments
       run: |
         for SUFFIX in ci integration; do
-        $CONDA/bin/conda-merge ci/environment-$SUFFIX.yml environment.yml > ci/combined-environment-$SUFFIX.yml || exit
+        conda-merge ci/environment-$SUFFIX.yml environment.yml > ci/combined-environment-$SUFFIX.yml || exit
         done
-    - name: Archive combined environments
-      uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: combined-environments
         path: ci/combined-environment-*.yml
