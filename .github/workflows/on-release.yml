@@ -34,7 +34,7 @@ jobs:
         path: ci/combined-environment-*.yml
 
   docs-build:
-    needs: [combine-environments, unit-tests]
+    needs: [combine-environments]
     runs-on: ubuntu-latest
 
     steps:
