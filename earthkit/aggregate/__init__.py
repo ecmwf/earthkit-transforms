@@ -54,3 +54,12 @@ __all__ = [
     "resample",
     "rolling_reduce",
 ]
+
+
+import warnings
+
+warnings.warn(
+    "earthkit-aggregate as a standalone package is deprecated, "
+    "please find aggregate as a submodule in the earthkit-transforms package.",
+    DeprecationWarning, stacklevel=2
+)

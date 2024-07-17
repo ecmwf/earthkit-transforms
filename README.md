@@ -1,10 +1,17 @@
+# DEPRECATION WARNING
+
+**PLEASE NOTE THAT THE EARTHKIT-AGGREGATE PACKAGE HAS BEEN DEPRECATED AND CAN NOW BE FOUND INSIDE**
+**THE EARTHKIT-TRANSFORMS PACKAGE**
+
+[earthkit-transforms](https://github.com/ecmwf/earthkit-transforms)
+
+
 # earthkit-aggregate
 
 A toolkit for statistical analysis of temporal-geospatial data.
 
 **DISCLAIMER**
-This project is **BETA** and will be **Experimental** for the foreseeable future.
-Interfaces and functionality are likely to change, and the project itself may be scrapped.
+This project has been **DEPRECATED**.
 **DO NOT** use this software in any project/software that is operational.
 
 ## Quick Start
