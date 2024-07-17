@@ -1,36 +1,30 @@
-# DEPRECATION WARNING
+# earthkit-transforms
 
-**PLEASE NOTE THAT THE EARTHKIT-AGGREGATE PACKAGE HAS BEEN DEPRECATED AND CAN NOW BE FOUND INSIDE**
-**THE EARTHKIT-TRANSFORMS PACKAGE**
+**DISCLAIMER**
 
-[earthkit-transforms](https://github.com/ecmwf/earthkit-transforms)
-
-# earthkit-aggregate
+> This project is in the **BETA** stage of development. Please be aware that interfaces and functionality may change as the project develops. If this software is to be used in operational systems you are **strongly advised to use a released tag in your system configuration**, and you should be willing to accept incoming changes and bug fixes that require adaptations on your part. ECMWF **does use** this software in operations and abides by the same caveats.
 
 A toolkit for statistical analysis of temporal-geospatial data.
 
-**DISCLAIMER**
-This project has been **DEPRECATED**.
-**DO NOT** use this software in any project/software that is operational.
 
 ## Quick Start
 
 ### Installation
 
 ```bash
-pip install earthkit-aggregate
+pip install earthkit-transforms
 ```
 
 ### Import and use
 
 ```python
->>> from earthkit import aggregate
+>>> from earthkit.transforms import aggregate
 
 ```
 
 ## Detailed documentation
 
-Please refer the [earthkit-aggregate readthedocs page](https://earthkit-aggregate.readthedocs.io) for more detailed documentation, example notebooks and the API reference guide.
+Please refer the [earthkit-transforms readthedocs page](https://earthkit-transforms.readthedocs.io) for more detailed documentation, example notebooks and the API reference guide.
 
 ## Workflow for developers/contributors
 
