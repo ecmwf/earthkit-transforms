@@ -13,3 +13,14 @@ dependencies:
 - sphinx
 - sphinx-autoapi
 # DO NOT EDIT ABOVE THIS LINE, ADD DEPENDENCIES BELOW
+# Additional dependencies
+# - earthkit-data
+# - geopandas
+# - nbsphinx
+# - numpy
+# - pandas-stubs
+# - rasterio
+# - sphinx-rtd-theme
+# - xarray
+# - pip:
+#   - git+https://github.com/ecmwf/multiurl
