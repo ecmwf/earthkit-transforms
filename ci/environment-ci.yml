@@ -7,20 +7,13 @@ dependencies:
 - mypy
 - myst-parser
 - pre-commit
-- pydata-sphinx-theme
+# - pydata-sphinx-theme
+- sphinx-rtd-theme
 - pytest
 - pytest-cov
 - sphinx
 - sphinx-autoapi
 # DO NOT EDIT ABOVE THIS LINE, ADD DEPENDENCIES BELOW
 # Additional dependencies
-# - earthkit-data
-# - geopandas
-# - nbsphinx
-# - numpy
-# - pandas-stubs
-# - rasterio
-# - sphinx-rtd-theme
-# - xarray
-# - pip:
-#   - git+https://github.com/ecmwf/multiurl
+- nbsphinx
+- pandas-stubs
