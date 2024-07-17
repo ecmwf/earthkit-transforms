@@ -18,13 +18,13 @@ dependencies:
 # - package1
 # - package2
 # DO NOT EDIT ABOVE THIS LINE, ADD DEPENDENCIES BELOW AS SHOWN IN THE EXAMPLE
-- pandas-stubs
-- nbsphinx
-- numpy
-- xarray
-- pip
-- geopandas
-- rasterio
-- earthkit-data
-- pip:
-  - git+https://github.com/ecmwf/multiurl
+# - pandas-stubs
+# - nbsphinx
+# - numpy
+# - xarray
+# - pip
+# - geopandas
+# - rasterio
+# - earthkit-data
+# - pip:
+#   - git+https://github.com/ecmwf/multiurl
