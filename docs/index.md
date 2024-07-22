@@ -20,7 +20,9 @@ pip install earthkit-transforms
 ### Import and use
 
 ```python
->>> from earthkit.transforms import aggregate
+from earthkit.transforms import aggregate
+
+daily_mean = aggregate.temporal.daily_mean(MY_DATA)
 
 ```
 

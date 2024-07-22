@@ -4,7 +4,11 @@
 
 > This project is in the **BETA** stage of development. Please be aware that interfaces and functionality may change as the project develops. If this software is to be used in operational systems you are **strongly advised to use a released tag in your system configuration**, and you should be willing to accept incoming changes and bug fixes that require adaptations on your part. ECMWF **does use** this software in operations and abides by the same caveats.
 
-A toolkit for statistical analysis of temporal-geospatial data.
+**earthkit-transforms** is a library of software tools to support people working with climate and meteorology data
+
+**earthkit-transforms** includes methods for aggregating data in time and space, and more transforms and operators.
+It has been designed following the philosphy of Earthkit, hence the methods should be interoperable with any
+data object understood by earthkit-data.
 
 ## Quick Start
 
@@ -17,7 +21,9 @@ pip install earthkit-transforms
 ### Import and use
 
 ```python
->>> from earthkit.transforms import aggregate
+from earthkit.transforms import aggregate
+
+daily_mean = aggregate.temporal.daily_mean(MY_DATA)
 
 ```
 
