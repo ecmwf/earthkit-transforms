@@ -4,6 +4,9 @@ version.py
 # Sphinx automatic generation of API
 docs/_api/
 
+# Combined environments
+ci/combined-environment-*.yml
+
 # Created by https://www.toptal.com/developers/gitignore/api/python,jupyternotebooks,vim,visualstudiocode,pycharm
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,jupyternotebooks,vim,visualstudiocode,pycharm
 
@@ -13,6 +16,7 @@ docs/_api/
 
 # Ignore files used in development
 dev-notebook.ipynb
+test.ipynb
 test*.grib
 test*.nc
 
