@@ -33,6 +33,8 @@ daily_mean = aggregate.temporal.daily_mean(MY_DATA)
 aggregate-examples.md
 
 :caption: 'Documentation'
+:maxdepth: 2
+install.md
 API Reference <_api/index>
 
 
