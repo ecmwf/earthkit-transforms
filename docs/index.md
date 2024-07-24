@@ -27,11 +27,15 @@ daily_mean = aggregate.temporal.daily_mean(MY_DATA)
 ```
 
 ```{toctree}
-:caption: 'Contents:'
+:caption: 'Examples'
 :maxdepth: 2
 
-examples.md
+aggregate-examples.md
+
+:caption: 'Documentation'
 API Reference <_api/index>
+
+
 ```
 
 # Indices and tables

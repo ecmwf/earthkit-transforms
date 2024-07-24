@@ -1,6 +1,6 @@
-# Examples
+# Aggregation examples
 
-Examples of how to use earthkit-aggregate
+Examples of how to use the earthkit-transforms.aggregate modules
 
 ```{toctree}
 :caption: 'Notebooks'
