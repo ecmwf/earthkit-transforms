@@ -69,7 +69,7 @@ def time_dim_decorator(func):
         result = func(dataarray, *args, time_dim=time_dim, **kwargs)
 
         # If we want only full days then chop off the first and last day if we have time_shift
-        if full_days_only and time_shift is not None:
+        if full_days_only and time_shift is not None and isinstance(result, (xr.Dataset, xr.DataArray)):
             return result.isel({time_dim: slice(1, -1)})
 
         return result
