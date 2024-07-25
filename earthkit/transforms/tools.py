@@ -43,6 +43,7 @@ def time_dim_decorator(func):
         *args,
         time_dim: str | None = None,
         time_shift: dict | str | pd.Timedelta | None = None,
+        full_days_only: bool = False,
         **kwargs,
     ):
         if time_dim is None:
@@ -65,7 +66,13 @@ def time_dim_decorator(func):
 
             dataarray = dataarray.assign_coords({time_dim: time_coord})
 
-        return func(dataarray, *args, time_dim=time_dim, **kwargs)
+        result = func(dataarray, *args, time_dim=time_dim, **kwargs)
+
+        # If we want only full days then chop off the first and last day if we have time_shift
+        if full_days_only and time_shift is not None:
+            return result.isel({time_dim: slice(1, -1)})
+
+        return result
 
     return wrapper
 
