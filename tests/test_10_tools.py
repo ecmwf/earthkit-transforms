@@ -72,15 +72,15 @@ def test_time_dim_decorator_not_found_error():
         time_dim_decorator(dummy_func)(dataarray, time_shift={"days": 1})
 
 
-# Test case for the decorator when time_shift is provided and full_days_only=True
-def test_time_dim_decorator_time_shift_provided_full_days_only():
+# Test case for the decorator when time_shift is provided and trim_shifted=True
+def test_time_dim_decorator_time_shift_provided_trim_shifted():
     # Prepare test data
     dataarray = xr.DataArray(
         [1, 2, 3], dims=["time"], coords={"time": pd.date_range("2000-01-01", periods=3)}
     )
 
     # Call the decorated function with time_shift provided
-    result = time_dim_decorator(dummy_func2)(dataarray, time_shift={"days": 1}, full_days_only=True)
+    result = time_dim_decorator(dummy_func2)(dataarray, time_shift={"days": 1}, trim_shifted=True)
     # Check if the time dimension is correctly shifted, and the start and end dates are removed
     expected_coords = pd.date_range("2000-01-03", periods=1)
     assert all(result.coords["time"].values == expected_coords)
