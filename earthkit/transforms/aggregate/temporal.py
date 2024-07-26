@@ -384,8 +384,8 @@ def daily_reduce(
         It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
-        If True and time_shift is not Null, the first and last time steps are removed to ensure equality in
-        sampling periods. Default is False.
+        If True and a time_shift has been applied, the first and last time steps are removed to ensure
+        equality in sampling periods. Default is False.
     how_label : str
         Label to append to the name of the variable in the reduced object, default is _daily_{how}
     **kwargs
@@ -449,8 +449,8 @@ def daily_mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
         It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
-        If True and time_shift is not Null, the first and last time steps are removed to ensure equality in
-        sampling periods. Default is False.
+        If True and a time_shift has been applied, the first and last time steps are removed to ensure
+        equality in sampling periods. Default is False.
     **kwargs
         Keyword arguments to be passed to :func:`reduce`.
 
@@ -478,8 +478,8 @@ def daily_median(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
         It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
-        If True and time_shift is not Null, the first and last time steps are removed to ensure equality in
-        sampling periods. Default is False.
+        If True and a time_shift has been applied, the first and last time steps are removed to ensure
+        equality in sampling periods. Default is False.
     **kwargs
         Keyword arguments to be passed to :func:`reduce`.
 
@@ -507,8 +507,8 @@ def daily_max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
         It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
-        If True and time_shift is not Null, the first and last time steps are removed to ensure equality in
-        sampling periods. Default is False.
+        If True and a time_shift has been applied, the first and last time steps are removed to ensure
+        equality in sampling periods. Default is False.
     **kwargs
         Keyword arguments to be passed to :func:`reduce`.
 
@@ -536,8 +536,8 @@ def daily_min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
         It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
-        If True and time_shift is not Null, the first and last time steps are removed to ensure equality in
-        sampling periods. Default is False.
+        If True and a time_shift has been applied, the first and last time steps are removed to ensure
+        equality in sampling periods. Default is False.
     **kwargs
         Keyword arguments to be passed to :func:`reduce`.
 
@@ -565,8 +565,8 @@ def daily_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
         It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
-        If True and time_shift is not Null, the first and last time steps are removed to ensure equality in
-        sampling periods. Default is False.
+        If True and a time_shift has been applied, the first and last time steps are removed to ensure
+        equality in sampling periods. Default is False.
     **kwargs
         Keyword arguments to be passed to :func:`reduce`.
 
@@ -594,8 +594,8 @@ def daily_sum(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
         It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
-        If True and time_shift is not Null, the first and last time steps are removed to ensure equality in
-        sampling periods. Default is False.
+        If True and a time_shift has been applied, the first and last time steps are removed to ensure
+        equality in sampling periods. Default is False.
     **kwargs
         Keyword arguments to be passed to :func:`reduce`.
 
@@ -635,8 +635,8 @@ def monthly_reduce(
         It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
-        If True and time_shift is not Null, the first and last time steps are removed to ensure equality in
-        sampling periods. Default is False.
+        If True and a time_shift has been applied, the first and last time steps are removed to ensure
+        equality in sampling periods. Default is False.
     how_label : str
         Label to append to the name of the variable in the reduced object, default is _monthly_{how}
 
@@ -710,8 +710,8 @@ def monthly_mean(
         It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
-        If True and time_shift is not Null, the first and last time steps are removed to ensure equality in
-        sampling periods. Default is False.
+        If True and a time_shift has been applied, the first and last time steps are removed to ensure
+        equality in sampling periods. Default is False.
     **kwargs
         Keyword arguments to be passed to :func:`resample`.
 
@@ -743,8 +743,8 @@ def monthly_median(
         It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
-        If True and time_shift is not Null, the first and last time steps are removed to ensure equality in
-        sampling periods. Default is False.
+        If True and a time_shift has been applied, the first and last time steps are removed to ensure
+        equality in sampling periods. Default is False.
     **kwargs
         Keyword arguments to be passed to :func:`resample`.
 
@@ -776,8 +776,8 @@ def monthly_min(
         It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
-        If True and time_shift is not Null, the first and last time steps are removed to ensure equality in
-        sampling periods. Default is False.
+        If True and a time_shift has been applied, the first and last time steps are removed to ensure
+        equality in sampling periods. Default is False.
     **kwargs
         Keyword arguments to be passed to :func:`resample`.
 
@@ -809,8 +809,8 @@ def monthly_max(
         It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
-        If True and time_shift is not Null, the first and last time steps are removed to ensure equality in
-        sampling periods. Default is False.
+        If True and a time_shift has been applied, the first and last time steps are removed to ensure
+        equality in sampling periods. Default is False.
     **kwargs
         Keyword arguments to be passed to :func:`resample`.
 
@@ -842,8 +842,8 @@ def monthly_std(
         It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
-        If True and time_shift is not Null, the first and last time steps are removed to ensure equality in
-        sampling periods. Default is False.
+        If True and a time_shift has been applied, the first and last time steps are removed to ensure
+        equality in sampling periods. Default is False.
     **kwargs
         Keyword arguments to be passed to :func:`resample`.
 
@@ -875,8 +875,8 @@ def monthly_sum(
         It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
-        If True and time_shift is not Null, the first and last time steps are removed to ensure equality in
-        sampling periods. Default is False.
+        If True and a time_shift has been applied, the first and last time steps are removed to ensure
+        equality in sampling periods. Default is False.
     **kwargs
         Keyword arguments to be passed to :func:`resample`.
 
