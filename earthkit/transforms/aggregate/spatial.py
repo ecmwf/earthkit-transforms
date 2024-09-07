@@ -195,9 +195,7 @@ def get_mask_dim_index(
         else:
             mask_dim_index = geodataframe.index.rename(mask_dim)
     elif isinstance(mask_dim, dict):
-        assert (
-            len(mask_dim) == 1
-        ), "If provided as a dictionary, mask_dim should have onlly one key value pair"
+        assert len(mask_dim) == 1, "If provided as a dictionary, mask_dim should have only one key value pair"
         _mask_dim, _mask_dim_values = mask_dim.items()
         mask_dim_index = pd.Index(_mask_dim_values, name=_mask_dim)
     elif mask_dim is None:
@@ -259,7 +257,7 @@ def masks(
     """
     Apply multiple shape masks to some gridded data.
 
-    Each feauture in shape is treated as an individual mask to apply to
+    Each feature in shape is treated as an individual mask to apply to
     data. The data provided is returned with an additional dimension equal in
     length to the number of features in the shape object, this can result in very
     large files which will slow down your script. It may be better to loop
@@ -401,7 +399,7 @@ def _reduce_dataarray(
     **reduce_kwargs,
 ):
     """
-    Reduce an xarray.DataArray object over it's geospatial dimensions using the specified 'how' method.
+    Reduce an xarray.DataArray object over its geospatial dimensions using the specified 'how' method.
 
     If a geodataframe is provided the DataArray is reduced over each feature in the geodataframe.
     Geospatial coordinates are reduced to a dimension representing the list of features in the shape object.

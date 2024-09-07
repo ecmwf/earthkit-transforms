@@ -96,7 +96,7 @@ def reduce(
         Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
         to return the result of reducing an np.ndarray over an integer valued axis
     weights : str
-        Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
+        Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_label : str
         Label to append to the name of the variable in the reduced object, default is _{how}
     how_dropna : str
@@ -142,7 +142,7 @@ def mean(
         attributes of coordinates, then fall back to `"time"`.
         If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     weights : str
-        Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
+        Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_label : str
         Label to append to the name of the variable in the reduced object, default is _mean
     how_dropna : str
@@ -181,7 +181,7 @@ def median(
         attributes of coordinates, then fall back to `"time"`.
         If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     weights : str
-        Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
+        Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_label : str
         Label to append to the name of the variable in the reduced object, default is _mean
     how_dropna : str
@@ -220,7 +220,7 @@ def min(
         attributes of coordinates, then fall back to `"time"`.
         If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     weights : str
-        Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
+        Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_label : str
         Label to append to the name of the variable in the reduced object, default is _mean
     how_dropna : str
@@ -259,7 +259,7 @@ def max(
         attributes of coordinates, then fall back to `"time"`.
         If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     weights : str
-        Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
+        Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_label : str
         Label to append to the name of the variable in the reduced object, default is _mean
     how_dropna : str
@@ -298,7 +298,7 @@ def std(
         attributes of coordinates, then fall back to `"time"`.
         If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     weights : str
-        Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
+        Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_label : str
         Label to append to the name of the variable in the reduced object, default is _mean
     how_dropna : str
@@ -337,7 +337,7 @@ def sum(
         attributes of coordinates, then fall back to `"time"`.
         If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     weights : str
-        Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
+        Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_label : str
         Label to append to the name of the variable in the reduced object, default is _mean
     how_dropna : str
@@ -381,7 +381,7 @@ def daily_reduce(
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -446,7 +446,7 @@ def daily_mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -475,7 +475,7 @@ def daily_median(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -504,7 +504,7 @@ def daily_max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -533,7 +533,7 @@ def daily_min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -562,7 +562,7 @@ def daily_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -591,7 +591,7 @@ def daily_sum(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -632,7 +632,7 @@ def monthly_reduce(
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -707,7 +707,7 @@ def monthly_mean(
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -740,7 +740,7 @@ def monthly_median(
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -773,7 +773,7 @@ def monthly_min(
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -806,7 +806,7 @@ def monthly_max(
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -839,7 +839,7 @@ def monthly_std(
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -872,7 +872,7 @@ def monthly_sum(
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure

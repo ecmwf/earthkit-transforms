@@ -3,13 +3,13 @@
 **earthkit-transforms** is a library of software tools to support people working with climate and meteorology data
 
 **earthkit-transforms** includes methods for aggregating data in time and space, and more transforms and operators.
-It has been designed following the philosphy of Earthkit, hence the methods should be interoperable with any
+It has been designed following the philosophy of Earthkit, hence the methods should be interoperable with any
 data object understood by earthkit-data.
 
 ## Getting started
 
 **earthkit-transforms** is available from PyPi. To make use of the interoperable functionality you should ensure
-that you have installed the dependancies of *earthkit-data*.
+that you have installed the dependencies of *earthkit-data*.
 
 ### Installation
 
