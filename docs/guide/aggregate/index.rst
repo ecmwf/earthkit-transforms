@@ -15,3 +15,4 @@ sub-modules:
    :maxdepth: 1
 
    spatial
+   temporal

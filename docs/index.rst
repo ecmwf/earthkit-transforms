@@ -40,7 +40,7 @@ Import and use
    aggregate-examples
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 4
    :caption: Documentation
 
    guide/index
@@ -48,7 +48,7 @@ Import and use
    development
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Installation
 
    install
@@ -57,7 +57,7 @@ Import and use
 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Projects
 
    earthkit <https://earthkit.readthedocs.io/en/latest>
