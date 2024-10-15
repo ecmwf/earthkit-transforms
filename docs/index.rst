@@ -5,7 +5,7 @@ Welcome to Earthkit-transforms’s documentation!
 working with climate and meteorology data. It is made of a sub-package
 called **earthkit-transforms.aggregate** which includes methods for aggregating
 data in time and space. **earthkit-transforms** has been designed
-following the philosphy of earthkit, hence the methods should be
+following the philosophy of earthkit, hence the methods should be
 interoperable with any data object understood by earthkit-data.
 
 Getting started
@@ -13,7 +13,7 @@ Getting started
 
 **earthkit-transforms** is available from PyPi. To make use of the
 interoperable functionality you should ensure that you have installed
-the dependancies of *earthkit-data*.
+the dependencies of *earthkit-data*.
 
 Installation
 ~~~~~~~~~~~~

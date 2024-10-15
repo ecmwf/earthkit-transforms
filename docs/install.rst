@@ -12,4 +12,4 @@ the installation of earthkit-transforms.
    pip install earthkit-transforms
 
 To make use of the interoperable functionality you should ensure that
-you have installed the *earthkit-data* dependancy.
+you have installed the *earthkit-data* dependency.

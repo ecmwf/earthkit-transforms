@@ -39,7 +39,7 @@ Run the quality assurance checks independently
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you are interested on one specific aspect of the quality assurance
-tests they can be run independantly as:
+tests they can be run independently as:
 
 1. Coding standards test ``make qa``
 2. Unit tests ``make unit-test``
