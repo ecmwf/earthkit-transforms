@@ -121,9 +121,8 @@ def nanaverage(data, weights=None, **kwargs):
 
     Returns
     -------
-    numpy array
-        mean of data (along axis) where nan-values are ignored
-        and weights applied if provided.
+    numpy array mean of data (along axis) where nan-values are ignored
+    and weights applied if provided.
     """
     if weights is not None:
         # set weights to nan where data is nan:
@@ -374,7 +373,7 @@ def groupby_time(
     dataarray: xr.Dataset | xr.DataArray,
     frequency: str | None = None,
     bin_widths: int | None = None,
-    squeeze: bool = True,
+    squeeze: bool = False,
     time_dim: str = "time",
 ):
     if frequency is None:

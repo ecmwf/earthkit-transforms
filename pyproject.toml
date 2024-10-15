@@ -24,7 +24,7 @@ description = "Aggregation tools for meteorological and climate data."
 dynamic = ["version"]
 license = {file = "LICENSE"}
 name = "earthkit-transforms"
-readme = "README.md"
+readme = "README.rst"
 
 [tool.coverage.run]
 branch = true

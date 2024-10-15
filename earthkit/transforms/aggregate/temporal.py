@@ -40,9 +40,9 @@ def standardise_time(
 
     Returns
     -------
-    xr.Dataset or xr.DataArray
-        Data object with the time coordinate standardised to the specified
-        format.
+    xr.Dataset | xr.DataArray
+        Data object with the time coordinate standardised to the specified format
+
     """
     try:
         source_times = [time_value.strftime(target_format) for time_value in dataarray.time.values]
@@ -96,7 +96,7 @@ def reduce(
         Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
         to return the result of reducing an np.ndarray over an integer valued axis
     weights : str
-        Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
+        Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_label : str
         Label to append to the name of the variable in the reduced object, default is _{how}
     how_dropna : str
@@ -107,7 +107,8 @@ def reduce(
 
     Returns
     -------
-        A data array with reduce dimensions removed.
+    xr.Dataset | xr.DataArray
+        A dataarray reduced in the time dimension using the specified method
 
     """
     if "frequency" in kwargs:
@@ -142,7 +143,7 @@ def mean(
         attributes of coordinates, then fall back to `"time"`.
         If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     weights : str
-        Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
+        Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_label : str
         Label to append to the name of the variable in the reduced object, default is _mean
     how_dropna : str
@@ -153,7 +154,8 @@ def mean(
 
     Returns
     -------
-        A data array with reduce dimensions removed.
+    xr.Dataset | xr.DataArray
+        A dataarray of the mean value in the time dimensions
 
     """
     kwargs["how"] = "mean"
@@ -181,7 +183,7 @@ def median(
         attributes of coordinates, then fall back to `"time"`.
         If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     weights : str
-        Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
+        Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_label : str
         Label to append to the name of the variable in the reduced object, default is _mean
     how_dropna : str
@@ -192,7 +194,8 @@ def median(
 
     Returns
     -------
-        A data array with reduce dimensions removed.
+    xr.Dataset | xr.DataArray
+        A dataarray of the median value in the time dimensions
 
     """
     kwargs["how"] = "median"
@@ -220,7 +223,7 @@ def min(
         attributes of coordinates, then fall back to `"time"`.
         If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     weights : str
-        Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
+        Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_label : str
         Label to append to the name of the variable in the reduced object, default is _mean
     how_dropna : str
@@ -231,7 +234,8 @@ def min(
 
     Returns
     -------
-        A data array with reduce dimensions removed.
+    xr.Dataset | xr.DataArray
+        A dataarray of the minimum value in the time dimensions
 
     """
     kwargs["how"] = "min"
@@ -259,7 +263,7 @@ def max(
         attributes of coordinates, then fall back to `"time"`.
         If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     weights : str
-        Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
+        Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_label : str
         Label to append to the name of the variable in the reduced object, default is _mean
     how_dropna : str
@@ -270,7 +274,8 @@ def max(
 
     Returns
     -------
-        A data array with reduce dimensions removed.
+    xr.Dataset | xr.DataArray
+        A dataarray of the maximum value in the time dimensions
 
     """
     kwargs["how"] = "max"
@@ -281,7 +286,7 @@ def std(
     dataarray: xr.Dataset | xr.DataArray,
     *args,
     **kwargs,
-):
+) -> xr.Dataset | xr.DataArray:
     """
     Calculate the standard deviation of an xarray.dataarray or xarray.dataset along the time/date dimension.
 
@@ -298,7 +303,7 @@ def std(
         attributes of coordinates, then fall back to `"time"`.
         If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     weights : str
-        Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
+        Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_label : str
         Label to append to the name of the variable in the reduced object, default is _mean
     how_dropna : str
@@ -309,7 +314,8 @@ def std(
 
     Returns
     -------
-        A data array with reduce dimensions removed.
+    xr.Dataset | xr.DataArray
+        A dataarray of the standard deviation in the time dimensions
 
     """
     kwargs["how"] = "std"
@@ -320,7 +326,7 @@ def sum(
     dataarray: xr.Dataset | xr.DataArray,
     *args,
     **kwargs,
-):
+) -> xr.Dataset | xr.DataArray:
     """
     Calculate the standard deviation of an xarray.dataarray or xarray.dataset along the time/date dimension.
 
@@ -337,7 +343,7 @@ def sum(
         attributes of coordinates, then fall back to `"time"`.
         If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     weights : str
-        Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
+        Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_label : str
         Label to append to the name of the variable in the reduced object, default is _mean
     how_dropna : str
@@ -348,7 +354,9 @@ def sum(
 
     Returns
     -------
-        A data array with reduce dimensions removed.
+    xr.Dataset | xr.DataArray
+        A dataarray summed in the time dimensions
+
 
     """
     kwargs["how"] = "sum"
@@ -361,7 +369,7 @@ def daily_reduce(
     how: str | T.Callable = "mean",
     time_dim: str | None = None,
     **kwargs,
-):
+) -> xr.Dataset | xr.DataArray:
     """
     Group data by day and reduce using the given how method.
 
@@ -381,7 +389,7 @@ def daily_reduce(
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -393,7 +401,8 @@ def daily_reduce(
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to daily values using the specified method
     """
     # If time_dim in dimensions then use resample, this should be faster.
     #  At present, performance differences are small, but resampling can be improved by handling as
@@ -432,7 +441,7 @@ def daily_reduce(
     return red_array
 
 
-def daily_mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
+def daily_mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
     """
     Return the daily mean of the datacube.
 
@@ -446,7 +455,7 @@ def daily_mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -456,7 +465,8 @@ def daily_mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to daily mean values
     """
     return daily_reduce(dataarray, *args, how="mean", **kwargs)
 
@@ -475,7 +485,7 @@ def daily_median(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -485,7 +495,8 @@ def daily_median(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to daily median values
     """
     return daily_reduce(dataarray, *args, how="median", **kwargs)
 
@@ -504,7 +515,7 @@ def daily_max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -514,7 +525,8 @@ def daily_max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to daily max values
     """
     return daily_reduce(dataarray, *args, how="max", **kwargs)
 
@@ -533,7 +545,7 @@ def daily_min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -543,7 +555,8 @@ def daily_min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to daily min values
     """
     return daily_reduce(dataarray, *args, how="min", **kwargs)
 
@@ -562,7 +575,7 @@ def daily_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -572,7 +585,8 @@ def daily_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to daily standard deviation values
     """
     return daily_reduce(dataarray, *args, how="std", **kwargs)
 
@@ -591,7 +605,7 @@ def daily_sum(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -601,7 +615,8 @@ def daily_sum(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to daily sum values
     """
     return daily_reduce(dataarray, *args, how="sum", **kwargs)
 
@@ -632,7 +647,7 @@ def monthly_reduce(
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -645,7 +660,8 @@ def monthly_reduce(
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to monthly values using the specified method
     """
     # If time_dim in dimensions then use resample, this should be faster.
     #  At present, performance differences are small, but resampling can be improved by handling as
@@ -707,7 +723,7 @@ def monthly_mean(
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -717,7 +733,8 @@ def monthly_mean(
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to monthly mean values
     """
     return monthly_reduce(dataarray, *args, how="mean", **kwargs)
 
@@ -740,7 +757,7 @@ def monthly_median(
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -750,7 +767,8 @@ def monthly_median(
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to monthly median values
     """
     return monthly_reduce(dataarray, *args, how="median", **kwargs)
 
@@ -773,7 +791,7 @@ def monthly_min(
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -783,7 +801,8 @@ def monthly_min(
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to monthly minimum values
     """
     return monthly_reduce(dataarray, *args, how="min", **kwargs)
 
@@ -806,7 +825,7 @@ def monthly_max(
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -816,7 +835,8 @@ def monthly_max(
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to monthly maximum values
     """
     return monthly_reduce(dataarray, *args, how="max", **kwargs)
 
@@ -839,7 +859,7 @@ def monthly_std(
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -849,7 +869,8 @@ def monthly_std(
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to monthly standard deviation values
     """
     return monthly_reduce(dataarray, *args, how="std", **kwargs)
 
@@ -872,7 +893,7 @@ def monthly_sum(
         attributes of coordinates, then fall back to `"time"`.
     time_shift : (optional) None, timedelta or dict
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictonary is passed
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
@@ -882,7 +903,8 @@ def monthly_sum(
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to monthly sum values
     """
     return monthly_reduce(dataarray, *args, how="sum", **kwargs)
 
@@ -925,7 +947,8 @@ def rolling_reduce(
 
     Returns
     -------
-    xr.DataArray or xr.Dataset (as provided)
+    xr.DataArray | xr.Dataset
+        A dataarray reduced values with a rolling window applied along the time dimension.
     """
     if window_length is not None:
         kwargs.update({time_dim: window_length})
