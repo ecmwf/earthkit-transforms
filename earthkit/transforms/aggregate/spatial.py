@@ -176,6 +176,10 @@ def shapes_to_masks(shapes: gpd.GeoDataFrame | list[gpd.GeoDataFrame], target, r
 
     regular (bool): If True, data is on a regular grid so use rasterize method,
         if False use mask_contains_points
+    all_touched (optional):
+        If True, all pixels touched by geometries will be considered in,
+        if False, only pixels whose center is within. Default is False.
+        Only valid for regular data.
 
     kwargs: kwargs accepted by the masking methods, rasterize or mask_contains_points
 
@@ -208,6 +212,10 @@ def shapes_to_mask(shapes, target, regular=True, **kwargs):
 
     regular (bool): If True, data is on a regular grid so use rasterize method,
         if False use mask_contains_points
+    all_touched (optional):
+        If True, all pixels touched by geometries will be considered in,
+        if False, only pixels whose center is within. Default is False.
+        Only valid for regular data.
 
     kwargs: kwargs accepted by the masking methods, rasterize or mask_contains_points
 
@@ -271,10 +279,14 @@ def mask(
     ----------
     dataarray : xr.Dataset | xr.DataArray
         Xarray data object (must have geospatial coordinates).
-    geodataframe : gpd.geodataframe.GeoDataFrame
+    geodataframe (optional): gpd.geodataframe.GeoDataFrame
         Geopandas Dataframe containing the polygons for aggregations
-    lat_key/lon_key : str
+    lat_key/lon_key (optional): str
         key for latitude/longitude variable, default behaviour is to detect variable keys.
+    all_touched (optional):
+        If True, all pixels touched by geometries will be considered in,
+        if False, only pixels whose center is within. Default is False.
+        Only valid for regular data.
 
     Returns
     -------
@@ -316,10 +328,14 @@ def masks(
         Xarray data object (must have geospatial coordinates).
     geodataframe :
         Geopandas Dataframe containing the polygons for aggregations
-    mask_dim :
+    mask_dim (optional):
         dimension that will be created to accomodate the masked arrays, default is the index
         of the geodataframe
-    lat_key/lon_key :
+    all_touched (optional):
+        If True, all pixels touched by geometries will be considered in,
+        if False, only pixels whose center is within. Default is False.
+        Only valid for regular data.
+    lat_key/lon_key (optional):
         key for latitude/longitude variable, default behaviour is to detect variable keys.
     chunk : (optional) bool
         Boolean to indicate whether to use chunking, default = `True`.
@@ -373,23 +389,29 @@ def reduce(
         Xarray data object (must have geospatial coordinates).
     geodataframe :
         Geopandas Dataframe containing the polygons for aggregations
-    how :
+    how (optional):
         method used to apply mask. Default='mean', which calls np.nanmean
-    weights :
+    weights (optional):
         Provide weights for aggregation, also accepts recognised keys for weights, e.g.
         'latitude'
-    lat_key/lon_key :
+    lat_key/lon_key (optional):
         key for latitude/longitude variable, default behaviour is to detect variable keys.
-    extra_reduce_dims :
+    extra_reduce_dims (optional):
         any additional dimensions to aggregate over when reducing over spatial dimensions
-    mask_dim :
+    mask_dim (optional):
         dimension that will be created after the reduction of the spatial dimensions, default is the index
         of the dataframe
-    return_as :
+    all_touched (optional):
+        If True, all pixels touched by geometries will be considered in,
+        if False, only pixels whose center is within. Default is False.
+        Only valid for regular data.
+    mask_kwargs (optional):
+        Any kwargs to pass into the mask method
+    return_as (optional):
         what format to return the data object, `pandas` or `xarray`. Work In Progress
-    how_label :
+    how_label (optional):
         label to append to variable name in returned object, default is not to append
-    kwargs :
+    kwargs (optional):
         kwargs recognised by the how function
 
     Returns
@@ -444,6 +466,7 @@ def _reduce_dataarray(
     return_as: str = "xarray",
     how_label: str | None = None,
     squeeze: bool = True,
+    all_touched: bool = False,
     mask_kwargs: T.Dict[str, T.Any] = {},
     return_geometry_as_coord: bool = False,
     **reduce_kwargs,
@@ -506,7 +529,7 @@ def _reduce_dataarray(
         # Create any standard weights, e.g. latitude.
         # TODO: handle kwargs better, currently only lat_key is accepted
         if isinstance(weights, str):
-            weights = standard_weights(dataarray, weights, lat_key=lat_key, **reduce_kwargs)
+            weights = standard_weights(dataarray, weights, lat_key=lat_key)
         # We ensure the callable is a string
         if callable(how):
             how = how.__name__
@@ -527,11 +550,18 @@ def _reduce_dataarray(
     spatial_info = get_spatial_info(dataarray, lat_key=lat_key, lon_key=lon_key)
     # Get spatial info required by mask functions:
     mask_kwargs.update({key: spatial_info[key] for key in ["lat_key", "lon_key", "regular"]})
+    # All touched only valid for rasterize method
+    if spatial_info["regular"]:
+        mask_kwargs.update({"all_touched": all_touched})
+    else:
+        if all_touched:
+            logger.warning("all_touched only valid for regular data, ignoring")
+
     spatial_dims = spatial_info.get("spatial_dims")
 
     reduce_dims = spatial_dims + extra_reduce_dims
     extra_out_attrs.update({"reduce_dims": reduce_dims})
-    reduce_kwargs = {"dim": reduce_dims}
+    reduce_kwargs.update({"dim": reduce_dims})
     reduced_list = []
 
     # If not using mask, then create a dummy mask:

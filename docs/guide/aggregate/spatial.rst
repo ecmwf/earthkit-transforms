@@ -1,7 +1,7 @@
 earthkit.transforms.aggregate.spatial
 --------------------------------------
 
-The :doc:`../../_api/transforms/aggregate/spatial/index` module includes methods 
+The :doc:`../../_api/transforms/aggregate/spatial/index` module includes methods
 for aggregating data in space. This includes masking and aggregating data with geometries.
 
 To mask data you can use the :func:`mask` function. This function takes an xarray

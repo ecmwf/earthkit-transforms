@@ -1,7 +1,7 @@
 earthkit.transforms.aggregate.climatology
 -----------------------------------------
 
-The :doc:`../../_api/transforms/aggregate/climatology/index` module includes methods 
+The :doc:`../../_api/transforms/aggregate/climatology/index` module includes methods
 for aggregating climatologies and anomalies of data, including grouping the data in
 time dimension to produce climatological daily or monthly values.
 The API follows a similar pattern to the temporal aggregation methods, where there is a generic
