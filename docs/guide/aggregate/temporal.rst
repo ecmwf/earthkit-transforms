@@ -5,7 +5,7 @@ The temporal module includes methods for aggregating data in time. This
 includes reducing the data in time dimension to a single value, daily values or
 monthly values.
 
-To reduce the data in time dimension to a single value you can use the `temporal.reduce`, 
+To reduce the data in time dimension to a single value you can use the `temporal.reduce`,
 `temporal.mean`, `temporal.sum`, `temporal.min`, `temporal.max` functions. These functions
 take an xarray data object and return the aggregated value of the data. The time dimension
 is automatically detected based on the metadata of the data object, to override this you can

@@ -46,7 +46,7 @@ autodoc_typehints = "none"
 
 # autoapi configuration
 autoapi_dirs = ["../earthkit/transforms"]
-autoapi_ignore = ["*/version.py"]
+autoapi_ignore = ["*/version.py", "*/aggregate/general.py"]
 autoapi_options = [
     "members",
     "inherited-members",
