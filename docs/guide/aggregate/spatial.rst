@@ -1,8 +1,19 @@
-earthkit-transforms.aggregate.spatial
+earthkit.transforms.aggregate.spatial
 --------------------------------------
 
 The spatial module includes methods for aggregating data in space. This
 includes masking and aggregating data with geometries.
 
-.. automodule:: earthkit.transforms.aggregate.spatial
-   :module: earthkit.transforms.aggregate.spatial
+To mask data you can use the :func:`mask` function. This function takes an xarray
+data object and a geometry object and returns the data object with the values
+outside the geometry masked.
+
+.. autofunction:: earthkit.transforms.aggregate.spatial.mask
+
+
+To calculate an aggregated value for the data within a geometry you can use the
+:func:`reduce` function. This function takes an xarray data object and a geometry
+object and returns the aggregated value of the data within the geometry. The `how`
+parameter can be used to specify the aggregation method. The default is `mean`.
+
+.. autofunction:: earthkit.transforms.aggregate.spatial.reduce

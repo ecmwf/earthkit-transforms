@@ -121,9 +121,8 @@ def nanaverage(data, weights=None, **kwargs):
 
     Returns
     -------
-    numpy array
-        mean of data (along axis) where nan-values are ignored
-        and weights applied if provided.
+    numpy array mean of data (along axis) where nan-values are ignored
+    and weights applied if provided.
     """
     if weights is not None:
         # set weights to nan where data is nan:

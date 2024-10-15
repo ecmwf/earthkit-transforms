@@ -235,8 +235,8 @@ def mask(
 
     Returns
     -------
-        A masked data array/dataset with same dimensions as the input dataarray/dataset. Any point that
-        does not lie in any of the features of geodataframe is masked.
+    A masked data array/dataset with same dimensions as the input dataarray/dataset. Any point that
+    does not lie in any of the features of geodataframe is masked.
     """
     spatial_info = get_spatial_info(dataarray, lat_key=lat_key, lon_key=lon_key)
     # Get spatial info required by mask functions:
@@ -283,8 +283,8 @@ def masks(
 
     Returns
     -------
-        A masked data array with dimensions [feautre_id] + [data.dims].
-        Each slice of layer corresponds to a feature in layer.
+    A masked data array with dimensions [feautre_id] + [data.dims].
+    Each slice of layer corresponds to a feature in layer.
     """
     spatial_info = get_spatial_info(dataarray, lat_key=lat_key, lon_key=lon_key)
     # Get spatial info required by mask functions:
@@ -347,8 +347,8 @@ def reduce(
 
     Returns
     -------
-        A data array with dimensions `features` + `data.dims not in 'lat','lon'`.
-        Each slice of layer corresponds to a feature in layer.
+    A data array with dimensions `features` + `data.dims not in 'lat','lon'`.
+    Each slice of layer corresponds to a feature in layer.
 
     """
     if isinstance(dataarray, xr.Dataset):
@@ -438,8 +438,8 @@ def _reduce_dataarray(
 
     Returns
     -------
-        A data array with dimensions [features] + [data.dims not in ['lat','lon']].
-        Each slice of layer corresponds to a feature in layer.
+    A data array with dimensions [features] + [data.dims not in ['lat','lon']].
+    Each slice of layer corresponds to a feature in layer.
 
     """
     extra_out_attrs = {}

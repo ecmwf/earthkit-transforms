@@ -40,9 +40,8 @@ def standardise_time(
 
     Returns
     -------
-    xr.Dataset or xr.DataArray
-        Data object with the time coordinate standardised to the specified
-        format.
+    xr.Dataset or xr.DataArray. Data object with the time coordinate standardised to the specified
+    format.
     """
     try:
         source_times = [time_value.strftime(target_format) for time_value in dataarray.time.values]
@@ -107,7 +106,7 @@ def reduce(
 
     Returns
     -------
-        A data array with reduce dimensions removed.
+    A data array with reduce dimensions removed.
 
     """
     if "frequency" in kwargs:
@@ -153,7 +152,7 @@ def mean(
 
     Returns
     -------
-        A data array with reduce dimensions removed.
+    A data array with reduce dimensions removed.
 
     """
     kwargs["how"] = "mean"
@@ -192,7 +191,7 @@ def median(
 
     Returns
     -------
-        A data array with reduce dimensions removed.
+    A data array with reduce dimensions removed.
 
     """
     kwargs["how"] = "median"
@@ -231,7 +230,7 @@ def min(
 
     Returns
     -------
-        A data array with reduce dimensions removed.
+    A data array with reduce dimensions removed.
 
     """
     kwargs["how"] = "min"
@@ -270,7 +269,7 @@ def max(
 
     Returns
     -------
-        A data array with reduce dimensions removed.
+    A data array with reduce dimensions removed.
 
     """
     kwargs["how"] = "max"
@@ -309,7 +308,7 @@ def std(
 
     Returns
     -------
-        A data array with reduce dimensions removed.
+    A data array with reduce dimensions removed.
 
     """
     kwargs["how"] = "std"
@@ -348,7 +347,7 @@ def sum(
 
     Returns
     -------
-        A data array with reduce dimensions removed.
+    A data array with reduce dimensions removed.
 
     """
     kwargs["how"] = "sum"

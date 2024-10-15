@@ -58,7 +58,7 @@ def _reduce_dataarray(
 
     Returns
     -------
-        A data array with reduce dimensions removed.
+    A data array with reduce dimensions removed.
 
     """
     # If weighted, use xarray weighted methods
@@ -128,7 +128,7 @@ def reduce(
 
     Returns
     -------
-        A data array with reduce dimensions removed.
+    A data array with reduce dimensions removed.
 
     """
     # handle how as arg or kwarg
