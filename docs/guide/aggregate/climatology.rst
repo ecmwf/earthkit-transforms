@@ -1,5 +1,5 @@
-earthkit.transforms.aggregate.temporal
---------------------------------------
+earthkit.transforms.aggregate.climatology
+-----------------------------------------
 
 The :doc:`../../_api/transforms/aggregate/climatology/index` module includes methods 
 for aggregating climatologies and anomalies of data, including grouping the data in
