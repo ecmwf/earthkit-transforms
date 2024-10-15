@@ -206,7 +206,7 @@ def nanaverage(data, weights=None, **kwargs):
 
 
 def standard_weights(dataarray: xr.DataArray, weights: str, **kwargs):
-    """Implement any standard weights functions included in earthkit-aggregate."""
+    """Implement any standard weights functions included in earthkit-transforms."""
     if weights in ["latitude", "lat"]:
         lat_weight_kwargs = {key: value for key, value in kwargs.items() if key in ["lat_key"]}
         return latitude_weights(dataarray, **lat_weight_kwargs)
