@@ -1,4 +1,3 @@
-"""General aggregation methods which will be exposed at the top level via aggregate/__init__.py."""
 import typing as T
 
 import numpy as np
@@ -58,7 +57,7 @@ def _reduce_dataarray(
 
     Returns
     -------
-        A data array with reduce dimensions removed.
+    A data array with reduce dimensions removed.
 
     """
     # If weighted, use xarray weighted methods
@@ -128,7 +127,7 @@ def reduce(
 
     Returns
     -------
-        A data array with reduce dimensions removed.
+    A data array with reduce dimensions removed.
 
     """
     # handle how as arg or kwarg
