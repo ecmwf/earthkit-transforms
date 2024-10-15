@@ -2,10 +2,9 @@ Welcome to Earthkit-transforms’s documentation!
 ===============================================
 
 **earthkit-transforms** is a library of software tools to support people
-working with climate and meteorology data
-
-**earthkit-transforms** includes methods for aggregating data in time
-and space, and more transforms and operators. It has been designed
+working with climate and meteorology data. It is made of a sub-package
+called **earthkit-transforms.aggregate** which includes methods for aggregating
+data in time and space. **earthkit-transforms** has been designed
 following the philosphy of Earthkit, hence the methods should be
 interoperable with any data object understood by earthkit-data.
 
@@ -40,7 +39,7 @@ Import and use
    aggregate-examples
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
    :caption: Documentation
 
    guide/index
