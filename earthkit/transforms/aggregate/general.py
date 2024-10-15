@@ -46,7 +46,7 @@ def _reduce_dataarray(
         Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
         to return the result of reducing an np.ndarray over an integer valued axis
     weights : str
-        Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
+        Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_dropna : str
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
@@ -116,7 +116,7 @@ def reduce(
         Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
         to return the result of reducing an np.ndarray over an integer valued axis
     weights : str
-        Choose a recognised method to apply weighting. Currently availble methods are; 'latitude'
+        Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_label : str
         Label to append to the name of the variable in the reduced object
     how_dropna : str

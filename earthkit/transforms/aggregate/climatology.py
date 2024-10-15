@@ -39,7 +39,7 @@ def reduce(
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
-        Name of the time dimension in the data object, default behviour is to detect the
+        Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
@@ -72,7 +72,7 @@ def mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | 
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
-        Name of the time dimension in the data object, default behviour is to detect the
+        Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
@@ -101,7 +101,7 @@ def median(dataarray: xr.Dataset | xr.DataArray, **kwargs) -> xr.DataArray:
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
-        Name of the time dimension in the data object, default behviour is to detect the
+        Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
@@ -130,7 +130,7 @@ def min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | x
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
-        Name of the time dimension in the data object, default behviour is to detect the
+        Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
@@ -159,7 +159,7 @@ def max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | x
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
-        Name of the time dimension in the data object, default behviour is to detect the
+        Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
@@ -188,7 +188,7 @@ def std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | x
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
-        Name of the time dimension in the data object, default behviour is to detect the
+        Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
@@ -222,7 +222,7 @@ def daily_reduce(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Da
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
-        Name of the time dimension in the data object, default behviour is to detect the
+        Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
@@ -249,7 +249,7 @@ def daily_mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Data
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
-        Name of the time dimension in the data object, default behviour is to detect the
+        Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
@@ -276,7 +276,7 @@ def daily_median(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Da
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
-        Name of the time dimension in the data object, default behviour is to detect the
+        Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
@@ -303,7 +303,7 @@ def daily_min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Datas
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
-        Name of the time dimension in the data object, default behviour is to detect the
+        Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
@@ -330,7 +330,7 @@ def daily_max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Datas
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
-        Name of the time dimension in the data object, default behviour is to detect the
+        Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
@@ -357,7 +357,7 @@ def daily_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Datas
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
-        Name of the time dimension in the data object, default behviour is to detect the
+        Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
@@ -391,7 +391,7 @@ def monthly_reduce(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
-        Name of the time dimension in the data object, default behviour is to detect the
+        Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
@@ -418,7 +418,7 @@ def monthly_mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Da
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
-        Name of the time dimension in the data object, default behviour is to detect the
+        Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
@@ -445,7 +445,7 @@ def monthly_median(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
-        Name of the time dimension in the data object, default behviour is to detect the
+        Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
@@ -472,7 +472,7 @@ def monthly_min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dat
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
-        Name of the time dimension in the data object, default behviour is to detect the
+        Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
@@ -499,7 +499,7 @@ def monthly_max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dat
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
-        Name of the time dimension in the data object, default behviour is to detect the
+        Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
@@ -526,7 +526,7 @@ def monthly_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dat
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
-        Name of the time dimension in the data object, default behviour is to detect the
+        Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
@@ -567,7 +567,7 @@ def quantiles(
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
-        Name of the time dimension in the data object, default behviour is to detect the
+        Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
@@ -614,7 +614,7 @@ def percentiles(
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
-        Name of the time dimension in the data object, default behviour is to detect the
+        Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
@@ -660,7 +660,7 @@ def anomaly(
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
-        Name of the time dimension in the data object, default behviour is to detect the
+        Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
     relative : bool (optional)
         Return the relative anomaly, i.e. the percentage change w.r.t the climatological period
@@ -711,7 +711,7 @@ def _anomaly_dataarray(
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
-        Name of the time dimension in the data object, default behviour is to detect the
+        Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
     relative : bool (optional)
         Return the relative anomaly, i.e. the percentage change w.r.t the climatological period
@@ -807,7 +807,7 @@ def relative_anomaly(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
-        Name of the time dimension in the data object, default behviour is to detect the
+        Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.climatology.mean`
@@ -852,7 +852,7 @@ def auto_anomaly(
         the frequency provided by `frequency`. If `bin_widths` is a sequence
         it defines the edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
-        Name of the time dimension in the data object, default behviour is to detect the
+        Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
     relative : bool (optional)
         Return the relative anomaly, i.e. the percentage change w.r.t the climatological period

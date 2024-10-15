@@ -373,7 +373,7 @@ def groupby_time(
     dataarray: xr.Dataset | xr.DataArray,
     frequency: str | None = None,
     bin_widths: int | None = None,
-    squeeze: bool = True,
+    squeeze: bool = False,
     time_dim: str = "time",
 ):
     if frequency is None:
