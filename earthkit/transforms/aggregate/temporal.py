@@ -40,8 +40,9 @@ def standardise_time(
 
     Returns
     -------
-    xr.Dataset or xr.DataArray. Data object with the time coordinate standardised to the specified
-    format.
+    xr.Dataset | xr.DataArray
+        Data object with the time coordinate standardised to the specified format
+
     """
     try:
         source_times = [time_value.strftime(target_format) for time_value in dataarray.time.values]
@@ -106,7 +107,8 @@ def reduce(
 
     Returns
     -------
-    A data array with reduce dimensions removed.
+    xr.Dataset | xr.DataArray
+        A dataarray reduced in the time dimension using the specified method
 
     """
     if "frequency" in kwargs:
@@ -152,7 +154,8 @@ def mean(
 
     Returns
     -------
-    A data array with reduce dimensions removed.
+    xr.Dataset | xr.DataArray
+        A dataarray of the mean value in the time dimensions
 
     """
     kwargs["how"] = "mean"
@@ -191,7 +194,8 @@ def median(
 
     Returns
     -------
-    A data array with reduce dimensions removed.
+    xr.Dataset | xr.DataArray
+        A dataarray of the median value in the time dimensions
 
     """
     kwargs["how"] = "median"
@@ -230,7 +234,8 @@ def min(
 
     Returns
     -------
-    A data array with reduce dimensions removed.
+    xr.Dataset | xr.DataArray
+        A dataarray of the minimum value in the time dimensions
 
     """
     kwargs["how"] = "min"
@@ -269,7 +274,8 @@ def max(
 
     Returns
     -------
-    A data array with reduce dimensions removed.
+    xr.Dataset | xr.DataArray
+        A dataarray of the maximum value in the time dimensions
 
     """
     kwargs["how"] = "max"
@@ -280,7 +286,7 @@ def std(
     dataarray: xr.Dataset | xr.DataArray,
     *args,
     **kwargs,
-):
+) -> xr.Dataset | xr.DataArray:
     """
     Calculate the standard deviation of an xarray.dataarray or xarray.dataset along the time/date dimension.
 
@@ -308,7 +314,8 @@ def std(
 
     Returns
     -------
-    A data array with reduce dimensions removed.
+    xr.Dataset | xr.DataArray
+        A dataarray of the standard deviation in the time dimensions
 
     """
     kwargs["how"] = "std"
@@ -319,7 +326,7 @@ def sum(
     dataarray: xr.Dataset | xr.DataArray,
     *args,
     **kwargs,
-):
+) -> xr.Dataset | xr.DataArray:
     """
     Calculate the standard deviation of an xarray.dataarray or xarray.dataset along the time/date dimension.
 
@@ -347,7 +354,9 @@ def sum(
 
     Returns
     -------
-    A data array with reduce dimensions removed.
+    xr.Dataset | xr.DataArray
+        A dataarray summed in the time dimensions
+
 
     """
     kwargs["how"] = "sum"
@@ -360,7 +369,7 @@ def daily_reduce(
     how: str | T.Callable = "mean",
     time_dim: str | None = None,
     **kwargs,
-):
+) -> xr.Dataset | xr.DataArray:
     """
     Group data by day and reduce using the given how method.
 
@@ -392,7 +401,8 @@ def daily_reduce(
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to daily values using the specified method
     """
     # If time_dim in dimensions then use resample, this should be faster.
     #  At present, performance differences are small, but resampling can be improved by handling as
@@ -431,7 +441,7 @@ def daily_reduce(
     return red_array
 
 
-def daily_mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
+def daily_mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
     """
     Return the daily mean of the datacube.
 
@@ -455,7 +465,8 @@ def daily_mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to daily mean values
     """
     return daily_reduce(dataarray, *args, how="mean", **kwargs)
 
@@ -484,7 +495,8 @@ def daily_median(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to daily median values
     """
     return daily_reduce(dataarray, *args, how="median", **kwargs)
 
@@ -513,7 +525,8 @@ def daily_max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to daily max values
     """
     return daily_reduce(dataarray, *args, how="max", **kwargs)
 
@@ -542,7 +555,8 @@ def daily_min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to daily min values
     """
     return daily_reduce(dataarray, *args, how="min", **kwargs)
 
@@ -571,7 +585,8 @@ def daily_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to daily standard deviation values
     """
     return daily_reduce(dataarray, *args, how="std", **kwargs)
 
@@ -600,7 +615,8 @@ def daily_sum(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to daily sum values
     """
     return daily_reduce(dataarray, *args, how="sum", **kwargs)
 
@@ -644,7 +660,8 @@ def monthly_reduce(
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to monthly values using the specified method
     """
     # If time_dim in dimensions then use resample, this should be faster.
     #  At present, performance differences are small, but resampling can be improved by handling as
@@ -716,7 +733,8 @@ def monthly_mean(
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to monthly mean values
     """
     return monthly_reduce(dataarray, *args, how="mean", **kwargs)
 
@@ -749,7 +767,8 @@ def monthly_median(
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to monthly median values
     """
     return monthly_reduce(dataarray, *args, how="median", **kwargs)
 
@@ -782,7 +801,8 @@ def monthly_min(
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to monthly minimum values
     """
     return monthly_reduce(dataarray, *args, how="min", **kwargs)
 
@@ -815,7 +835,8 @@ def monthly_max(
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to monthly maximum values
     """
     return monthly_reduce(dataarray, *args, how="max", **kwargs)
 
@@ -848,7 +869,8 @@ def monthly_std(
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to monthly standard deviation values
     """
     return monthly_reduce(dataarray, *args, how="std", **kwargs)
 
@@ -881,7 +903,8 @@ def monthly_sum(
 
     Returns
     -------
-    xr.DataArray
+    xr.DataArray | xr.Dataset
+        A dataarray reduced to monthly sum values
     """
     return monthly_reduce(dataarray, *args, how="sum", **kwargs)
 
@@ -924,7 +947,8 @@ def rolling_reduce(
 
     Returns
     -------
-    xr.DataArray or xr.Dataset (as provided)
+    xr.DataArray | xr.Dataset
+        A dataarray reduced values with a rolling window applied along the time dimension.
     """
     if window_length is not None:
         kwargs.update({time_dim: window_length})

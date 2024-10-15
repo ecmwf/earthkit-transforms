@@ -17,3 +17,8 @@ object and returns the aggregated value of the data within the geometry. The `ho
 parameter can be used to specify the aggregation method. The default is `mean`.
 
 .. autofunction:: earthkit.transforms.aggregate.spatial.reduce
+
+
+In addition to the above functions, the spatial module also includes several methods
+for computing the intermedieate steps of the aggregation process. These methods are
+documented in the api reference guide.

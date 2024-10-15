@@ -10,6 +10,3 @@ space.
    :maxdepth: 1
 
    aggregate/index
-
-
-

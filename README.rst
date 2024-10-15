@@ -34,9 +34,9 @@ Import and use
 
 .. code:: python
 
-   from earthkit.transforms import aggregate
+    from earthkit.transforms import aggregate
 
-   daily_mean = aggregate.temporal.daily_mean(MY_DATA)
+    daily_mean = aggregate.temporal.daily_mean(MY_DATA)
 
 Detailed documentation
 ----------------------

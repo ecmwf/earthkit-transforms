@@ -41,7 +41,7 @@ def rasterize(
     lon_key: str = "longitude",
     dtype: type = int,
     **kwargs,
-):
+) -> xr.DataArray:
     """
     Rasterize a list of geometries onto the given xarray coordinates.
     This only works for regular and contiguous latitude and longitude grids.
@@ -60,8 +60,8 @@ def rasterize(
 
     Returns
     -------
-    xr.DataArray mask where points not inside the shape_list are set to `fill` value
-
+    xr.DataArray
+        A mask where points not inside the shape_list are set to `fill` value
 
     """
     from rasterio import features
@@ -73,16 +73,28 @@ def rasterize(
     return xr.DataArray(raster, coords=spatial_coords, dims=(lat_key, lon_key))
 
 
-def mask_contains_points(shape_list, coords, lat_key="lat", lon_key="lon", **kwargs):
+def mask_contains_points(shape_list, coords, lat_key="lat", lon_key="lon", **kwargs) -> xr.DataArray:
     """
     Return a mask array for the spatial points of data that lie within shapes in shape_list.
+    Function uses matplotlib.Path so can accept a list of points, this is much faster than shapely.
+    It was initially included for use with irregular data but has been constructed to also accept
+    regular data and return in the same format as the rasterize function.
 
+    Parameters
+    ----------
+    shape_list (affine.Affine): List of geometries
+    coords (xarray.coords): Coordinates of dataarray to be masked
 
-    Function uses matplotlib.Path so can accept a list of points,
-    this is much faster than shapely.
-    It was initially included for use with irregular data but has been
-    constructed to also accept regular data and return in the same
-    format as the rasterize function.
+    lat_key/lon_key: name of the latitude/longitude variables in the coordinates object
+
+    fill: value to fill points which are not within the shape_list, default is 0
+    dtype: datatype of the returned mask, default is `int`
+
+    Returns
+    -------
+    xr.DataArray
+        A mask where points not inside the shape_list are set to `fill` value
+
     """
     import matplotlib.path as mpltPath
 
@@ -152,11 +164,26 @@ def _shape_mask_iterator(shapes, target, regular=True, **kwargs):
         yield shape_da
 
 
-def shapes_to_masks(shapes, target, regular=True, **kwargs):
+def shapes_to_masks(shapes: gpd.GeoDataFrame | list[gpd.GeoDataFrame], target, regular=True, **kwargs):
     """
-    Method which creates a list of masked dataarrays.
+    Method which creates a list of masked dataarrays, if possible use the shape_mask_iterator.
 
-    If possible use the shape_mask_iterator.
+    Parameters
+    ----------
+    shapes (gpd.GeoDataFrame | list[gpd.GeoDataFrame]): A geodataframe or list of geodataframes
+        containing the polygons for masks
+    target (xarray.DataArray): A dataarray to to create a mask for, only the geospatial coordinates are used
+
+    regular (bool): If True, data is on a regular grid so use rasterize method,
+        if False use mask_contains_points
+
+    kwargs: kwargs accepted by the masking methods, rasterize or mask_contains_points
+
+    Returns
+    -------
+    list[xr.DataArray]
+        A list of masks where points inside each geometry are 1, and those outside are np.nan
+
     """
     if isinstance(shapes, gpd.GeoDataFrame):
         shapes = _geopandas_to_shape_list(shapes)
@@ -170,9 +197,25 @@ def shapes_to_masks(shapes, target, regular=True, **kwargs):
 
 def shapes_to_mask(shapes, target, regular=True, **kwargs):
     """
-    Method which creates a single masked dataarray based on all features in shapes.
+    Method which creates a single masked dataarray based on all features in shapes,
+        if possible use the shape_mask_iterator.
 
-    If possible use the shape_mask_iterator.
+    Parameters
+    ----------
+    shapes (gpd.GeoDataFrame | list[gpd.GeoDataFrame]): A geodataframe or list of geodataframes
+        containing the polygons for masks
+    target (xarray.DataArray): A dataarray to to create a mask for, only the geospatial coordinates are used
+
+    regular (bool): If True, data is on a regular grid so use rasterize method,
+        if False use mask_contains_points
+
+    kwargs: kwargs accepted by the masking methods, rasterize or mask_contains_points
+
+    Returns
+    -------
+    xr.DataArray
+        A mask where points inside any geometry are 1, and those outside are np.nan
+
     """
     if isinstance(shapes, gpd.GeoDataFrame):
         shapes = _geopandas_to_shape_list(shapes)
@@ -217,7 +260,7 @@ def mask(
     lat_key: str | None = None,
     lon_key: str | None = None,
     **mask_kwargs,
-):
+) -> xr.Dataset | xr.DataArray:
     """
     Apply shape mask to some gridded data.
 
@@ -226,17 +269,19 @@ def mask(
 
     Parameters
     ----------
-    dataarray :
+    dataarray : xr.Dataset | xr.DataArray
         Xarray data object (must have geospatial coordinates).
-    geodataframe :
+    geodataframe : gpd.geodataframe.GeoDataFrame
         Geopandas Dataframe containing the polygons for aggregations
-    lat_key/lon_key :
+    lat_key/lon_key : str
         key for latitude/longitude variable, default behaviour is to detect variable keys.
 
     Returns
     -------
-    A masked data array/dataset with same dimensions as the input dataarray/dataset. Any point that
-    does not lie in any of the features of geodataframe is masked.
+    xr.Dataset | xr.DataArray
+        A masked data array/dataset with same dimensions as the input dataarray/dataset. Any point that
+        does not lie in any of the features of geodataframe is masked.
+
     """
     spatial_info = get_spatial_info(dataarray, lat_key=lat_key, lon_key=lon_key)
     # Get spatial info required by mask functions:
@@ -255,7 +300,7 @@ def masks(
     lon_key: str | None = None,
     chunk: bool = True,
     **mask_kwargs,
-):
+) -> xr.Dataset | xr.DataArray:
     """
     Apply multiple shape masks to some gridded data.
 
@@ -283,8 +328,10 @@ def masks(
 
     Returns
     -------
-    A masked data array with dimensions [feautre_id] + [data.dims].
-    Each slice of layer corresponds to a feature in layer.
+    xr.Dataset | xr.DataArray
+        A masked data array with dimensions [feautre_id] + [data.dims].
+        Each slice of layer corresponds to a feature in layer.
+
     """
     spatial_info = get_spatial_info(dataarray, lat_key=lat_key, lon_key=lon_key)
     # Get spatial info required by mask functions:
@@ -314,7 +361,7 @@ def reduce(
     geodataframe: gpd.GeoDataFrame | None = None,
     *args,
     **kwargs,
-):
+) -> xr.Dataset | xr.DataArray:
     """
     Apply a shape object to an xarray.DataArray object using the specified 'how' method.
 
@@ -347,8 +394,9 @@ def reduce(
 
     Returns
     -------
-    A data array with dimensions `features` + `data.dims not in 'lat','lon'`.
-    Each slice of layer corresponds to a feature in layer.
+    xr.Dataset | xr.DataArray
+        A data array with dimensions `features` + `data.dims not in 'lat','lon'`.
+        Each slice of layer corresponds to a feature in layer.
 
     """
     if isinstance(dataarray, xr.Dataset):
@@ -399,7 +447,7 @@ def _reduce_dataarray(
     mask_kwargs: T.Dict[str, T.Any] = {},
     return_geometry_as_coord: bool = False,
     **reduce_kwargs,
-):
+) -> xr.DataArray | pd.DataFrame:
     """
     Reduce an xarray.DataArray object over it's geospatial dimensions using the specified 'how' method.
 
@@ -438,8 +486,9 @@ def _reduce_dataarray(
 
     Returns
     -------
-    A data array with dimensions [features] + [data.dims not in ['lat','lon']].
-    Each slice of layer corresponds to a feature in layer.
+    xr.Dataset | xr.DataArray | pd.DataFrame
+        A data array with dimensions [features] + [data.dims not in ['lat','lon']].
+        Each slice of layer corresponds to a feature in layer
 
     """
     extra_out_attrs = {}
