@@ -29,7 +29,7 @@ Before pushing to GitHub, run the following commands:
 
 ### Run the quality assurance checks independently
 
-If you are interested on one specific aspect of the quality assurance tests they can be run independantly as:
+If you are interested on one specific aspect of the quality assurance tests they can be run independently as:
 
 1. Coding standards test `make qa`
 1. Unit tests `make unit-test`
