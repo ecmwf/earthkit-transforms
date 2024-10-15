@@ -1,8 +1,8 @@
 earthkit.transforms.aggregate.spatial
 --------------------------------------
 
-The spatial module includes methods for aggregating data in space. This
-includes masking and aggregating data with geometries.
+The :doc:`../../_api/transforms/aggregate/spatial/index` module includes methods 
+for aggregating data in space. This includes masking and aggregating data with geometries.
 
 To mask data you can use the :func:`mask` function. This function takes an xarray
 data object and a geometry object and returns the data object with the values
@@ -21,4 +21,4 @@ parameter can be used to specify the aggregation method. The default is `mean`.
 
 In addition to the above functions, the spatial module also includes several methods
 for computing the intermedieate steps of the aggregation process. These methods are
-documented in the api reference guide.
+documented in the API reference guide: :doc:`../../_api/transforms/aggregate/spatial/index`
