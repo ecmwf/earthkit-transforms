@@ -295,7 +295,7 @@ def mask(
     """
     spatial_info = get_spatial_info(dataarray, lat_key=lat_key, lon_key=lon_key)
     # Get spatial info required by mask functions:
-    mask_kwargs.update({key: spatial_info[key] for key in ["lat_key", "lon_key", "regular"]})
+    mask_kwargs = {**mask_kwargs, **{key: spatial_info[key] for key in ["lat_key", "lon_key", "regular"]}}
     mask = shapes_to_mask(geodataframe, dataarray, **mask_kwargs)
     out = dataarray.where(mask)
     out.attrs.update(geodataframe.attrs)
@@ -349,8 +349,7 @@ def masks(
     """
     spatial_info = get_spatial_info(dataarray, lat_key=lat_key, lon_key=lon_key)
     # Get spatial info required by mask functions:
-    mask_kwargs.update({key: spatial_info[key] for key in ["lat_key", "lon_key", "regular"]})
-
+    mask_kwargs = {**mask_kwargs, **{key: spatial_info[key] for key in ["lat_key", "lon_key", "regular"]}}
     mask_dim_index = get_mask_dim_index(mask_dim, geodataframe)
 
     masked_arrays = []
@@ -465,7 +464,7 @@ def _reduce_dataarray(
     how_label: str | None = None,
     squeeze: bool = True,
     all_touched: bool = False,
-    mask_kwargs: T.Dict[str, T.Any] = {},
+    mask_kwargs: dict[str, T.Any] = dict(),
     return_geometry_as_coord: bool = False,
     **reduce_kwargs,
 ) -> xr.DataArray | pd.DataFrame:
@@ -503,7 +502,6 @@ def _reduce_dataarray(
     return_geometry_as_coord (optional):
         include the geometries as a coordinate in the returned xarray object. WARNING: geometries are not
         serialisable objects, therefore this xarray will not be saveable as netCDF.
-
 
     Returns
     -------
@@ -547,14 +545,13 @@ def _reduce_dataarray(
 
     spatial_info = get_spatial_info(dataarray, lat_key=lat_key, lon_key=lon_key)
     # Get spatial info required by mask functions:
-    mask_kwargs.update({key: spatial_info[key] for key in ["lat_key", "lon_key", "regular"]})
+    mask_kwargs = {**mask_kwargs, **{key: spatial_info[key] for key in ["lat_key", "lon_key", "regular"]}}
     # All touched only valid for rasterize method
     if spatial_info["regular"]:
-        mask_kwargs.update({"all_touched": all_touched})
+        mask_kwargs.setdefault("all_touched", all_touched)
     else:
         if all_touched:
             logger.warning("all_touched only valid for regular data, ignoring")
-
     spatial_dims = spatial_info.get("spatial_dims")
 
     reduce_dims = spatial_dims + extra_reduce_dims
