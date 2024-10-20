@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 # from earthkit.data.core.temporary import temp_directory
@@ -91,3 +92,28 @@ def test_spatial_reduce_with_geometry_and_latitude_weights(era5_data, nuts_data,
     assert isinstance(reduced_data, expected_result_type)
     assert all([dim in ["time", "index"] for dim in reduced_data.dims])
     assert len(reduced_data["index"]) == len(nuts_data)
+
+
+def test_mask_kwargs():
+    era5_data = get_grid_data()
+    era5_xr = era5_data.to_xarray()
+
+    nuts_data = get_shape_data()
+    nuts_gpd = nuts_data.to_geopandas()
+    nuts_DK = nuts_gpd[nuts_gpd["CNTR_CODE"] == "DK"]
+
+    masked_data = spatial.masks(era5_xr, nuts_DK, all_touched=True)
+    assert len(np.where(~np.isnan(masked_data.t2m.values.flat))[0]) == 3432
+
+    masked_data = spatial.masks(era5_xr, nuts_DK, all_touched=False)
+    assert len(np.where(~np.isnan(masked_data.t2m.values.flat))[0]) == 2448
+
+    reduced_data = spatial.reduce(era5_xr, nuts_DK, all_touched=True)
+    reduced_data_nested = spatial.reduce(era5_xr, nuts_DK, mask_kwargs=dict(all_touched=True))
+    xr.testing.assert_equal(reduced_data, reduced_data_nested)
+    np.testing.assert_allclose(reduced_data.t2m.mean(), 279.4813)
+
+    reduced_data_2 = spatial.reduce(era5_xr, nuts_DK, all_touched=False)
+    reduced_data_nested_2 = spatial.reduce(era5_xr, nuts_DK, mask_kwargs=dict(all_touched=False))
+    xr.testing.assert_equal(reduced_data_2, reduced_data_nested_2)
+    np.testing.assert_allclose(reduced_data_2.t2m.mean(), 279.54733)
