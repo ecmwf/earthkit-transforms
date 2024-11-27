@@ -13,6 +13,7 @@ from earthkit.transforms.tools import groupby_time
 
 logger = logging.getLogger(__name__)
 
+
 @tools.time_dim_decorator
 def standardise_time(
     dataarray: xr.Dataset | xr.DataArray,

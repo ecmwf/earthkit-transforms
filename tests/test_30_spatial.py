@@ -10,7 +10,8 @@ from earthkit.data.testing import earthkit_remote_test_data_file
 from earthkit.transforms.aggregate import spatial
 
 try:
-    import rasterio as _
+    import rasterio  # noqa: F401
+
     rasterio_available = True
 except ImportError:
     rasterio_available = False
@@ -18,7 +19,8 @@ except ImportError:
 # Use caching for speedy repeats
 ek_data.settings.set("cache-policy", "user")
 
-class dummy_class():
+
+class dummy_class:
     def __init__(self):
         self.to_pandas = pd.DataFrame
         self.to_geopandas = pd.DataFrame
