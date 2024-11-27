@@ -19,6 +19,3 @@ dependencies:
 - geopandas
 - rasterio
 - earthkit-data[all]
-- pip
-- pip:
-  - git+https://github.com/ecmwf/multiurl
