@@ -30,6 +30,9 @@ all = [
   # Additional, heavy, dependencies required by the complete package
   "rasterio"  # Requires GDAL
 ]
+rasterio = [
+  "rasterio"  # Requires GDAL
+]
 
 [tool.coverage.run]
 branch = true
