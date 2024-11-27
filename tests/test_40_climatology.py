@@ -108,9 +108,9 @@ def test_anomaly_monthly(in_data, expected_return_type, clim_method):
     anom_m = climatology.anomaly(in_data, clim_m, frequency="month")
     assert isinstance(clim_m, expected_return_type)
     if expected_return_type == xr.DataArray:
-        assert "t2m_anomaly" == anom_m.name
+        assert "2t_anomaly" == anom_m.name
     else:
-        assert "t2m_anomaly" in anom_m
+        assert "2t_anomaly" in anom_m
 
 
 @pytest.mark.parametrize(
@@ -133,6 +133,6 @@ def test_anomaly_daily(in_data, expected_return_type, clim_method):
     anom_d = climatology.anomaly(in_data, clim_d, frequency="dayofyear")
     assert isinstance(clim_d, expected_return_type)
     if expected_return_type == xr.DataArray:
-        assert "t2m_anomaly" == anom_d.name
+        assert "2t_anomaly" == anom_d.name
     else:
-        assert "t2m_anomaly" in anom_d
+        assert "2t_anomaly" in anom_d
