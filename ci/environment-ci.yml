@@ -17,4 +17,6 @@ dependencies:
 # Additional dependencies
 - nbsphinx
 - pandas-stubs
+# Both of these are required for earthkit-data when installing from conda-forge:
 - array-api-compat
+- multiurl
