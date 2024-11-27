@@ -17,3 +17,4 @@ dependencies:
 # Additional dependencies
 - nbsphinx
 - pandas-stubs
+- array-api-compat
