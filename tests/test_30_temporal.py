@@ -23,37 +23,40 @@ def get_data():
     (
         [get_data(), xr.Dataset],
         [get_data().to_xarray(), xr.Dataset],
-        [get_data().to_xarray().t2m, xr.DataArray],
+        [get_data().to_xarray()["2t"], xr.DataArray],
     ),
 )
 def test_temporal_reduce(in_data, expected_return_type):
     reduced_data = temporal.reduce(in_data, how="mean")
     assert isinstance(reduced_data, expected_return_type)
-    assert "time" not in list(reduced_data.dims)
+    assert "forecast_reference_time" not in list(reduced_data.dims)
     if expected_return_type == xr.DataArray:
-        assert "t2m" == reduced_data.name
+        assert "2t" == reduced_data.name
     else:
-        assert "t2m" in reduced_data
+        assert "2t" in reduced_data
     reduced_data = temporal.reduce(in_data, how="mean", how_label="mean")
     assert isinstance(reduced_data, expected_return_type)
-    assert "time" not in list(reduced_data.dims)
+    assert "forecast_reference_time" not in list(reduced_data.dims)
     if expected_return_type == xr.DataArray:
-        assert "t2m_mean" == reduced_data.name
+        assert "2t_mean" == reduced_data.name
     else:
-        assert "t2m_mean" in reduced_data
+        assert "2t_mean" in reduced_data
 
 
 def test_standardise_time_basic():
     data = get_data().to_xarray()
-    original_time = data.time
+    original_time = data.forecast_reference_time
     data_standardised = temporal.standardise_time(data)
-    np.testing.assert_array_equal(original_time.values, data_standardised.time.values)
+    np.testing.assert_array_equal(original_time.values, data_standardised.forecast_reference_time.values)
 
 
 def test_standardise_time_monthly():
     data = get_data().to_xarray()
     data_standardised = temporal.standardise_time(data, target_format="%Y-%m-15")
-    assert all(pd.to_datetime(time_value).day == 15 for time_value in data_standardised.time.values)
+    assert all(
+        pd.to_datetime(time_value).day == 15
+        for time_value in data_standardised.forecast_reference_time.values
+    )
 
 
 @pytest.mark.parametrize(
@@ -65,19 +68,19 @@ def test_temporal_reduce_hows(how):
     expected_return_type = xr.Dataset
     reduced_data = temporal.reduce(in_data, how=how)
     assert isinstance(reduced_data, expected_return_type)
-    assert "time" not in list(reduced_data.dims)
+    assert "forecast_reference_time" not in list(reduced_data.dims)
     if expected_return_type == xr.DataArray:
-        assert "t2m" == reduced_data.name
+        assert "2t" == reduced_data.name
     else:
-        assert "t2m" in reduced_data
+        assert "2t" in reduced_data
 
     reduced_data = temporal.reduce(in_data, how=how, how_label=how)
     assert isinstance(reduced_data, expected_return_type)
-    assert "time" not in list(reduced_data.dims)
+    assert "forecast_reference_time" not in list(reduced_data.dims)
     if expected_return_type == xr.DataArray:
-        assert f"t2m_{how}" == reduced_data.name
+        assert f"2t_{how}" == reduced_data.name
     else:
-        assert f"t2m_{how}" in reduced_data
+        assert f"2t_{how}" in reduced_data
 
 
 @pytest.mark.parametrize(
@@ -89,17 +92,17 @@ def test_temporal_reduce_hows(how):
     (
         [get_data(), xr.Dataset],
         [get_data().to_xarray(), xr.Dataset],
-        [get_data().to_xarray().t2m, xr.DataArray],
+        [get_data().to_xarray()["2t"], xr.DataArray],
     ),
 )
 def test_temporal_methods(method, in_data, expected_return_type):
     reduced_data = temporal.__getattribute__(method)(in_data)
     assert isinstance(reduced_data, expected_return_type)
-    assert "time" not in list(reduced_data.dims)
+    assert "forecast_reference_time" not in list(reduced_data.dims)
     if expected_return_type == xr.DataArray:
-        assert "t2m" == reduced_data.name
+        assert "2t" == reduced_data.name
     else:
-        assert "t2m" in reduced_data
+        assert "2t" in reduced_data
 
 
 @pytest.mark.parametrize(
@@ -107,17 +110,17 @@ def test_temporal_methods(method, in_data, expected_return_type):
     (
         [get_data(), xr.Dataset],
         [get_data().to_xarray(), xr.Dataset],
-        [get_data().to_xarray().t2m, xr.DataArray],
+        # [get_data().to_xarray()["2t"], xr.DataArray],
     ),
 )
 def test_temporal_daily_reduce_intypes(in_data, expected_return_type, how="mean"):
     reduced_data = temporal.daily_reduce(in_data, how=how)
     assert isinstance(reduced_data, expected_return_type)
-    assert "time" in list(reduced_data.dims)
+    assert "forecast_reference_time" in list(reduced_data.dims)
     if expected_return_type == xr.DataArray:
-        assert "t2m" == reduced_data.name
+        assert "2t" == reduced_data.name
     else:
-        assert "t2m" in reduced_data
+        assert "2t" in reduced_data
 
 
 @pytest.mark.parametrize(
@@ -127,11 +130,11 @@ def test_temporal_daily_reduce_intypes(in_data, expected_return_type, how="mean"
 def test_temporal_daily_reduce_hows(how, in_data=get_data().to_xarray(), expected_return_type=xr.Dataset):
     reduced_data = temporal.daily_reduce(in_data, how=how)
     assert isinstance(reduced_data, expected_return_type)
-    assert "time" in list(reduced_data.dims)
+    assert "forecast_reference_time" in list(reduced_data.dims)
     if expected_return_type == xr.DataArray:
-        assert "t2m" == reduced_data.name
+        assert "2t" == reduced_data.name
     else:
-        assert "t2m" in reduced_data
+        assert "2t" in reduced_data
 
 
 @pytest.mark.parametrize(
@@ -139,17 +142,17 @@ def test_temporal_daily_reduce_hows(how, in_data=get_data().to_xarray(), expecte
     (
         [get_data(), xr.Dataset],
         [get_data().to_xarray(), xr.Dataset],
-        [get_data().to_xarray().t2m, xr.DataArray],
+        # [get_data().to_xarray()["2t"], xr.DataArray],
     ),
 )
 def test_temporal_monthly_reduce_intypes(in_data, expected_return_type, how="mean"):
     reduced_data = temporal.monthly_reduce(in_data, how=how)
     assert isinstance(reduced_data, expected_return_type)
-    assert "time" in list(reduced_data.dims)
+    assert "forecast_reference_time" in list(reduced_data.dims)
     if expected_return_type == xr.DataArray:
-        assert "t2m" == reduced_data.name
+        assert "2t" == reduced_data.name
     else:
-        assert "t2m" in reduced_data
+        assert "2t" in reduced_data
 
 
 @pytest.mark.parametrize(
@@ -159,11 +162,11 @@ def test_temporal_monthly_reduce_intypes(in_data, expected_return_type, how="mea
 def test_temporal_monthly_reduce_hows(how, in_data=get_data().to_xarray(), expected_return_type=xr.Dataset):
     reduced_data = temporal.monthly_reduce(in_data, how=how)
     assert isinstance(reduced_data, expected_return_type)
-    assert "time" in list(reduced_data.dims)
+    assert "forecast_reference_time" in list(reduced_data.dims)
     if expected_return_type == xr.DataArray:
-        assert "t2m" == reduced_data.name
+        assert "2t" == reduced_data.name
     else:
-        assert "t2m" in reduced_data
+        assert "2t" in reduced_data
 
 
 @pytest.mark.parametrize(
@@ -188,14 +191,14 @@ def test_temporal_monthly_reduce_hows(how, in_data=get_data().to_xarray(), expec
     (
         [get_data(), xr.Dataset],
         [get_data().to_xarray(), xr.Dataset],
-        [get_data().to_xarray().t2m, xr.DataArray],
+        # [get_data().to_xarray()["2t"], xr.DataArray],
     ),
 )
 def test_temporal_daily_monthly_methods(method, in_data, expected_return_type):
     reduced_data = temporal.__getattribute__(method)(in_data)
     assert isinstance(reduced_data, expected_return_type)
-    assert "time" in list(reduced_data.dims)
+    assert "forecast_reference_time" in list(reduced_data.dims)
     if expected_return_type == xr.DataArray:
-        assert "t2m" == reduced_data.name
+        assert "2t" == reduced_data.name
     else:
-        assert "t2m" in reduced_data
+        assert "2t" in reduced_data

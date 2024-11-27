@@ -16,15 +16,23 @@ classifiers = [
 dependencies = [
   "xarray>=2022.3.0",
   "numpy>=1.18",
-  "earthkit-data>=0.3.0",
-  "geopandas",
-  "rasterio"
+  "earthkit-data>=0.11.2",
+  "geopandas"
 ]
 description = "Aggregation tools for meteorological and climate data."
 dynamic = ["version"]
 license = {file = "LICENSE"}
 name = "earthkit-transforms"
 readme = "README.rst"
+
+[project.optional-dependencies]
+all = [
+  # Additional, heavy, dependencies required by the complete package
+  "rasterio"  # Requires GDAL
+]
+rasterio = [
+  "rasterio"  # Requires GDAL
+]
 
 [tool.coverage.run]
 branch = true

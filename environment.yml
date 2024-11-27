@@ -18,7 +18,4 @@ dependencies:
 - xarray
 - geopandas
 - rasterio
-- earthkit-data
-- pip
-- pip:
-  - git+https://github.com/ecmwf/multiurl
+- earthkit-data[all]

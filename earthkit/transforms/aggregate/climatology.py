@@ -691,6 +691,7 @@ def _anomaly_dataarray(
     groupby_kwargs: dict = {},
     relative: bool = False,
     climatology_how_tag: str = "",
+    how_label: str | None = None,
     **reduce_kwargs,
 ) -> xr.DataArray:
     """
@@ -768,11 +769,15 @@ def _anomaly_dataarray(
 
     anomaly_array = resample(anomaly_array, how="mean", **reduce_kwargs, **groupby_kwargs, dim=time_dim)
 
-    return update_anomaly_array(anomaly_array, dataarray, var_name, name_tag, update_attrs)
+    return update_anomaly_array(
+        anomaly_array, dataarray, var_name, name_tag, update_attrs, how_label=how_label
+    )
 
 
-def update_anomaly_array(anomaly_array, original_array, var_name, name_tag, update_attrs):
-    anomaly_array = anomaly_array.rename(f"{var_name}_{name_tag}")
+def update_anomaly_array(anomaly_array, original_array, var_name, name_tag, update_attrs, how_label=None):
+    if how_label is not None:
+        var_name = f"{var_name}_{how_label}"
+    anomaly_array = anomaly_array.rename(f"{var_name}")
     update_attrs = {**original_array.attrs, **update_attrs}
     if "standard_name" in update_attrs:
         update_attrs["standard_name"] += f"_{name_tag.replace(' ', '_')}"
