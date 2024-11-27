@@ -301,7 +301,13 @@ def get_how(how: str, how_methods=HOW_METHODS):
 STANDARD_AXIS_KEYS: dict[str, list[str]] = {
     "y": ["lat", "latitude"],
     "x": ["lon", "long", "longitude"],
-    "t": ["time", "valid_time"],
+    "t": ["time", "valid_time", "forecast_reference_time"],
+}
+
+STANDARD_AXIS_CF_NAMES: dict[str, list[str]] = {
+    "y": ["projection_y_coordinate", "latitude", "grid_latitude"],
+    "x": ["projection_x_coordinate", "longitude", "grid_longitude"],
+    "t": ["time", "valid_time", "forecast_reference_time"],
 }
 
 
@@ -315,10 +321,18 @@ def get_dim_key(
         if "axis" in dataarray[dim].attrs and dataarray[dim].attrs["axis"].lower() == axis.lower():
             return dim
 
-    # Then check if any dims match our "standard" axis
-    for dim in dataarray.dims:
-        if dim in STANDARD_AXIS_KEYS.get(axis.lower(), []):
-            return dim
+    # Then check if any dims have CF recognised standard names,
+    #  Prioritised in order of the STANDARD_AXIS_CF_NAMES list order
+    for standard_name in STANDARD_AXIS_CF_NAMES.get(axis.lower(), []):
+        for dim in dataarray.dims:
+            if dataarray[dim].attrs.get("standard_name") == standard_name:
+                return dim
+
+    # Then check if any dims match our "standard" axis,
+    #  Prioritised in order of the STANDARD_AXIS_KEYS list order
+    for standard_axis_key in STANDARD_AXIS_KEYS.get(axis.lower(), []):
+        if standard_axis_key in dataarray.dims:
+            return standard_axis_key
 
     # We have not been able to detect, so return the axis key
     return axis

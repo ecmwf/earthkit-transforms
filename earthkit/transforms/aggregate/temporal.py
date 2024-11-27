@@ -13,10 +13,11 @@ from earthkit.transforms.tools import groupby_time
 
 logger = logging.getLogger(__name__)
 
-
+@tools.time_dim_decorator
 def standardise_time(
     dataarray: xr.Dataset | xr.DataArray,
     target_format: str = "%Y-%m-%d %H:%M:%S",
+    time_dim: str | None = None,
 ) -> xr.Dataset | xr.DataArray:
     """
     Convert time coordinates to a standard format using the Gregorian calendar.
@@ -45,17 +46,17 @@ def standardise_time(
 
     """
     try:
-        source_times = [time_value.strftime(target_format) for time_value in dataarray.time.values]
+        source_times = [time_value.strftime(target_format) for time_value in dataarray[time_dim].values]
     except AttributeError:
         source_times = [
-            pd.to_datetime(time_value).strftime(target_format) for time_value in dataarray.time.values
+            pd.to_datetime(time_value).strftime(target_format) for time_value in dataarray[time_dim].values
         ]
 
     standardised_times = np.array(
         [pd.to_datetime(time_string).to_datetime64() for time_string in source_times]
     )
 
-    dataarray = dataarray.assign_coords({"time": standardised_times})
+    dataarray = dataarray.assign_coords({time_dim: standardised_times})
 
     history = dataarray.attrs.get("history", "")
     history += (

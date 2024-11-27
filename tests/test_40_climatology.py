@@ -32,7 +32,7 @@ def get_data():
     (
         [get_data(), xr.Dataset],
         [get_data().to_xarray(), xr.Dataset],
-        [get_data().to_xarray().t2m, xr.DataArray],
+        [get_data().to_xarray()["2t"], xr.DataArray],
     ),
 )
 def test_climatology_monthly(in_data, expected_return_type, method, how):
@@ -40,17 +40,17 @@ def test_climatology_monthly(in_data, expected_return_type, method, how):
     assert isinstance(clim_m, expected_return_type)
     assert "month" in list(clim_m.dims)
     if expected_return_type == xr.DataArray:
-        assert "t2m" == clim_m.name
+        assert "2t" == clim_m.name
     else:
-        assert "t2m" in clim_m
+        assert "2t" in clim_m
 
     clim_m = method(in_data, how_label=how)
     assert isinstance(clim_m, expected_return_type)
     assert "month" in list(clim_m.dims)
     if expected_return_type == xr.DataArray:
-        assert f"t2m_{how}" == clim_m.name
+        assert f"2t_{how}" == clim_m.name
     else:
-        assert f"t2m_{how}" in clim_m
+        assert f"2t_{how}" in clim_m
 
 
 @pytest.mark.parametrize(
@@ -67,7 +67,7 @@ def test_climatology_monthly(in_data, expected_return_type, method, how):
     (
         [get_data(), xr.Dataset],
         [get_data().to_xarray(), xr.Dataset],
-        [get_data().to_xarray().t2m, xr.DataArray],
+        [get_data().to_xarray()["2t"], xr.DataArray],
     ),
 )
 def test_climatology_daily(in_data, expected_return_type, method, how):
@@ -75,17 +75,17 @@ def test_climatology_daily(in_data, expected_return_type, method, how):
     assert isinstance(clim_d, expected_return_type)
     assert "dayofyear" in list(clim_d.dims)
     if expected_return_type == xr.DataArray:
-        assert "t2m" == clim_d.name
+        assert "2t" == clim_d.name
     else:
-        assert "t2m" in clim_d
+        assert "2t" in clim_d
 
     clim_d = method(in_data, how_label=how)
     assert isinstance(clim_d, expected_return_type)
     assert "dayofyear" in list(clim_d.dims)
     if expected_return_type == xr.DataArray:
-        assert f"t2m_{how}" == clim_d.name
+        assert f"2t_{how}" == clim_d.name
     else:
-        assert f"t2m_{how}" in clim_d
+        assert f"2t_{how}" in clim_d
 
 
 @pytest.mark.parametrize(
@@ -100,7 +100,7 @@ def test_climatology_daily(in_data, expected_return_type, method, how):
     (
         [get_data(), xr.Dataset],
         [get_data().to_xarray(), xr.Dataset],
-        [get_data().to_xarray().t2m, xr.DataArray],
+        [get_data().to_xarray()["2t"], xr.DataArray],
     ),
 )
 def test_anomaly_monthly(in_data, expected_return_type, clim_method):
@@ -125,7 +125,7 @@ def test_anomaly_monthly(in_data, expected_return_type, clim_method):
     (
         [get_data(), xr.Dataset],
         [get_data().to_xarray(), xr.Dataset],
-        [get_data().to_xarray().t2m, xr.DataArray],
+        [get_data().to_xarray()["2t"], xr.DataArray],
     ),
 )
 def test_anomaly_daily(in_data, expected_return_type, clim_method):
