@@ -43,7 +43,7 @@ def get_shape_data():
     reason="rasterio is not available",
 )
 def test_spatial_mask():
-    single_masked_data = spatial.mask(get_grid_data(), get_shape_data())
+    single_masked_data = spatial.mask(get_grid_data(), get_shape_data(), union_geometries=True)
     assert isinstance(single_masked_data, xr.Dataset)
 
 
@@ -62,7 +62,7 @@ def test_spatial_mask():
     ),
 )
 def test_spatial_masks_with_ek_objects(era5_data, nuts_data, expected_result_type):
-    masked_data = spatial.masks(era5_data, nuts_data)
+    masked_data = spatial.mask(era5_data, nuts_data)
     assert isinstance(masked_data, expected_result_type)
     assert "index" in masked_data.dims
     assert len(masked_data["index"]) == len(nuts_data)
