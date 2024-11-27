@@ -106,7 +106,13 @@ def test_climatology_daily(in_data, expected_return_type, method, how):
 def test_anomaly_monthly(in_data, expected_return_type, clim_method):
     clim_m = clim_method(in_data)
     anom_m = climatology.anomaly(in_data, clim_m, frequency="month")
-    assert isinstance(clim_m, expected_return_type)
+    assert isinstance(anom_m, expected_return_type)
+    if expected_return_type == xr.DataArray:
+        assert "2t" == anom_m.name
+    else:
+        assert "2t" in anom_m
+    anom_m = climatology.anomaly(in_data, clim_m, frequency="month", how_label="anomaly")
+    assert isinstance(anom_m, expected_return_type)
     if expected_return_type == xr.DataArray:
         assert "2t_anomaly" == anom_m.name
     else:
@@ -131,7 +137,13 @@ def test_anomaly_monthly(in_data, expected_return_type, clim_method):
 def test_anomaly_daily(in_data, expected_return_type, clim_method):
     clim_d = clim_method(in_data)
     anom_d = climatology.anomaly(in_data, clim_d, frequency="dayofyear")
-    assert isinstance(clim_d, expected_return_type)
+    assert isinstance(anom_d, expected_return_type)
+    if expected_return_type == xr.DataArray:
+        assert "2t" == anom_d.name
+    else:
+        assert "2t" in anom_d
+    anom_d = climatology.anomaly(in_data, clim_d, frequency="dayofyear", how_label="anomaly")
+    assert isinstance(anom_d, expected_return_type)
     if expected_return_type == xr.DataArray:
         assert "2t_anomaly" == anom_d.name
     else:
