@@ -260,55 +260,25 @@ def get_mask_dim_index(
     return mask_dim_index
 
 
-def mask(
-    dataarray: xr.Dataset | xr.DataArray,
-    geodataframe: gpd.geodataframe.GeoDataFrame,
-    lat_key: str | None = None,
-    lon_key: str | None = None,
-    **mask_kwargs,
-) -> xr.Dataset | xr.DataArray:
-    """
-    Apply shape mask to some gridded data.
-
-    The geodataframe object is treated as a single mask, any points that lie outside of any
-    of the features are masked
-
-    Parameters
-    ----------
-    dataarray : xr.Dataset | xr.DataArray
-        Xarray data object (must have geospatial coordinates).
-    geodataframe (optional): gpd.geodataframe.GeoDataFrame
-        Geopandas Dataframe containing the polygons for aggregations
-    lat_key/lon_key (optional): str
-        key for latitude/longitude variable, default behaviour is to detect variable keys.
-    all_touched (optional):
-        If True, all pixels touched by geometries will be considered in,
-        if False, only pixels whose center is within. Default is False.
-        Only valid for regular data.
-
-    Returns
-    -------
-    xr.Dataset | xr.DataArray
-        A masked data array/dataset with same dimensions as the input dataarray/dataset. Any point that
-        does not lie in any of the features of geodataframe is masked.
-
-    """
-    spatial_info = get_spatial_info(dataarray, lat_key=lat_key, lon_key=lon_key)
-    # Get spatial info required by mask functions:
-    mask_kwargs = {**mask_kwargs, **{key: spatial_info[key] for key in ["lat_key", "lon_key", "regular"]}}
-    mask = shapes_to_mask(geodataframe, dataarray, **mask_kwargs)
-    out = dataarray.where(mask)
-    out.attrs.update(geodataframe.attrs)
-    return out
-
-
 def masks(
+    *args,
+    **kwargs,
+):
+    logger.warning(
+        "earthkit.transforms.aggregate.spatial.masks is deprecated, "
+        "please use earthkit.transforms.aggregate.spatial.mask instead."
+    )
+    return masks(*args, **kwargs)
+
+
+def mask(
     dataarray: xr.Dataset | xr.DataArray,
     geodataframe: gpd.geodataframe.GeoDataFrame,
     mask_dim: str | None = None,
     lat_key: str | None = None,
     lon_key: str | None = None,
     chunk: bool = True,
+    union_geometries: bool = False,
     **mask_kwargs,
 ) -> xr.Dataset | xr.DataArray:
     """
@@ -339,6 +309,9 @@ def masks(
         Boolean to indicate whether to use chunking, default = `True`.
         This is advised as spatial.masks can create large results. If you are working with small
         arrays, or you have implemented you own chunking rules you may wish to disable it.
+    union_geometries : (optional) bool
+        Boolean to indicate whether to union all geometries before masking.
+        Default is `False`, which will apply each geometry in the geodataframe as a separate mask.
 
     Returns
     -------
@@ -352,8 +325,13 @@ def masks(
     mask_kwargs = {**mask_kwargs, **{key: spatial_info[key] for key in ["lat_key", "lon_key", "regular"]}}
     mask_dim_index = get_mask_dim_index(mask_dim, geodataframe)
 
+    if union_geometries:
+        masks = [shapes_to_mask(geodataframe, dataarray, **mask_kwargs)]
+    else:
+        masks = _shape_mask_iterator(geodataframe, dataarray, **mask_kwargs)
+
     masked_arrays = []
-    for mask in _shape_mask_iterator(geodataframe, dataarray, **mask_kwargs):
+    for mask in masks:
         this_masked_array = dataarray.where(mask)
         if chunk:
             this_masked_array = this_masked_array.chunk()
@@ -372,6 +350,7 @@ def masks(
 def reduce(
     dataarray: xr.Dataset | xr.DataArray,
     geodataframe: gpd.GeoDataFrame | None = None,
+    masks: xr.Dataset | list[xr.DataArray] | None = None,
     *args,
     **kwargs,
 ) -> xr.Dataset | xr.DataArray:
@@ -453,7 +432,7 @@ def reduce(
 def _reduce_dataarray(
     dataarray: xr.DataArray,
     geodataframe: gpd.GeoDataFrame | None = None,
-    pd_dataframe: pd.DataFrame | None = None,
+    masks: list[xr.DataArray] | None = None,
     how: T.Callable | str = "mean",
     weights: None | str | np.ndarray = None,
     lat_key: str | None = None,
@@ -559,11 +538,13 @@ def _reduce_dataarray(
     reduce_kwargs.update({"dim": reduce_dims})
     reduced_list = []
 
-    # If not using mask, then create a dummy mask:
-    if geodataframe is None:
-        masks = [dataarray]
-    else:
-        masks = _shape_mask_iterator(geodataframe, dataarray, **mask_kwargs)
+    # If not using a pre-computed mask, then create a mask
+    if mask is None:
+        # If no geodataframe, then no mask, so create a dummy mask:
+        if geodataframe is None:
+            masks = [dataarray]
+        else:
+            masks = _shape_mask_iterator(geodataframe, dataarray, **mask_kwargs)
 
     for mask in masks:
         this = dataarray.where(mask, other=np.nan)
