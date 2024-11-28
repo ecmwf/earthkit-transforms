@@ -7,12 +7,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from earthkit.transforms.tools import (
-    get_how,
-    get_spatial_info,
-    standard_weights,
-    ensure_list
-)
+from earthkit.transforms.tools import ensure_list, get_how, get_spatial_info, standard_weights
 
 logger = logging.getLogger(__name__)
 
@@ -152,11 +147,11 @@ def _geopandas_to_shape_list(geodataframe):
     return [row[1]["geometry"] for row in geodataframe.iterrows()]
 
 
-def _array_mask_iterator(mask_arrays, target, regular=True, **kwargs):
-    """Method which iterates over shape mask methods."""
+def _array_mask_iterator(mask_arrays):
+    """Method which iterates over mask arrays."""
     for mask_array in mask_arrays:
-        yield mask_array*target
-        
+        yield mask_array > 0
+
 
 def _shape_mask_iterator(shapes, target, regular=True, **kwargs):
     """Method which iterates over shape mask methods."""
@@ -345,7 +340,7 @@ def mask(
         if chunk:
             this_masked_array = this_masked_array.chunk()
         masked_arrays.append(this_masked_array.copy())
-    
+
     if union_geometries:
         out = masked_arrays[0]
     else:
@@ -426,7 +421,7 @@ def reduce(
                 out_ds[out_da.name] = out_da
             return out_ds
         elif "pandas" in return_as:
-            logger.warn(
+            logger.warning(
                 "Returning reduced data in pandas format is considered experimental and may change in future"
                 "versions of earthkit"
             )
@@ -446,7 +441,9 @@ def reduce(
         else:
             raise TypeError("Return as type not recognised or incompatible with inputs")
     else:
-        return _reduce_dataarray(dataarray, geodataframe=geodataframe, *args, **kwargs)
+        return _reduce_dataarray(
+            dataarray, geodataframe=geodataframe, mask_arrays=mask_arrays, *args, **kwargs
+        )
 
 
 def _reduce_dataarray(
@@ -556,11 +553,9 @@ def _reduce_dataarray(
     reduce_dims = spatial_dims + extra_reduce_dims
     extra_out_attrs.update({"reduce_dims": reduce_dims})
     reduce_kwargs.update({"dim": reduce_dims})
-    reduced_list = []
-
     # If using a pre-computed mask arrays, then iterator is just dataarray*mask_array
     if mask_arrays is not None:
-        masked_data_list = _array_mask_iterator(mask_arrays, dataarray)
+        masked_data_list = _array_mask_iterator(mask_arrays)
     else:
         # If no geodataframe, then no mask, so create a dummy mask:
         if geodataframe is None:
@@ -568,6 +563,7 @@ def _reduce_dataarray(
         else:
             masked_data_list = _shape_mask_iterator(geodataframe, dataarray, **mask_kwargs)
 
+    reduced_list = []
     for masked_data in masked_data_list:
         this = dataarray.where(masked_data, other=np.nan)
 

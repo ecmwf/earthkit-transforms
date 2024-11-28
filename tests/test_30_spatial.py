@@ -104,23 +104,30 @@ def test_spatial_reduce_with_geometry(era5_data, nuts_data, expected_result_type
     assert len(reduced_data["index"]) == len(nuts_data)
 
 
-# @pytest.mark.skipif(
-#     not rasterio_available,
-#     reason="rasterio is not available",
-# )
-# @pytest.mark.parametrize(
-#     "era5_data, nuts_data, expected_result_type",
-#     (
-#         [get_grid_data(), get_shape_data(), xr.Dataset],
-#         [get_grid_data().to_xarray()["2t"], get_shape_data(), xr.DataArray],
-#     ),
-# )
-# def test_spatial_reduce_with_precomputed_mask(era5_data, nuts_data, expected_result_type):
-#     mask = spatial.mask(era5_data, nuts_data)
-#     reduced_data = spatial.reduce(era5_data, nuts_data)
-#     assert isinstance(reduced_data, expected_result_type)
-#     assert all([dim in ["forecast_reference_time", "index"] for dim in reduced_data.dims])
-#     assert len(reduced_data["index"]) == len(nuts_data)
+@pytest.mark.skipif(
+    not rasterio_available,
+    reason="rasterio is not available",
+)
+def test_spatial_reduce_with_precomputed_mask():
+    era5_data_xr = get_grid_data().to_xarray()["2t"]
+    ones = (era5_data_xr.isel(forecast_reference_time=0) * 0 + 1).astype(int).rename("mask")
+    mask = spatial.mask(ones, get_shape_data(), all_touched=False)
+    mask_arrays = [mask.sel(index=index) for index in mask.index]
+    reduced_data_test = spatial.reduce(era5_data_xr, geodataframe=get_shape_data())
+
+    # reduce with a single mask
+    reduced_data = spatial.reduce(era5_data_xr, mask_arrays=mask_arrays[0])
+    assert isinstance(reduced_data, xr.DataArray)
+    assert all([dim in ["forecast_reference_time", "index"] for dim in reduced_data.dims])
+    assert reduced_data.equals(reduced_data_test.isel(index=0))
+
+    # reduce with list of masks
+    reduced_data = spatial.reduce(era5_data_xr, mask_arrays=mask_arrays)
+    assert isinstance(reduced_data, xr.DataArray)
+    assert all([dim in ["forecast_reference_time", "index"] for dim in reduced_data.dims])
+    assert len(reduced_data["index"]) == len(mask_arrays)
+    assert reduced_data.equals(reduced_data_test)
+
 
 @pytest.mark.skipif(
     not rasterio_available,
