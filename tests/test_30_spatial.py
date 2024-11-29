@@ -43,7 +43,7 @@ def get_shape_data():
     reason="rasterio is not available",
 )
 def test_spatial_mask():
-    single_masked_data = spatial.mask(get_grid_data(), get_shape_data())
+    single_masked_data = spatial.mask(get_grid_data(), get_shape_data(), union_geometries=True)
     assert isinstance(single_masked_data, xr.Dataset)
 
 
@@ -62,7 +62,7 @@ def test_spatial_mask():
     ),
 )
 def test_spatial_masks_with_ek_objects(era5_data, nuts_data, expected_result_type):
-    masked_data = spatial.masks(era5_data, nuts_data)
+    masked_data = spatial.mask(era5_data, nuts_data)
     assert isinstance(masked_data, expected_result_type)
     assert "index" in masked_data.dims
     assert len(masked_data["index"]) == len(nuts_data)
@@ -102,6 +102,31 @@ def test_spatial_reduce_with_geometry(era5_data, nuts_data, expected_result_type
     assert isinstance(reduced_data, expected_result_type)
     assert all([dim in ["forecast_reference_time", "index"] for dim in reduced_data.dims])
     assert len(reduced_data["index"]) == len(nuts_data)
+
+
+@pytest.mark.skipif(
+    not rasterio_available,
+    reason="rasterio is not available",
+)
+def test_spatial_reduce_with_precomputed_mask():
+    era5_data_xr = get_grid_data().to_xarray()["2t"]
+    ones = (era5_data_xr.isel(forecast_reference_time=0) * 0 + 1).astype(int).rename("mask")
+    mask = spatial.mask(ones, get_shape_data(), all_touched=False)
+    mask_arrays = [mask.sel(index=index) for index in mask.index]
+    reduced_data_test = spatial.reduce(era5_data_xr, geodataframe=get_shape_data())
+
+    # reduce with a single mask
+    reduced_data = spatial.reduce(era5_data_xr, mask_arrays=mask_arrays[0])
+    assert isinstance(reduced_data, xr.DataArray)
+    assert all([dim in ["forecast_reference_time", "index"] for dim in reduced_data.dims])
+    assert reduced_data.equals(reduced_data_test.isel(index=0))
+
+    # reduce with list of masks
+    reduced_data = spatial.reduce(era5_data_xr, mask_arrays=mask_arrays)
+    assert isinstance(reduced_data, xr.DataArray)
+    assert all([dim in ["forecast_reference_time", "index"] for dim in reduced_data.dims])
+    assert len(reduced_data["index"]) == len(mask_arrays)
+    assert reduced_data.equals(reduced_data_test)
 
 
 @pytest.mark.skipif(

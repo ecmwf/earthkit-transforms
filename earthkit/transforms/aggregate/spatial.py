@@ -7,11 +7,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from earthkit.transforms.tools import (
-    get_how,
-    get_spatial_info,
-    standard_weights,
-)
+from earthkit.transforms.tools import ensure_list, get_how, get_spatial_info, standard_weights
 
 logger = logging.getLogger(__name__)
 
@@ -151,6 +147,12 @@ def _geopandas_to_shape_list(geodataframe):
     return [row[1]["geometry"] for row in geodataframe.iterrows()]
 
 
+def _array_mask_iterator(mask_arrays):
+    """Method which iterates over mask arrays."""
+    for mask_array in mask_arrays:
+        yield mask_array > 0
+
+
 def _shape_mask_iterator(shapes, target, regular=True, **kwargs):
     """Method which iterates over shape mask methods."""
     if isinstance(shapes, gpd.GeoDataFrame):
@@ -260,55 +262,27 @@ def get_mask_dim_index(
     return mask_dim_index
 
 
-def mask(
+def masks(
     dataarray: xr.Dataset | xr.DataArray,
     geodataframe: gpd.geodataframe.GeoDataFrame,
-    lat_key: str | None = None,
-    lon_key: str | None = None,
-    **mask_kwargs,
-) -> xr.Dataset | xr.DataArray:
-    """
-    Apply shape mask to some gridded data.
-
-    The geodataframe object is treated as a single mask, any points that lie outside of any
-    of the features are masked
-
-    Parameters
-    ----------
-    dataarray : xr.Dataset | xr.DataArray
-        Xarray data object (must have geospatial coordinates).
-    geodataframe (optional): gpd.geodataframe.GeoDataFrame
-        Geopandas Dataframe containing the polygons for aggregations
-    lat_key/lon_key (optional): str
-        key for latitude/longitude variable, default behaviour is to detect variable keys.
-    all_touched (optional):
-        If True, all pixels touched by geometries will be considered in,
-        if False, only pixels whose center is within. Default is False.
-        Only valid for regular data.
-
-    Returns
-    -------
-    xr.Dataset | xr.DataArray
-        A masked data array/dataset with same dimensions as the input dataarray/dataset. Any point that
-        does not lie in any of the features of geodataframe is masked.
-
-    """
-    spatial_info = get_spatial_info(dataarray, lat_key=lat_key, lon_key=lon_key)
-    # Get spatial info required by mask functions:
-    mask_kwargs = {**mask_kwargs, **{key: spatial_info[key] for key in ["lat_key", "lon_key", "regular"]}}
-    mask = shapes_to_mask(geodataframe, dataarray, **mask_kwargs)
-    out = dataarray.where(mask)
-    out.attrs.update(geodataframe.attrs)
-    return out
+    *args,
+    **kwargs,
+):
+    logger.warning(
+        "earthkit.transforms.aggregate.spatial.masks is deprecated, "
+        "please use earthkit.transforms.aggregate.spatial.mask instead."
+    )
+    return mask(dataarray, geodataframe, *args, **kwargs)
 
 
-def masks(
+def mask(
     dataarray: xr.Dataset | xr.DataArray,
     geodataframe: gpd.geodataframe.GeoDataFrame,
     mask_dim: str | None = None,
     lat_key: str | None = None,
     lon_key: str | None = None,
     chunk: bool = True,
+    union_geometries: bool = False,
     **mask_kwargs,
 ) -> xr.Dataset | xr.DataArray:
     """
@@ -339,6 +313,9 @@ def masks(
         Boolean to indicate whether to use chunking, default = `True`.
         This is advised as spatial.masks can create large results. If you are working with small
         arrays, or you have implemented you own chunking rules you may wish to disable it.
+    union_geometries : (optional) bool
+        Boolean to indicate whether to union all geometries before masking.
+        Default is `False`, which will apply each geometry in the geodataframe as a separate mask.
 
     Returns
     -------
@@ -352,17 +329,26 @@ def masks(
     mask_kwargs = {**mask_kwargs, **{key: spatial_info[key] for key in ["lat_key", "lon_key", "regular"]}}
     mask_dim_index = get_mask_dim_index(mask_dim, geodataframe)
 
+    if union_geometries:
+        loop_masks = [shapes_to_mask(geodataframe, dataarray, **mask_kwargs)]
+    else:
+        loop_masks = _shape_mask_iterator(geodataframe, dataarray, **mask_kwargs)
+
     masked_arrays = []
-    for mask in _shape_mask_iterator(geodataframe, dataarray, **mask_kwargs):
-        this_masked_array = dataarray.where(mask)
+    for this_mask in loop_masks:
+        this_masked_array = dataarray.where(this_mask)
         if chunk:
             this_masked_array = this_masked_array.chunk()
         masked_arrays.append(this_masked_array.copy())
-    out = xr.concat(masked_arrays, dim=mask_dim_index.name)
-    if chunk:
-        out = out.chunk({mask_dim_index.name: 1})
 
-    out = out.assign_coords({mask_dim_index.name: mask_dim_index})
+    if union_geometries:
+        out = masked_arrays[0]
+    else:
+        out = xr.concat(masked_arrays, dim=mask_dim_index.name)
+        if chunk:
+            out = out.chunk({mask_dim_index.name: 1})
+
+        out = out.assign_coords({mask_dim_index.name: mask_dim_index})
 
     out.attrs.update(geodataframe.attrs)
 
@@ -372,6 +358,7 @@ def masks(
 def reduce(
     dataarray: xr.Dataset | xr.DataArray,
     geodataframe: gpd.GeoDataFrame | None = None,
+    mask_arrays: xr.DataArray | list[xr.DataArray] | None = None,
     *args,
     **kwargs,
 ) -> xr.Dataset | xr.DataArray:
@@ -404,6 +391,9 @@ def reduce(
         Only valid for regular data.
     mask_kwargs (optional):
         Any kwargs to pass into the mask method
+    mask_arrays (optional):
+        precomputed mask array[s], if provided this will be used instead of creating a new mask.
+        They must be on the same spatial grid as the dataarray.
     return_as (optional):
         what format to return the data object, `pandas` or `xarray`. Work In Progress
     how_label (optional):
@@ -418,16 +408,20 @@ def reduce(
         Each slice of layer corresponds to a feature in layer.
 
     """
+    if mask_arrays is not None:
+        mask_arrays = ensure_list(mask_arrays)
     if isinstance(dataarray, xr.Dataset):
         return_as: str = kwargs.get("return_as", "xarray")
         if return_as in ["xarray"]:
             out_ds = xr.Dataset().assign_attrs(dataarray.attrs)
             for var in dataarray.data_vars:
-                out_da = _reduce_dataarray(dataarray[var], geodataframe=geodataframe, *args, **kwargs)
+                out_da = _reduce_dataarray(
+                    dataarray[var], geodataframe=geodataframe, mask_arrays=mask_arrays, *args, **kwargs
+                )
                 out_ds[out_da.name] = out_da
             return out_ds
         elif "pandas" in return_as:
-            logger.warn(
+            logger.warning(
                 "Returning reduced data in pandas format is considered experimental and may change in future"
                 "versions of earthkit"
             )
@@ -438,7 +432,7 @@ def reduce(
             else:
                 out = None
                 for var in dataarray.data_vars:
-                    _out = _reduce_dataarray(dataarray[var], *args, **kwargs)
+                    _out = _reduce_dataarray(dataarray[var], mask_arrays=mask_arrays, *args, **kwargs)
                     if out is None:
                         out = _out
                     else:
@@ -447,13 +441,15 @@ def reduce(
         else:
             raise TypeError("Return as type not recognised or incompatible with inputs")
     else:
-        return _reduce_dataarray(dataarray, geodataframe=geodataframe, *args, **kwargs)
+        return _reduce_dataarray(
+            dataarray, geodataframe=geodataframe, mask_arrays=mask_arrays, *args, **kwargs
+        )
 
 
 def _reduce_dataarray(
     dataarray: xr.DataArray,
     geodataframe: gpd.GeoDataFrame | None = None,
-    pd_dataframe: pd.DataFrame | None = None,
+    mask_arrays: list[xr.DataArray] | None = None,
     how: T.Callable | str = "mean",
     weights: None | str | np.ndarray = None,
     lat_key: str | None = None,
@@ -490,7 +486,7 @@ def _reduce_dataarray(
     extra_reduce_dims (optional):
         any additional dimensions to aggregate over when reducing over spatial dimensions
     mask_dim (optional):
-        dimension that will be created after the reduction of the spatial dimensions, default = `"FID"`
+        dimension that will be created after the reduction of the spatial dimensions, default = `"index"`
     return_as (optional):
         what format to return the data object, `"pandas"` or `"xarray"`. Work In Progress
     how_label (optional):
@@ -557,16 +553,19 @@ def _reduce_dataarray(
     reduce_dims = spatial_dims + extra_reduce_dims
     extra_out_attrs.update({"reduce_dims": reduce_dims})
     reduce_kwargs.update({"dim": reduce_dims})
-    reduced_list = []
-
-    # If not using mask, then create a dummy mask:
-    if geodataframe is None:
-        masks = [dataarray]
+    # If using a pre-computed mask arrays, then iterator is just dataarray*mask_array
+    if mask_arrays is not None:
+        masked_data_list = _array_mask_iterator(mask_arrays)
     else:
-        masks = _shape_mask_iterator(geodataframe, dataarray, **mask_kwargs)
+        # If no geodataframe, then no mask, so create a dummy mask:
+        if geodataframe is None:
+            masked_data_list = [dataarray]
+        else:
+            masked_data_list = _shape_mask_iterator(geodataframe, dataarray, **mask_kwargs)
 
-    for mask in masks:
-        this = dataarray.where(mask, other=np.nan)
+    reduced_list = []
+    for masked_data in masked_data_list:
+        this = dataarray.where(masked_data, other=np.nan)
 
         # If weighted, use xarray weighted arrays which correctly handle missing values etc.
         if weights is not None:
@@ -581,11 +580,14 @@ def _reduce_dataarray(
         reduced_list = [red_data.squeeze() for red_data in reduced_list]
 
     # If no geodataframe, there is just one reduced array
-    if geodataframe is None:
-        out_xr = reduced_list[0]
-    else:
+    if geodataframe is not None:
         mask_dim_index = get_mask_dim_index(mask_dim, geodataframe)
         out_xr = xr.concat(reduced_list, dim=mask_dim_index)
+    elif len(reduced_list) == 1:
+        out_xr = reduced_list[0]
+    else:
+        _concat_dim_name = mask_dim or "index"
+        out_xr = xr.concat(reduced_list, dim=_concat_dim_name)
 
     out_xr = out_xr.rename(new_short_name)
 
