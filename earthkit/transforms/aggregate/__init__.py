@@ -12,7 +12,7 @@ else:
     general = transform_module_inputs(general)
     temporal = transform_module_inputs(temporal)
     climatology = transform_module_inputs(climatology)
-    spatial = transform_module_inputs(spatial, kwarg_types={"mask_arrays": [list]})
+    spatial = transform_module_inputs(spatial)
     reduce = transform_function_inputs(reduce)
     rolling_reduce = transform_function_inputs(rolling_reduce)
     resample = transform_function_inputs(resample)
