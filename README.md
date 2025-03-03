@@ -6,32 +6,28 @@
 </br>
 </h3>
 
-<p align="center">
+<p>
   <img src="https://img.shields.io/badge/ESEE-Foundation-orange" alt="ESEE Foundation">
   <a href="https://github.com/ecmwf/codex/blob/cookiecutter/Project%20Maturity/project-maturity.md">
     <img src="https://img.shields.io/badge/Maturity-Incubating-lightskyblue" alt="Maturity Incubating">
   </a>
-
+</p><p>
   <a href="https://github.com/ecmwf/earthkit-transforms/actions/workflows/on-push.yaml">
     <img src="https://github.com/ecmwf/earthkit-transforms/actions/workflows/on-push.yaml/badge.svg" alt="CI Status">
   </a>
-
+  <a href="https://github.com/ecmwf/earthkit-transforms/actions/workflows/on-release.yaml">
+    <img src="https://github.com/ecmwf/earthkit-transforms/actions/workflows/on-release.yaml/badge.svg" alt="CI Status">
+  </a>
   <a href="https://codecov.io/gh/ecmwf/earthkit-transforms">
     <img src="https://codecov.io/gh/ecmwf/earthkit-transforms/branch/develop/graph/badge.svg" alt="Code Coverage" >
   </a>
-
-  <a href="https://codecov.io/gh/ecmwf/earthkit-transforms">
-    <img src="https://codecov.io/gh/ecmwf/earthkit-transforms/branch/develop/graph/badge.svg" alt="Code Coverage">
-  </a>
-
-  <a href="https://opensource.org/licenses/apache-2-0">
-    <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License: Apache 2.0">
-  </a>
-
+</p><p>
   <a href="https://github.com/ecmwf/earthkit-transforms/releases">
     <img src="https://img.shields.io/github/v/release/ecmwf/earthkit-transforms?color=blue&label=Release&style=flat-square" alt="Latest Release">
   </a>
-
+  <a href="https://opensource.org/licenses/apache-2-0">
+    <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License: Apache 2.0">
+  </a>
   <a href="https://earthkit-transforms.readthedocs.io/en/latest/?badge=latest">
     <img src="https://readthedocs.org/projects/earthkit-transforms/badge/?version=latest" alt="Documentation Status">
   </a>
