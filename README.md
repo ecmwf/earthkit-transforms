@@ -1,4 +1,4 @@
-<h3 align="center">
+<h3>
 <picture>
     <source srcset="https://raw.githubusercontent.com/ecmwf/logos/refs/heads/main/logos/earthkit/earthkit-transforms-dark.svg" media="(prefers-color-scheme: dark)">
     <img src="https://raw.githubusercontent.com/ecmwf/logos/refs/heads/main/logos/earthkit/earthkit-transforms-light.svg" width="100">
@@ -12,7 +12,7 @@
     <img src="https://img.shields.io/badge/Maturity-Incubating-lightskyblue" alt="Maturity Incubating">
   </a>
 
-  <a href="https://github.com/ecmwf/earthkit-transforms/actions/workflows/ci.yaml">
+  <a href="https://github.com/ecmwf/earthkit-transforms/actions/workflows/on-push.yaml">
     <img src="https://github.com/ecmwf/earthkit-transforms/actions/workflows/ci.yaml/badge.svg" alt="CI Status">
   </a>
 
