@@ -36,7 +36,8 @@
 
 **earthkit-transforms** is a library of software tools to support people working with climate and meteorology data.
 
-**earthkit-transforms** is made up of a sub-package, `aggregate` which contains methods for aggregating data in time and space, and more transforms and operators.
+**earthkit-transforms** is made up of a sub-package, `aggregate`, which contains methods for aggregating data in time and spaces and other abstract dimensions.
+
 It has been designed following the philosphy of Earthkit, hence the methods should be interoperable with any
 data object understood by earthkit-data.
 
