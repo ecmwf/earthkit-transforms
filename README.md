@@ -13,7 +13,7 @@
   </a>
 
   <a href="https://github.com/ecmwf/earthkit-transforms/actions/workflows/on-push.yaml">
-    <img src="https://github.com/ecmwf/earthkit-transforms/actions/workflows/ci.yaml/badge.svg" alt="CI Status">
+    <img src="https://github.com/ecmwf/earthkit-transforms/actions/workflows/on-push.yaml/badge.svg" alt="CI Status">
   </a>
 
   <a href="https://codecov.io/gh/ecmwf/earthkit-transforms">
