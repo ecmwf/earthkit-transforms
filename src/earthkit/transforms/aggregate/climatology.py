@@ -14,7 +14,7 @@ def reduce(
     dataarray: xr.Dataset | xr.DataArray,
     time_dim: str | None = None,
     how: str | T.Callable | None = "mean",
-    _groupby_kwargs: dict = {},
+    groupby_kwargs: dict = {},
     **reduce_kwargs,
 ):
     """Group data annually over a given `frequency` and reduce using the specified `how` method.
@@ -39,6 +39,8 @@ def reduce(
     time_dim : str (optional)
         Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
+    groupby_kwargs : dict
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.groupby_time`
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
@@ -49,7 +51,7 @@ def reduce(
     grouped_data = groupby_time(
         dataarray,
         time_dim=time_dim,
-        **_groupby_kwargs,
+        **groupby_kwargs,
     )
     return _reduce(grouped_data, how=how, dim=time_dim, **reduce_kwargs)
 
