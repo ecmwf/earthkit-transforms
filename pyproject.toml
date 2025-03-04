@@ -69,8 +69,8 @@ select = [
 ]
 
 [tool.setuptools.packages.find]
-include = [ "earthkit.transforms" ]
-where = [ "src/" ]
+include = ["earthkit.transforms"]
+where = ["src/"]
 
 [tool.setuptools_scm]
 write_to = "src/earthkit/transforms/version.py"
