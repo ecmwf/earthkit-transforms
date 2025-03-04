@@ -72,7 +72,7 @@ select = [
 packages = ["earthkit.transforms"]
 
 [tool.setuptools_scm]
-write_to = "earthkit/transforms/version.py"
+write_to = "src/earthkit/transforms/version.py"
 write_to_template = '''
 # Do not change! Do not track in version control!
 __version__ = "{version}"
