@@ -28,8 +28,7 @@ def _reduce_dataarray(
     how_dropna=False,
     **kwargs,
 ):
-    """
-    Reduce an xarray.dataarray or xarray.dataset using a specified `how` method.
+    """Reduce an xarray.dataarray or xarray.dataset using a specified `how` method.
 
     With the option to apply weights either directly or using a specified
     `weights` method.
@@ -98,8 +97,7 @@ def reduce(
     *args,
     **kwargs,
 ):
-    """
-    Reduce an xarray.dataarray or xarray.dataset using a specified `how` method.
+    """Reduce an xarray.dataarray or xarray.dataset using a specified `how` method.
 
     With the option to apply weights either directly or using a specified
     `weights` method.
@@ -256,8 +254,7 @@ def resample(
     how_label: str | None = None,
     **kwargs,
 ) -> xr.DataArray:
-    """
-    Resample dataarray to a user-defined frequency using a user-defined "how" method.
+    """Resample dataarray to a user-defined frequency using a user-defined "how" method.
 
     Parameters
     ----------
