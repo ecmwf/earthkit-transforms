@@ -4,7 +4,7 @@ requires = ["setuptools>=64", "setuptools_scm>=8"]
 
 [project]
 classifiers = [
-  "Development Status :: 2 - Pre-Alpha",
+  "Development Status :: 4 - Beta",
   "Intended Audience :: Science/Research",
   "License :: OSI Approved :: Apache Software License",
   "Operating System :: OS Independent",
@@ -68,8 +68,9 @@ select = [
   "D"
 ]
 
-[tool.setuptools]
-packages = ["earthkit.transforms"]
+[tool.setuptools.packages.find]
+include = [ "earthkit.transforms" ]
+where = [ "src/" ]
 
 [tool.setuptools_scm]
 write_to = "src/earthkit/transforms/version.py"
