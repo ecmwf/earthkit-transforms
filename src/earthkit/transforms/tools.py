@@ -215,8 +215,7 @@ def standard_weights(dataarray: xr.DataArray, weights: str, **kwargs):
 
 
 def latitude_weights(dataarray: xr.DataArray, lat_key: str | None = None):
-    """
-    xarray.DataArray wrapper for latitude_weights.
+    """xarray.DataArray wrapper for latitude_weights.
 
     Detects the spatial dimensions latitude must be a coordinate of the dataarray.
     """

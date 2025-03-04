@@ -28,8 +28,7 @@ def _reduce_dataarray(
     how_dropna=False,
     **kwargs,
 ):
-    """
-    Reduce an xarray.dataarray or xarray.dataset using a specified `how` method.
+    """Reduce an xarray.dataarray or xarray.dataset using a specified `how` method.
 
     With the option to apply weights either directly or using a specified
     `weights` method.
@@ -95,11 +94,10 @@ def _reduce_dataarray(
 
 def reduce(
     dataarray: xr.Dataset | xr.DataArray,
-    *args,
+    *_args,
     **kwargs,
 ):
-    """
-    Reduce an xarray.dataarray or xarray.dataset using a specified `how` method.
+    """Reduce an xarray.dataarray or xarray.dataset using a specified `how` method.
 
     With the option to apply weights either directly or using a specified
     `weights` method.
@@ -130,7 +128,7 @@ def reduce(
 
     """
     # handle how as arg or kwarg
-    kwargs["how"] = args[0] if args else kwargs.get("how", "mean")
+    kwargs["how"] = _args[0] if _args else kwargs.get("how", "mean")
     out = _reduce_dataarray(dataarray, **kwargs)
     # Ensure any input attributes are preserved (maybe not necessary)
     if isinstance(dataarray, xr.Dataset):
@@ -138,7 +136,7 @@ def reduce(
     return out
 
 
-def rolling_reduce(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.DataArray:
+def rolling_reduce(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs) -> xr.DataArray:
     """Return reduced data using a moving window over which to apply the reduction.
 
     Parameters
@@ -170,11 +168,11 @@ def rolling_reduce(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.
     if isinstance(dataarray, (xr.Dataset)):
         out_ds = xr.Dataset().assign_attrs(dataarray.attrs)
         for var in dataarray.data_vars:
-            out_da = _rolling_reduce_dataarray(dataarray[var], *args, **kwargs)
+            out_da = _rolling_reduce_dataarray(dataarray[var], *_args, **kwargs)
             out_ds[out_da.name] = out_da
         return out_ds
     else:
-        return _rolling_reduce_dataarray(dataarray, *args, **kwargs)
+        return _rolling_reduce_dataarray(dataarray, *_args, **kwargs)
 
 
 def _rolling_reduce_dataarray(
@@ -201,6 +199,8 @@ def _rolling_reduce_dataarray(
     how_dropna : str
         Determine if dimension is removed from the output when we have at least one NaN or
         all NaN. **how_dropna** can be 'None', 'any' or 'all'. Default is None.
+    chunk: bool
+        If True, dataarray is chunked before reduction (requires for dask).
     **kwargs :
         Any kwargs that are compatible with the select `how_reduce` method.
 
@@ -234,13 +234,16 @@ def _rolling_reduce_dataarray(
     return data_windowed
 
 
-def _dropna(data, dims, how):
-    """Method for drop nan values."""
-    if how in [None, "None", "none"]:
+def _dropna(data, dims, how=None):
+    """Drop NaN values along specified dimensions."""
+    if how is None or str(how).lower() == "none":
         return data
 
+    if isinstance(dims, str):  # Ensure dims is iterable
+        dims = [dims]
+
     for dim in dims:
-        data = data.dropna(dim, how=how)
+        data = data.dropna(dim=dim, how=how)
     return data
 
 
@@ -251,48 +254,62 @@ def resample(
     time_dim: str = "time",
     how: str = "mean",
     skipna: bool = True,
-    how_args: list[T.Any] = [],
-    how_kwargs: dict[str, T.Any] = {},
-    how_label: str | None = None,
+    how_args: T.Optional[list[T.Any]] = None,
+    how_kwargs: T.Optional[dict[str, T.Any]] = None,
+    how_label: T.Optional[str] = None,
     **kwargs,
 ) -> xr.DataArray:
-    """
-    Resample dataarray to a user-defined frequency using a user-defined "how" method.
+    """Resample a Dataset or DataArray to a user-defined frequency using a specified method.
 
     Parameters
     ----------
-    dataarray : xr.DataArray
-        DataArray to be resampled.
+    dataarray : xr.Dataset | xr.DataArray
+        Dataset or DataArray to be resampled.
     frequency : str, int, float
         The frequency at which to resample the chosen dimension. The format must be applicable
         to the chosen dimension.
-    dim: str
-        The dimension to resample along, default is `time`
-    how: str
-        The reduction method for resampling, default is `mean`
-    how_label : str
-        Label to append to the name of the variable in the reduced object, default is nothing
+    time_dim : str, optional
+        The dimension to resample along, default is `"time"`.
+    how : str, optional
+        The reduction method for resampling, default is `"mean"`.
+    skipna : bool, optional
+        Whether to skip NaN values in the resampling operation, default is `True`.
+    how_args : list, optional
+        Positional arguments to pass to the resampling method.
+    how_kwargs : dict, optional
+        Keyword arguments to pass to the resampling method.
+    how_label : str, optional
+        Label to append to the name of the variable in the reduced object, default is `None`.
     **kwargs
-        Keyword arguments to be passed to :func:`resample`. Defaults have been set as:
-        `{"skipna": True}`
+        Additional keyword arguments to be passed to `resample`.
 
     Returns
     -------
     xr.DataArray
+        Resampled DataArray.
     """
+    how_args = how_args or []
+    how_kwargs = {**(how_kwargs or {})}  # Copy to avoid modifying external references
+
     # Handle legacy API instances:
     time_dim = kwargs.pop("dim", time_dim)
 
-    # Get any how kwargs into appropriate dictionary:
+    # Move specific kwargs into `how_kwargs` if needed:
     for _k in ["q", "p"]:
         if _k in kwargs:
             how_kwargs[_k] = kwargs.pop(_k)
-    # Translate and xarray frequencies to pandas language:
+
+    # Translate xarray frequencies to pandas equivalents if needed:
     frequency = tools._PANDAS_FREQUENCIES_R.get(frequency, frequency)
     kwargs[time_dim] = frequency
-    resample = dataarray.resample(skipna=skipna, **kwargs)
-    result = resample.__getattribute__(how)(*how_args, dim=time_dim, **how_kwargs)
 
-    result = how_label_rename(result, how_label=how_label)
+    resampled = dataarray.resample(skipna=skipna, **kwargs)
 
-    return result
+    # Safely call the method specified by `how`
+    reduce_method = getattr(resampled, how, None)
+    if not callable(reduce_method):
+        raise ValueError(f"Invalid resampling method: '{how}'")
+
+    result = reduce_method(*how_args, dim=time_dim, **how_kwargs)
+
+    return how_label_rename(result, how_label=how_label)

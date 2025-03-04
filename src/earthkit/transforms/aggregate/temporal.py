@@ -19,8 +19,7 @@ def standardise_time(
     target_format: str = "%Y-%m-%d %H:%M:%S",
     time_dim: str | None = None,
 ) -> xr.Dataset | xr.DataArray:
-    """
-    Convert time coordinates to a standard format using the Gregorian calendar.
+    """Convert time coordinates to a standard format using the Gregorian calendar.
 
     This function is helpful when combining data from different sources with
     different time standards or calendars - for example, when combining data
@@ -75,8 +74,7 @@ def reduce(
     time_dim: str | None = None,
     **kwargs,
 ) -> xr.Dataset | xr.DataArray:
-    """
-    Reduce an xarray.dataarray or xarray.dataset along the time/date dimension using a specified `how` method.
+    """Reduce an xarray.dataarray or xarray.dataset along the time/date dimension using a specified `how` method.
 
     With the option to apply weights either directly or using a specified
     `weights` method.
@@ -128,8 +126,7 @@ def mean(
     *args,
     **kwargs,
 ):
-    """
-    Calculate the mean of an xarray.dataarray or xarray.dataset along the time/date dimension.
+    """Calculate the mean of an xarray.dataarray or xarray.dataset along the time/date dimension.
 
     With the option to apply weights either directly or using a specified
     `weights` method.
@@ -168,8 +165,7 @@ def median(
     *args,
     **kwargs,
 ):
-    """
-    Calculate the median of an xarray.dataarray or xarray.dataset along the time/date dimension.
+    """Calculate the median of an xarray.dataarray or xarray.dataset along the time/date dimension.
 
     With the option to apply weights either directly or using a specified
     `weights` method.
@@ -208,8 +204,7 @@ def min(
     *args,
     **kwargs,
 ):
-    """
-    Calculate the mn of an xarray.dataarray or xarray.dataset along the time/date dimension.
+    """Calculate the mn of an xarray.dataarray or xarray.dataset along the time/date dimension.
 
     With the option to apply weights either directly or using a specified
     `weights` method.
@@ -248,8 +243,7 @@ def max(
     *args,
     **kwargs,
 ):
-    """
-    Calculate the max of an xarray.dataarray or xarray.dataset along the time/date dimension.
+    """Calculate the max of an xarray.dataarray or xarray.dataset along the time/date dimension.
 
     With the option to apply weights either directly or using a specified
     `weights` method.
@@ -288,8 +282,7 @@ def std(
     *args,
     **kwargs,
 ) -> xr.Dataset | xr.DataArray:
-    """
-    Calculate the standard deviation of an xarray.dataarray or xarray.dataset along the time/date dimension.
+    """Calculate the standard deviation of an xarray.dataarray or xarray.dataset along the time/date dimension.
 
     With the option to apply weights either directly or using a specified
     `weights` method.
@@ -328,8 +321,7 @@ def sum(
     *args,
     **kwargs,
 ) -> xr.Dataset | xr.DataArray:
-    """
-    Calculate the standard deviation of an xarray.dataarray or xarray.dataset along the time/date dimension.
+    """Calculate the standard deviation of an xarray.dataarray or xarray.dataset along the time/date dimension.
 
     With the option to apply weights either directly or using a specified
     `weights` method.
@@ -371,8 +363,7 @@ def daily_reduce(
     time_dim: str | None = None,
     **kwargs,
 ) -> xr.Dataset | xr.DataArray:
-    """
-    Group data by day and reduce using the given how method.
+    """Group data by day and reduce using the given how method.
 
     Parameters
     ----------
@@ -443,8 +434,7 @@ def daily_reduce(
 
 
 def daily_mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
-    """
-    Return the daily mean of the datacube.
+    """Return the daily mean of the datacube.
 
     Parameters
     ----------
@@ -473,8 +463,7 @@ def daily_mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Data
 
 
 def daily_median(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
-    """
-    Return the daily median of the datacube.
+    """Return the daily median of the datacube.
 
     Parameters
     ----------
@@ -503,8 +492,7 @@ def daily_median(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
 
 
 def daily_max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
-    """
-    Calculate the daily maximum.
+    """Calculate the daily maximum.
 
     Parameters
     ----------
@@ -533,8 +521,7 @@ def daily_max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
 
 
 def daily_min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
-    """
-    Calculate the daily minimum.
+    """Calculate the daily minimum.
 
     Parameters
     ----------
@@ -563,8 +550,7 @@ def daily_min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
 
 
 def daily_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
-    """
-    Calculate the daily standard deviation.
+    """Calculate the daily standard deviation.
 
     Parameters
     ----------
@@ -593,8 +579,7 @@ def daily_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
 
 
 def daily_sum(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
-    """
-    Calculate the daily sum (accumulation).
+    """Calculate the daily sum (accumulation).
 
     Parameters
     ----------
@@ -629,8 +614,7 @@ def monthly_reduce(
     time_dim: str | None = None,
     **kwargs,
 ):
-    """
-    Group data by day and reduce using the given how method.
+    """Group data by day and reduce using the given how method.
 
     Parameters
     ----------
@@ -711,8 +695,7 @@ def monthly_mean(
     *args,
     **kwargs,
 ):
-    """
-    Calculate the monthly mean.
+    """Calculate the monthly mean.
 
     Parameters
     ----------
@@ -745,8 +728,7 @@ def monthly_median(
     *args,
     **kwargs,
 ):
-    """
-    Calculate the monthly median.
+    """Calculate the monthly median.
 
     Parameters
     ----------
@@ -779,8 +761,7 @@ def monthly_min(
     *args,
     **kwargs,
 ):
-    """
-    Calculate the monthly min.
+    """Calculate the monthly min.
 
     Parameters
     ----------
@@ -813,8 +794,7 @@ def monthly_max(
     *args,
     **kwargs,
 ):
-    """
-    Calculate the monthly max.
+    """Calculate the monthly max.
 
     Parameters
     ----------
@@ -847,8 +827,7 @@ def monthly_std(
     *args,
     **kwargs,
 ):
-    """
-    Calculate the monthly standard deviation.
+    """Calculate the monthly standard deviation.
 
     Parameters
     ----------
@@ -881,8 +860,7 @@ def monthly_sum(
     *args,
     **kwargs,
 ):
-    """
-    Calculate the monthly sum/accumulation along the time dimension.
+    """Calculate the monthly sum/accumulation along the time dimension.
 
     Parameters
     ----------

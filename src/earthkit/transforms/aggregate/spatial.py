@@ -12,18 +12,42 @@ logger = logging.getLogger(__name__)
 
 
 def _transform_from_latlon(lat, lon):
-    """
-    Return an Affine transformation of input 1D arrays of lat and lon.
+    """Compute an Affine transformation matrix from latitude and longitude arrays.
 
-    This assumes that both lat and lon are regular and contiguous.
+    This function assumes that latitude and longitude values are regularly spaced
+    and contiguous.
 
     Parameters
     ----------
-    lat/lon : arrays or lists of latitude and longitude
+    lat : array-like
+        A 1D array or list of latitude values, sorted in descending order.
+    lon : array-like
+        A 1D array or list of longitude values, sorted in ascending order.
+
+    Returns
+    -------
+    Affine
+        An affine transformation matrix for the given lat/lon grid.
+
+    Raises
+    ------
+    ValueError
+        If lat or lon has fewer than two elements.
+        If lat or lon is not a 1D array.
     """
     from affine import Affine
 
+    lat = np.asarray(lat)
+    lon = np.asarray(lon)
+
+    if lat.ndim != 1 or lon.ndim != 1:
+        raise ValueError("Latitude and longitude must be 1D arrays or lists.")
+    if len(lat) < 2 or len(lon) < 2:
+        raise ValueError("Latitude and longitude arrays must contain at least two values.")
+
+    # Compute translation (shifting origin to the corner of the first pixel)
     trans = Affine.translation(lon[0] - (lon[1] - lon[0]) / 2, lat[0] - (lat[1] - lat[0]) / 2)
+    # Compute scaling (distance per pixel)
     scale = Affine.scale(lon[1] - lon[0], lat[1] - lat[0])
 
     return trans * scale
@@ -37,8 +61,7 @@ def rasterize(
     dtype: type = int,
     **kwargs,
 ) -> xr.DataArray:
-    """
-    Rasterize a list of geometries onto the given xarray coordinates.
+    """Rasterize a list of geometries onto the given xarray coordinates.
     This only works for regular and contiguous latitude and longitude grids.
 
     Parameters
@@ -69,8 +92,7 @@ def rasterize(
 
 
 def mask_contains_points(shape_list, coords, lat_key="lat", lon_key="lon", **kwargs) -> xr.DataArray:
-    """
-    Return a mask array for the spatial points of data that lie within shapes in shape_list.
+    """Return a mask array for the spatial points of data that lie within shapes in shape_list.
     Function uses matplotlib.Path so can accept a list of points, this is much faster than shapely.
     It was initially included for use with irregular data but has been constructed to also accept
     regular data and return in the same format as the rasterize function.
@@ -166,8 +188,7 @@ def _shape_mask_iterator(shapes, target, regular=True, **kwargs):
 
 
 def shapes_to_masks(shapes: gpd.GeoDataFrame | list[gpd.GeoDataFrame], target, regular=True, **kwargs):
-    """
-    Method which creates a list of masked dataarrays, if possible use the shape_mask_iterator.
+    """Method which creates a list of masked dataarrays, if possible use the shape_mask_iterator.
 
     Parameters
     ----------
@@ -201,8 +222,7 @@ def shapes_to_masks(shapes: gpd.GeoDataFrame | list[gpd.GeoDataFrame], target, r
 
 
 def shapes_to_mask(shapes, target, regular=True, **kwargs):
-    """
-    Method which creates a single masked dataarray based on all features in shapes,
+    """Method which creates a single masked dataarray based on all features in shapes,
         if possible use the shape_mask_iterator.
 
     Parameters
@@ -284,8 +304,7 @@ def mask(
     union_geometries: bool = False,
     **mask_kwargs,
 ) -> xr.Dataset | xr.DataArray:
-    """
-    Apply multiple shape masks to some gridded data.
+    """Apply multiple shape masks to some gridded data.
 
     Each feature in shape is treated as an individual mask to apply to
     data. The data provided is returned with an additional dimension equal in
@@ -361,8 +380,7 @@ def reduce(
     *args,
     **kwargs,
 ) -> xr.Dataset | xr.DataArray:
-    """
-    Apply a shape object to an xarray.DataArray object using the specified 'how' method.
+    """Apply a shape object to an xarray.DataArray object using the specified 'how' method.
 
     Geospatial coordinates are reduced to a dimension representing the list of features in the shape object.
 
@@ -463,8 +481,7 @@ def _reduce_dataarray(
     return_geometry_as_coord: bool = False,
     **reduce_kwargs,
 ) -> xr.DataArray | pd.DataFrame:
-    """
-    Reduce an xarray.DataArray object over its geospatial dimensions using the specified 'how' method.
+    """Reduce an xarray.DataArray object over its geospatial dimensions using the specified 'how' method.
 
     If a geodataframe is provided the DataArray is reduced over each feature in the geodataframe.
     Geospatial coordinates are reduced to a dimension representing the list of features in the shape object.
