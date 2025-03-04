@@ -17,8 +17,7 @@ def reduce(
     groupby_kwargs: dict = {},
     **reduce_kwargs,
 ):
-    """
-    Group data annually over a given `frequency` and reduce using the specified `how` method.
+    """Group data annually over a given `frequency` and reduce using the specified `how` method.
 
     Parameters
     ----------
@@ -40,6 +39,8 @@ def reduce(
     time_dim : str (optional)
         Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
+    groupby_kwargs : dict
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.groupby_time`
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
@@ -55,9 +56,8 @@ def reduce(
     return _reduce(grouped_data, how=how, dim=time_dim, **reduce_kwargs)
 
 
-def mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
-    """
-    Calculate the climatological mean.
+def mean(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.Dataset | xr.DataArray:
+    """Calculate the climatological mean.
 
     Parameters
     ----------
@@ -80,13 +80,12 @@ def mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | 
     -------
     xr.DataArray
     """
-    kwargs["how"] = "mean"
-    return reduce(dataarray, *args, **kwargs)
+    _kwargs["how"] = "mean"
+    return reduce(dataarray, *_args, **_kwargs)
 
 
-def median(dataarray: xr.Dataset | xr.DataArray, **kwargs) -> xr.DataArray:
-    """
-    Calculate the climatological median.
+def median(dataarray: xr.Dataset | xr.DataArray, **_kwargs) -> xr.DataArray:
+    """Calculate the climatological median.
 
     Parameters
     ----------
@@ -109,13 +108,12 @@ def median(dataarray: xr.Dataset | xr.DataArray, **kwargs) -> xr.DataArray:
     -------
     xr.DataArray
     """
-    result = quantiles(dataarray, [0.5], **kwargs)
+    result = quantiles(dataarray, [0.5], **_kwargs)
     return result.isel(quantile=0)
 
 
-def min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
-    """
-    Calculate the climatological minimum.
+def min(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.Dataset | xr.DataArray:
+    """Calculate the climatological minimum.
 
     Parameters
     ----------
@@ -138,13 +136,12 @@ def min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | x
     -------
     xr.DataArray
     """
-    kwargs["how"] = "max"
-    return reduce(dataarray, *args, **kwargs)
+    _kwargs["how"] = "max"
+    return reduce(dataarray, *_args, **_kwargs)
 
 
-def max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
-    """
-    Calculate the climatological maximum.
+def max(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.Dataset | xr.DataArray:
+    """Calculate the climatological maximum.
 
     Parameters
     ----------
@@ -167,13 +164,12 @@ def max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | x
     -------
     xr.DataArray
     """
-    kwargs["how"] = "max"
-    return reduce(dataarray, *args, **kwargs)
+    _kwargs["how"] = "max"
+    return reduce(dataarray, *_args, **_kwargs)
 
 
-def std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
-    """
-    Calculate the climatological standard deviation.
+def std(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.Dataset | xr.DataArray:
+    """Calculate the climatological standard deviation.
 
     Parameters
     ----------
@@ -197,13 +193,12 @@ def std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | x
     -------
     xr.DataArray
     """
-    kwargs["how"] = "std"
-    return reduce(dataarray, *args, **kwargs)
+    _kwargs["how"] = "std"
+    return reduce(dataarray, *_args, **_kwargs)
 
 
-def daily_reduce(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
-    """
-    Reduce the data to the daily climatology of the provided "how" method.
+def daily_reduce(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.Dataset | xr.DataArray:
+    """Reduce the data to the daily climatology of the provided "how" method.
 
     Parameters
     ----------
@@ -230,13 +225,12 @@ def daily_reduce(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Da
     -------
     xr.DataArray
     """
-    kwargs["frequency"] = "dayofyear"
-    return reduce(dataarray, *args, **kwargs)
+    _kwargs["frequency"] = "dayofyear"
+    return reduce(dataarray, *_args, **_kwargs)
 
 
-def daily_mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
-    """
-    Calculate the daily climatological mean.
+def daily_mean(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.Dataset | xr.DataArray:
+    """Calculate the daily climatological mean.
 
     Parameters
     ----------
@@ -257,13 +251,12 @@ def daily_mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Data
     -------
     xr.DataArray
     """
-    kwargs["how"] = "mean"
-    return daily_reduce(dataarray, *args, **kwargs)
+    _kwargs["how"] = "mean"
+    return daily_reduce(dataarray, *_args, **_kwargs)
 
 
-def daily_median(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
-    """
-    Calculate the daily climatological median.
+def daily_median(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.Dataset | xr.DataArray:
+    """Calculate the daily climatological median.
 
     Parameters
     ----------
@@ -284,13 +277,12 @@ def daily_median(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Da
     -------
     xr.DataArray
     """
-    kwargs["how"] = "median"
-    return daily_reduce(dataarray, *args, **kwargs)
+    _kwargs["how"] = "median"
+    return daily_reduce(dataarray, *_args, **_kwargs)
 
 
-def daily_min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
-    """
-    Calculate the daily climatological min.
+def daily_min(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.Dataset | xr.DataArray:
+    """Calculate the daily climatological min.
 
     Parameters
     ----------
@@ -311,13 +303,12 @@ def daily_min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Datas
     -------
     xr.DataArray
     """
-    kwargs["how"] = "min"
-    return daily_reduce(dataarray, *args, **kwargs)
+    _kwargs["how"] = "min"
+    return daily_reduce(dataarray, *_args, **_kwargs)
 
 
-def daily_max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
-    """
-    Calculate the daily climatological max.
+def daily_max(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.Dataset | xr.DataArray:
+    """Calculate the daily climatological max.
 
     Parameters
     ----------
@@ -338,13 +329,12 @@ def daily_max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Datas
     -------
     xr.DataArray
     """
-    kwargs["how"] = "max"
-    return daily_reduce(dataarray, *args, **kwargs)
+    _kwargs["how"] = "max"
+    return daily_reduce(dataarray, *_args, **_kwargs)
 
 
-def daily_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
-    """
-    Calculate the daily climatological standard deviation.
+def daily_std(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.Dataset | xr.DataArray:
+    """Calculate the daily climatological standard deviation.
 
     Parameters
     ----------
@@ -366,13 +356,12 @@ def daily_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Datas
     -------
     xr.DataArray
     """
-    kwargs["how"] = "std"
-    return daily_reduce(dataarray, *args, **kwargs)
+    _kwargs["how"] = "std"
+    return daily_reduce(dataarray, *_args, **_kwargs)
 
 
-def monthly_reduce(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
-    """
-    Reduce the data to the monthly climatology of the provided "how" method.
+def monthly_reduce(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.Dataset | xr.DataArray:
+    """Reduce the data to the monthly climatology of the provided "how" method.
 
     Parameters
     ----------
@@ -399,13 +388,12 @@ def monthly_reduce(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.
     -------
     xr.DataArray
     """
-    kwargs["frequency"] = "month"
-    return reduce(dataarray, *args, **kwargs)
+    _kwargs["frequency"] = "month"
+    return reduce(dataarray, *_args, **_kwargs)
 
 
-def monthly_mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
-    """
-    Calculate the monthly climatological mean.
+def monthly_mean(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.Dataset | xr.DataArray:
+    """Calculate the monthly climatological mean.
 
     Parameters
     ----------
@@ -426,13 +414,12 @@ def monthly_mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Da
     -------
     xr.DataArray
     """
-    kwargs["how"] = "mean"
-    return monthly_reduce(dataarray, *args, **kwargs)
+    _kwargs["how"] = "mean"
+    return monthly_reduce(dataarray, *_args, **_kwargs)
 
 
-def monthly_median(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
-    """
-    Calculate the monthly climatological median.
+def monthly_median(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.Dataset | xr.DataArray:
+    """Calculate the monthly climatological median.
 
     Parameters
     ----------
@@ -453,13 +440,12 @@ def monthly_median(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.
     -------
     xr.DataArray
     """
-    kwargs["how"] = "median"
-    return monthly_reduce(dataarray, *args, **kwargs)
+    _kwargs["how"] = "median"
+    return monthly_reduce(dataarray, *_args, **_kwargs)
 
 
-def monthly_min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
-    """
-    Calculate the monthly climatological min.
+def monthly_min(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.Dataset | xr.DataArray:
+    """Calculate the monthly climatological min.
 
     Parameters
     ----------
@@ -480,13 +466,12 @@ def monthly_min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dat
     -------
     xr.DataArray
     """
-    kwargs["how"] = "min"
-    return monthly_reduce(dataarray, *args, **kwargs)
+    _kwargs["how"] = "min"
+    return monthly_reduce(dataarray, *_args, **_kwargs)
 
 
-def monthly_max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
-    """
-    Calculate the monthly climatological max.
+def monthly_max(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.Dataset | xr.DataArray:
+    """Calculate the monthly climatological max.
 
     Parameters
     ----------
@@ -507,13 +492,12 @@ def monthly_max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dat
     -------
     xr.DataArray
     """
-    kwargs["how"] = "max"
-    return monthly_reduce(dataarray, *args, **kwargs)
+    _kwargs["how"] = "max"
+    return monthly_reduce(dataarray, *_args, **_kwargs)
 
 
-def monthly_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
-    """
-    Calculate the monthly climatological standard deviation.
+def monthly_std(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.Dataset | xr.DataArray:
+    """Calculate the monthly climatological standard deviation.
 
     Parameters
     ----------
@@ -535,8 +519,8 @@ def monthly_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dat
     -------
     xr.DataArray
     """
-    kwargs["how"] = "std"
-    return monthly_reduce(dataarray, *args, **kwargs)
+    _kwargs["how"] = "std"
+    return monthly_reduce(dataarray, *_args, **_kwargs)
 
 
 @tools.time_dim_decorator
@@ -549,8 +533,7 @@ def quantiles(
     groupby_kwargs: dict = {},
     **reduce_kwargs,
 ) -> xr.DataArray:
-    """
-    Calculate a set of climatological quantiles.
+    """Calculate a set of climatological quantiles.
 
     Parameters
     ----------
@@ -568,6 +551,8 @@ def quantiles(
     time_dim : str (optional)
         Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
+    groupby_kwargs : dict
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.groupby_time`
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
@@ -594,17 +579,16 @@ def quantiles(
 def percentiles(
     dataarray: xr.Dataset | xr.DataArray,
     p: float | list,
-    **kwargs,
+    **_kwargs,
 ) -> xr.DataArray:
-    """
-    Calculate a set of climatological percentiles.
+    """Calculate a set of climatological percentiles.
 
     Parameters
     ----------
     dataarray : xr.DataArray
         The DataArray over which to calculate the climatological percentiles. Must
         contain a `time` dimension.
-    percentiles : float | list
+    p : float | list
         The pecentile, or list of percentiles, to calculate the climatology.
     frequency : str (optional)
         Valid options are `day`, `week` and `month`.
@@ -628,9 +612,9 @@ def percentiles(
     quantile_data = quantiles(
         dataarray,
         q,
-        **kwargs,
+        **_kwargs,
     )
-    result = quantile_data.assign_coords(percentile=("quantile", percentiles))
+    result = quantile_data.assign_coords(percentile=("quantile", p))
     result = result.swap_dims({"quantile": "percentile"})
     result = result.drop("quantile")
     return result
@@ -639,10 +623,9 @@ def percentiles(
 def anomaly(
     dataarray: xr.Dataset | xr.DataArray,
     climatology: xr.Dataset | xr.DataArray,
-    **kwargs,
+    **_kwargs,
 ) -> xr.Dataset | xr.DataArray:
-    """
-    Calculate the anomaly from a reference climatology.
+    """Calculate the anomaly from a reference climatology.
 
     Parameters
     ----------
@@ -673,11 +656,11 @@ def anomaly(
     if isinstance(dataarray, xr.Dataset):
         out_ds = xr.Dataset().assign_attrs(dataarray.attrs)
         for var in dataarray.data_vars:
-            out_da = _anomaly_dataarray(dataarray[var], climatology, **kwargs)
+            out_da = _anomaly_dataarray(dataarray[var], climatology, **_kwargs)
             out_ds[out_da.name] = out_da
         return out_ds
     else:
-        return _anomaly_dataarray(dataarray, climatology, **kwargs)
+        return _anomaly_dataarray(dataarray, climatology, **_kwargs)
 
 
 @tools.time_dim_decorator
@@ -693,8 +676,7 @@ def _anomaly_dataarray(
     how_label: str | None = None,
     **reduce_kwargs,
 ) -> xr.DataArray:
-    """
-    Calculate the anomaly from a reference climatology.
+    """Calculate the anomaly from a reference climatology.
 
     Parameters
     ----------
@@ -715,6 +697,12 @@ def _anomaly_dataarray(
         time dimension from the input object
     relative : bool (optional)
         Return the relative anomaly, i.e. the percentage change w.r.t the climatological period
+    climatology_how_tag : str (optional)
+        Tag to identify the climatology variable in the climatology dataset
+    how_label : str (optional)
+        Label to append to the variable name of the anomaly dataarray
+    groupby_kwargs : dict
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.groupby_time`
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.climatology.mean`
 
@@ -789,9 +777,8 @@ def update_anomaly_array(anomaly_array, original_array, var_name, name_tag, upda
 @tools.time_dim_decorator
 @tools.groupby_kwargs_decorator
 @tools.season_order_decorator
-def relative_anomaly(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
-    """
-    Calculate the relative anomaly from a reference climatology, i.e. percentage change.
+def relative_anomaly(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs):
+    """Calculate the relative anomaly from a reference climatology, i.e. percentage change.
 
     Parameters
     ----------
@@ -820,21 +807,20 @@ def relative_anomaly(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
     -------
     xr.DataArray
     """
-    anomaly_xarray = anomaly(dataarray, *args, relative=True, **kwargs)
+    anomaly_xarray = anomaly(dataarray, *_args, relative=True, **_kwargs)
 
     return anomaly_xarray
 
 
 def auto_anomaly(
     dataarray: xr.Dataset | xr.DataArray,
-    *args,
+    *_args,
     climatology_range: tuple | None = None,
     climatology_how: str = "mean",
     relative: bool = False,
-    **kwargs,
+    **_kwargs,
 ):
-    """
-    Calculate the anomaly from a reference climatology.
+    """Calculate the anomaly from a reference climatology.
 
     Parameters
     ----------
@@ -872,9 +858,9 @@ def auto_anomaly(
         selection = dataarray.sel(time=slice(*climatology_range))
     else:
         selection = dataarray
-    climatology = reduce(selection, *args, how=climatology_how, **kwargs)
+    climatology = reduce(selection, *_args, how=climatology_how, **_kwargs)
 
-    return anomaly(dataarray, climatology, *args, relative=relative, **kwargs)
+    return anomaly(dataarray, climatology, *_args, relative=relative, **_kwargs)
 
 
 # Alias easter eggs
