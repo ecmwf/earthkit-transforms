@@ -37,6 +37,11 @@ def standardise_time(
         example, "%Y-%m-%d" will reduce to daily resolution - or to fix elements
         of the datetime object - for example, "%Y-%m-15" would reduce to monthly
         resolution and fix the date to the 15th of each month.
+    time_dim : str, optional
+        Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
+        default behaviour is to deduce time dimension from
+        attributes of coordinates, then fall back to `"time"`.
+        If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
 
     Returns
     -------
@@ -70,11 +75,11 @@ def standardise_time(
 @tools.time_dim_decorator
 def reduce(
     dataarray: xr.Dataset | xr.DataArray,
-    *args,
+    *_args,
     time_dim: str | None = None,
     **kwargs,
 ) -> xr.Dataset | xr.DataArray:
-    """Reduce an xarray.dataarray or xarray.dataset along the time/date dimension using a specified `how` method.
+    """Reduce an xarray.dataarray/dataset along the time/date dimension using a specified `how` method.
 
     With the option to apply weights either directly or using a specified
     `weights` method.
@@ -111,19 +116,19 @@ def reduce(
 
     """
     if "frequency" in kwargs:
-        return resample(dataarray, *args, time_dim=time_dim, **kwargs)
+        return resample(dataarray, *_args, time_dim=time_dim, **kwargs)
 
     reduce_dims = tools.ensure_list(kwargs.get("dim", []))
     if time_dim is not None and time_dim not in reduce_dims:
         reduce_dims.append(time_dim)
     kwargs["dim"] = reduce_dims
 
-    return _reduce(dataarray, *args, **kwargs)
+    return _reduce(dataarray, *_args, **kwargs)
 
 
 def mean(
     dataarray: xr.Dataset | xr.DataArray,
-    *args,
+    *_args,
     **kwargs,
 ):
     """Calculate the mean of an xarray.dataarray or xarray.dataset along the time/date dimension.
@@ -157,12 +162,12 @@ def mean(
 
     """
     kwargs["how"] = "mean"
-    return reduce(dataarray, *args, **kwargs)
+    return reduce(dataarray, *_args, **kwargs)
 
 
 def median(
     dataarray: xr.Dataset | xr.DataArray,
-    *args,
+    *_args,
     **kwargs,
 ):
     """Calculate the median of an xarray.dataarray or xarray.dataset along the time/date dimension.
@@ -196,12 +201,12 @@ def median(
 
     """
     kwargs["how"] = "median"
-    return reduce(dataarray, *args, **kwargs)
+    return reduce(dataarray, *_args, **kwargs)
 
 
 def min(
     dataarray: xr.Dataset | xr.DataArray,
-    *args,
+    *_args,
     **kwargs,
 ):
     """Calculate the mn of an xarray.dataarray or xarray.dataset along the time/date dimension.
@@ -235,12 +240,12 @@ def min(
 
     """
     kwargs["how"] = "min"
-    return reduce(dataarray, *args, **kwargs)
+    return reduce(dataarray, *_args, **kwargs)
 
 
 def max(
     dataarray: xr.Dataset | xr.DataArray,
-    *args,
+    *_args,
     **kwargs,
 ):
     """Calculate the max of an xarray.dataarray or xarray.dataset along the time/date dimension.
@@ -274,15 +279,15 @@ def max(
 
     """
     kwargs["how"] = "max"
-    return reduce(dataarray, *args, **kwargs)
+    return reduce(dataarray, *_args, **kwargs)
 
 
 def std(
     dataarray: xr.Dataset | xr.DataArray,
-    *args,
+    *_args,
     **kwargs,
 ) -> xr.Dataset | xr.DataArray:
-    """Calculate the standard deviation of an xarray.dataarray or xarray.dataset along the time/date dimension.
+    """Calculate the standard deviation of an xarray.dataarray/dataset along the time/date dimension.
 
     With the option to apply weights either directly or using a specified
     `weights` method.
@@ -313,15 +318,15 @@ def std(
 
     """
     kwargs["how"] = "std"
-    return reduce(dataarray, *args, **kwargs)
+    return reduce(dataarray, *_args, **kwargs)
 
 
 def sum(
     dataarray: xr.Dataset | xr.DataArray,
-    *args,
+    *_args,
     **kwargs,
 ) -> xr.Dataset | xr.DataArray:
-    """Calculate the standard deviation of an xarray.dataarray or xarray.dataset along the time/date dimension.
+    """Calculate the standard deviation of an xarray.dataarray/dataset along the time/date dimension.
 
     With the option to apply weights either directly or using a specified
     `weights` method.
@@ -353,7 +358,7 @@ def sum(
 
     """
     kwargs["how"] = "sum"
-    return reduce(dataarray, *args, **kwargs)
+    return reduce(dataarray, *_args, **kwargs)
 
 
 @tools.time_dim_decorator
@@ -433,7 +438,7 @@ def daily_reduce(
     return red_array
 
 
-def daily_mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Dataset | xr.DataArray:
+def daily_mean(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs) -> xr.Dataset | xr.DataArray:
     """Return the daily mean of the datacube.
 
     Parameters
@@ -459,10 +464,10 @@ def daily_mean(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.Data
     xr.DataArray | xr.Dataset
         A dataarray reduced to daily mean values
     """
-    return daily_reduce(dataarray, *args, how="mean", **kwargs)
+    return daily_reduce(dataarray, *_args, how="mean", **kwargs)
 
 
-def daily_median(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
+def daily_median(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs):
     """Return the daily median of the datacube.
 
     Parameters
@@ -488,10 +493,10 @@ def daily_median(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
     xr.DataArray | xr.Dataset
         A dataarray reduced to daily median values
     """
-    return daily_reduce(dataarray, *args, how="median", **kwargs)
+    return daily_reduce(dataarray, *_args, how="median", **kwargs)
 
 
-def daily_max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
+def daily_max(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs):
     """Calculate the daily maximum.
 
     Parameters
@@ -517,10 +522,10 @@ def daily_max(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
     xr.DataArray | xr.Dataset
         A dataarray reduced to daily max values
     """
-    return daily_reduce(dataarray, *args, how="max", **kwargs)
+    return daily_reduce(dataarray, *_args, how="max", **kwargs)
 
 
-def daily_min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
+def daily_min(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs):
     """Calculate the daily minimum.
 
     Parameters
@@ -546,10 +551,10 @@ def daily_min(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
     xr.DataArray | xr.Dataset
         A dataarray reduced to daily min values
     """
-    return daily_reduce(dataarray, *args, how="min", **kwargs)
+    return daily_reduce(dataarray, *_args, how="min", **kwargs)
 
 
-def daily_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
+def daily_std(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs):
     """Calculate the daily standard deviation.
 
     Parameters
@@ -575,10 +580,10 @@ def daily_std(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
     xr.DataArray | xr.Dataset
         A dataarray reduced to daily standard deviation values
     """
-    return daily_reduce(dataarray, *args, how="std", **kwargs)
+    return daily_reduce(dataarray, *_args, how="std", **kwargs)
 
 
-def daily_sum(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
+def daily_sum(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs):
     """Calculate the daily sum (accumulation).
 
     Parameters
@@ -604,7 +609,7 @@ def daily_sum(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs):
     xr.DataArray | xr.Dataset
         A dataarray reduced to daily sum values
     """
-    return daily_reduce(dataarray, *args, how="sum", **kwargs)
+    return daily_reduce(dataarray, *_args, how="sum", **kwargs)
 
 
 @tools.time_dim_decorator
@@ -692,7 +697,7 @@ def monthly_reduce(
 
 def monthly_mean(
     dataarray: xr.Dataset | xr.DataArray,
-    *args,
+    *_args,
     **kwargs,
 ):
     """Calculate the monthly mean.
@@ -720,12 +725,12 @@ def monthly_mean(
     xr.DataArray | xr.Dataset
         A dataarray reduced to monthly mean values
     """
-    return monthly_reduce(dataarray, *args, how="mean", **kwargs)
+    return monthly_reduce(dataarray, *_args, how="mean", **kwargs)
 
 
 def monthly_median(
     dataarray: xr.Dataset | xr.DataArray,
-    *args,
+    *_args,
     **kwargs,
 ):
     """Calculate the monthly median.
@@ -753,12 +758,12 @@ def monthly_median(
     xr.DataArray | xr.Dataset
         A dataarray reduced to monthly median values
     """
-    return monthly_reduce(dataarray, *args, how="median", **kwargs)
+    return monthly_reduce(dataarray, *_args, how="median", **kwargs)
 
 
 def monthly_min(
     dataarray: xr.Dataset | xr.DataArray,
-    *args,
+    *_args,
     **kwargs,
 ):
     """Calculate the monthly min.
@@ -786,12 +791,12 @@ def monthly_min(
     xr.DataArray | xr.Dataset
         A dataarray reduced to monthly minimum values
     """
-    return monthly_reduce(dataarray, *args, how="min", **kwargs)
+    return monthly_reduce(dataarray, *_args, how="min", **kwargs)
 
 
 def monthly_max(
     dataarray: xr.Dataset | xr.DataArray,
-    *args,
+    *_args,
     **kwargs,
 ):
     """Calculate the monthly max.
@@ -819,12 +824,12 @@ def monthly_max(
     xr.DataArray | xr.Dataset
         A dataarray reduced to monthly maximum values
     """
-    return monthly_reduce(dataarray, *args, how="max", **kwargs)
+    return monthly_reduce(dataarray, *_args, how="max", **kwargs)
 
 
 def monthly_std(
     dataarray: xr.Dataset | xr.DataArray,
-    *args,
+    *_args,
     **kwargs,
 ):
     """Calculate the monthly standard deviation.
@@ -852,12 +857,12 @@ def monthly_std(
     xr.DataArray | xr.Dataset
         A dataarray reduced to monthly standard deviation values
     """
-    return monthly_reduce(dataarray, *args, how="std", **kwargs)
+    return monthly_reduce(dataarray, *_args, how="std", **kwargs)
 
 
 def monthly_sum(
     dataarray: xr.Dataset | xr.DataArray,
-    *args,
+    *_args,
     **kwargs,
 ):
     """Calculate the monthly sum/accumulation along the time dimension.
@@ -885,7 +890,7 @@ def monthly_sum(
     xr.DataArray | xr.Dataset
         A dataarray reduced to monthly sum values
     """
-    return monthly_reduce(dataarray, *args, how="sum", **kwargs)
+    return monthly_reduce(dataarray, *_args, how="sum", **kwargs)
 
 
 @tools.time_dim_decorator

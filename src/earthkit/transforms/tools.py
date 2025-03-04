@@ -107,17 +107,21 @@ def season_order_decorator(func):
 
 
 def nanaverage(data, weights=None, **kwargs):
-    """A merge of the functionality of np.nanmean and np.average.
+    """Calculate the average of data ignoring nan-values.
 
     Parameters
     ----------
     data : numpy array
-    weights: Weights to apply to the data for averaging.
-            Weights will be normalised and must correspond to the
-            shape of the numpy data array and axis/axes that is/are
-            averaged over.
-    axis: axis/axes to compute the nanaverage over.
-    kwargs: any other np.nansum kwargs
+        Data to average.
+    weights:
+        Weights to apply to the data for averaging.
+        Weights will be normalised and must correspond to the
+        shape of the numpy data array and axis/axes that is/are
+        averaged over.
+    axis:
+        axis/axes to compute the nanaverage over.
+    kwargs:
+        any other np.nansum kwargs
 
     Returns
     -------
