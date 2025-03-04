@@ -530,7 +530,7 @@ def quantiles(
     dataarray: xr.Dataset | xr.DataArray,
     q: float | list,
     time_dim: str | None = None,
-    _groupby_kwargs: dict = {},
+    groupby_kwargs: dict = {},
     **reduce_kwargs,
 ) -> xr.DataArray:
     """Calculate a set of climatological quantiles.
@@ -551,6 +551,8 @@ def quantiles(
     time_dim : str (optional)
         Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
+    groupby_kwargs : dict
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.groupby_time`
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
@@ -558,7 +560,7 @@ def quantiles(
     -------
     xr.DataArray
     """
-    grouped_data = groupby_time(dataarray.chunk({time_dim: -1}), time_dim=time_dim, **_groupby_kwargs)
+    grouped_data = groupby_time(dataarray.chunk({time_dim: -1}), time_dim=time_dim, **groupby_kwargs)
     results = []
     if not isinstance(q, (list, tuple)):
         q = [q]
@@ -668,7 +670,7 @@ def _anomaly_dataarray(
     dataarray: xr.DataArray,
     climatology: xr.Dataset | xr.DataArray,
     time_dim: str | None = None,
-    _groupby_kwargs: dict = {},
+    groupby_kwargs: dict = {},
     relative: bool = False,
     climatology_how_tag: str = "",
     how_label: str | None = None,
@@ -699,6 +701,8 @@ def _anomaly_dataarray(
         Tag to identify the climatology variable in the climatology dataset
     how_label : str (optional)
         Label to append to the variable name of the anomaly dataarray
+    groupby_kwargs : dict
+        Any other kwargs that are accepted by `earthkit.transforms.aggregate.groupby_time`
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.climatology.mean`
 
@@ -732,17 +736,17 @@ def _anomaly_dataarray(
 
     # If frequency not defined, it is deduced from the climatology.
     # This is somewhat hardcoded, but it is best practice, so for now it can stay here
-    if _groupby_kwargs.get("frequency") is None:
+    if groupby_kwargs.get("frequency") is None:
         for freq in ["dayofyear", "week", "month"]:
             if freq in climatology_da.dims:
-                _groupby_kwargs["frequency"] = freq
+                groupby_kwargs["frequency"] = freq
                 break
 
-    anomaly_array = groupby_time(dataarray, time_dim=time_dim, **_groupby_kwargs) - climatology_da
+    anomaly_array = groupby_time(dataarray, time_dim=time_dim, **groupby_kwargs) - climatology_da
 
     if relative:
         anomaly_array = (
-            groupby_time(anomaly_array, time_dim=time_dim, **_groupby_kwargs) / climatology_da
+            groupby_time(anomaly_array, time_dim=time_dim, **groupby_kwargs) / climatology_da
         ) * 100.0
         name_tag = "relative anomaly"
         update_attrs = {"units": "%"}
@@ -750,7 +754,7 @@ def _anomaly_dataarray(
         name_tag = "anomaly"
         update_attrs = {}
 
-    anomaly_array = resample(anomaly_array, how="mean", **reduce_kwargs, **_groupby_kwargs, dim=time_dim)
+    anomaly_array = resample(anomaly_array, how="mean", **reduce_kwargs, **groupby_kwargs, dim=time_dim)
 
     return update_anomaly_array(
         anomaly_array, dataarray, var_name, name_tag, update_attrs, how_label=how_label
