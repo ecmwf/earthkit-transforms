@@ -1,7 +1,6 @@
 import typing as T
 
 import xarray as xr
-
 from earthkit.transforms import tools
 from earthkit.transforms.aggregate.general import reduce as _reduce
 from earthkit.transforms.aggregate.general import resample
