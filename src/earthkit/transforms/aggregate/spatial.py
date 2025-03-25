@@ -558,7 +558,7 @@ def _reduce_dataarray(
     else:
         # If no geodataframe, then no mask, so create a dummy mask:
         if geodataframe is None:
-            masked_data_list = [dataarray]
+            masked_data_list = [xr.ones_like(dataarray)]
         else:
             masked_data_list = _shape_mask_iterator(geodataframe, dataarray, **mask_kwargs)
 
