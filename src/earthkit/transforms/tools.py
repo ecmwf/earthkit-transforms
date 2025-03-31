@@ -1,4 +1,5 @@
 import functools
+import typing as T
 
 import numpy as np
 import pandas as pd
@@ -27,7 +28,7 @@ _BIN_MAXES = {
 }
 
 
-def ensure_list(thing):
+def ensure_list(thing) -> list[T.Any]:
     if isinstance(thing, list):
         return thing
     try:
@@ -379,7 +380,7 @@ def get_spatial_info(dataarray, lat_key=None, lon_key=None):
 
 def _pandas_frequency_and_bins(
     frequency: str,
-) -> tuple:
+) -> tuple[str, int | None]:
     freq = frequency.lstrip("0123456789")
     bins = int(frequency[: -len(freq)]) or None
     freq = _PANDAS_FREQUENCIES.get(freq.lstrip(" "), frequency)
@@ -420,7 +421,7 @@ def groupby_time(
 def groupby_bins(
     dataarray: xr.Dataset | xr.DataArray,
     frequency: str,
-    bin_widths: int = 1,
+    bin_widths: list[int] | int = 1,
     squeeze: bool = False,
     time_dim: str = "time",
 ):

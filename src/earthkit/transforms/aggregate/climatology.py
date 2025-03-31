@@ -715,11 +715,13 @@ def _anomaly_dataarray(
         if var_name in climatology:
             climatology_da = climatology[var_name]
         else:
-            potential_clim_vars = [c_var for c_var in climatology.data_vars if var_name in c_var]
+            potential_clim_vars = [
+                c_var for c_var in climatology.data_vars if str(var_name) in str(c_var)
+            ]
             if len(potential_clim_vars) == 1:
                 climatology_da = climatology[potential_clim_vars[0]]
-            elif var_name + "_" + climatology_how_tag in potential_clim_vars:
-                climatology_da = climatology[var_name + "_" + climatology_how_tag]
+            elif f"{var_name}_{climatology_how_tag}" in potential_clim_vars:
+                climatology_da = climatology[f"{var_name}_{climatology_how_tag}"]
             elif len(potential_clim_vars) > 1:
                 raise KeyError(
                     "Multiple potential climatologies found in climatology dataset, "
@@ -854,7 +856,7 @@ def auto_anomaly(
     xr.DataArray
     """
     # If climate range is defined, use it
-    if all(c_r is not None for c_r in climatology_range):
+    if climatology_range is not None and all(c_r is not None for c_r in climatology_range):
         selection = dataarray.sel(time=slice(*climatology_range))
     else:
         selection = dataarray

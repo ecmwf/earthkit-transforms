@@ -425,7 +425,7 @@ def daily_reduce(
             # If how is string, fetch function from dictionary:
             if isinstance(how, str):
                 how = tools.get_how(how)
-            assert isinstance(how, T.Callable), f"how method not recognised: {how}"
+            assert callable(how), f"how method not recognised: {how}"
 
             red_array = grouped_data.reduce(how, **kwargs)
         try:
@@ -684,7 +684,7 @@ def monthly_reduce(
             # If how is string, fetch function from dictionary:
             if isinstance(how, str):
                 how = tools.get_how(how)
-            assert isinstance(how, T.Callable), f"how method not recognised: {how}"
+            assert callable(how), f"how method not recognised: {how}"
 
             red_array = grouped_data.reduce(how, **kwargs)
         # Remove the year_months coordinate
@@ -935,5 +935,5 @@ def rolling_reduce(
         A dataarray reduced values with a rolling window applied along the time dimension.
     """
     if window_length is not None:
-        kwargs.update({time_dim: window_length})
+        kwargs.update({str(time_dim): window_length})
     return _rolling_reduce(dataarray, **kwargs)
