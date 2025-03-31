@@ -715,9 +715,7 @@ def _anomaly_dataarray(
         if var_name in climatology:
             climatology_da = climatology[var_name]
         else:
-            potential_clim_vars = [
-                c_var for c_var in climatology.data_vars if str(var_name) in str(c_var)
-            ]
+            potential_clim_vars = [c_var for c_var in climatology.data_vars if str(var_name) in str(c_var)]
             if len(potential_clim_vars) == 1:
                 climatology_da = climatology[potential_clim_vars[0]]
             elif f"{var_name}_{climatology_how_tag}" in potential_clim_vars:
