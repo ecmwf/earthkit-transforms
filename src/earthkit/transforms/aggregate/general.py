@@ -28,8 +28,7 @@ def _reduce_dataarray(
     how_dropna=False,
     **kwargs,
 ):
-    """
-    Reduce an xarray.dataarray or xarray.dataset using a specified `how` method.
+    """Reduce an xarray.dataarray or xarray.dataset using a specified `how` method.
 
     With the option to apply weights either directly or using a specified
     `weights` method.
@@ -95,11 +94,10 @@ def _reduce_dataarray(
 
 def reduce(
     dataarray: xr.Dataset | xr.DataArray,
-    *args,
+    *_args,
     **kwargs,
 ):
-    """
-    Reduce an xarray.dataarray or xarray.dataset using a specified `how` method.
+    """Reduce an xarray.dataarray or xarray.dataset using a specified `how` method.
 
     With the option to apply weights either directly or using a specified
     `weights` method.
@@ -130,7 +128,7 @@ def reduce(
 
     """
     # handle how as arg or kwarg
-    kwargs["how"] = args[0] if args else kwargs.get("how", "mean")
+    kwargs["how"] = _args[0] if _args else kwargs.get("how", "mean")
     out = _reduce_dataarray(dataarray, **kwargs)
     # Ensure any input attributes are preserved (maybe not necessary)
     if isinstance(dataarray, xr.Dataset):
@@ -138,7 +136,7 @@ def reduce(
     return out
 
 
-def rolling_reduce(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.DataArray:
+def rolling_reduce(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs) -> xr.DataArray:
     """Return reduced data using a moving window over which to apply the reduction.
 
     Parameters
@@ -170,11 +168,11 @@ def rolling_reduce(dataarray: xr.Dataset | xr.DataArray, *args, **kwargs) -> xr.
     if isinstance(dataarray, (xr.Dataset)):
         out_ds = xr.Dataset().assign_attrs(dataarray.attrs)
         for var in dataarray.data_vars:
-            out_da = _rolling_reduce_dataarray(dataarray[var], *args, **kwargs)
+            out_da = _rolling_reduce_dataarray(dataarray[var], *_args, **kwargs)
             out_ds[out_da.name] = out_da
         return out_ds
     else:
-        return _rolling_reduce_dataarray(dataarray, *args, **kwargs)
+        return _rolling_reduce_dataarray(dataarray, *_args, **kwargs)
 
 
 def _rolling_reduce_dataarray(
@@ -201,6 +199,8 @@ def _rolling_reduce_dataarray(
     how_dropna : str
         Determine if dimension is removed from the output when we have at least one NaN or
         all NaN. **how_dropna** can be 'None', 'any' or 'all'. Default is None.
+    chunk: bool
+        If True, the dataarray is chunked before the rolling operation.
     **kwargs :
         Any kwargs that are compatible with the select `how_reduce` method.
 
@@ -235,7 +235,7 @@ def _rolling_reduce_dataarray(
 
 
 def _dropna(data, dims, how):
-    """Method for drop nan values."""
+    """Drop nan values from data."""
     if how in [None, "None", "none"]:
         return data
 
@@ -256,8 +256,7 @@ def resample(
     how_label: str | None = None,
     **kwargs,
 ) -> xr.DataArray:
-    """
-    Resample dataarray to a user-defined frequency using a user-defined "how" method.
+    """Resample dataarray to a user-defined frequency using a user-defined "how" method.
 
     Parameters
     ----------
@@ -266,12 +265,18 @@ def resample(
     frequency : str, int, float
         The frequency at which to resample the chosen dimension. The format must be applicable
         to the chosen dimension.
-    dim: str
+    time_dim: str
         The dimension to resample along, default is `time`
     how: str
         The reduction method for resampling, default is `mean`
     how_label : str
         Label to append to the name of the variable in the reduced object, default is nothing
+    skipna : bool
+        If True, exclude missing values (na values) from the reduction.
+    how_args : list
+        List of arguments to be passed to the reduction method.
+    how_kwargs : dict
+        Dictionary of keyword arguments to be passed to the reduction method.
     **kwargs
         Keyword arguments to be passed to :func:`resample`. Defaults have been set as:
         `{"skipna": True}`
