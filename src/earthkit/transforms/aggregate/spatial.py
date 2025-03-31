@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from earthkit.transforms.tools import ensure_list, get_how, get_spatial_info, standard_weights
-from xarray.core.weighted import DataArrayWeighted
 
 logger = logging.getLogger(__name__)
 
@@ -612,12 +611,12 @@ def _reduce_dataarray(
 
     reduced_list = []
     for masked_data in masked_data_list:
-        this: xr.DataArray | DataArrayWeighted = dataarray.where(masked_data, other=np.nan)
+        this = dataarray.where(masked_data, other=np.nan)
 
         # If weighted, use xarray weighted arrays which correctly handle missing values etc.
         if weights is not None:
-            this = this.weighted(_weights)
-            reduced_list.append(this.__getattribute__(weighted_how)(**reduce_kwargs))
+            this_weighted = this.weighted(_weights)
+            reduced_list.append(this_weighted.__getattribute__(weighted_how)(**reduce_kwargs))
         else:
             reduced = this.reduce(reduce_how, **reduce_kwargs).compute()
             reduced = reduced.assign_attrs(dataarray.attrs)

@@ -3,8 +3,6 @@ import typing as T
 import numpy as np
 import xarray as xr
 from earthkit.transforms import tools
-from xarray.core.rolling import DataArrayRolling
-
 
 def how_label_rename(
     dataarray: xr.Dataset | xr.DataArray,
@@ -22,7 +20,7 @@ def how_label_rename(
 
 
 def _reduce_dataarray(
-    dataarray: xr.DataArray | DataArrayRolling,
+    dataarray: xr.DataArray,
     how: T.Callable | str = "mean",
     weights: None | str | np.ndarray = None,
     how_label: str | None = None,
@@ -231,7 +229,7 @@ def _rolling_reduce_dataarray(
     data_rolling = dataarray.rolling(**rolling_kwargs)
 
     reduce_kwargs.setdefault("how", how_reduce)
-    data_windowed = _reduce_dataarray(data_rolling, **reduce_kwargs)
+    data_windowed = _reduce_dataarray(data_rolling, **reduce_kwargs) # type: ignore
 
     data_windowed = _dropna(data_windowed, window_dims, how_dropna)
 
