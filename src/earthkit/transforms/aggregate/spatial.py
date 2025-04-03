@@ -634,7 +634,7 @@ def _reduce_dataarray_as_xarray(
     if geodataframe is not None:
         mask_dim_index = get_mask_dim_index(mask_dim, geodataframe)
         out_xr = xr.concat(reduced_list, dim=mask_dim_index)
-    elif len(reduced_list) == 1:
+    elif mask_dim is None and len(reduced_list) == 1:
         out_xr = reduced_list[0]
     else:
         _concat_dim_name = mask_dim or "index"
@@ -683,6 +683,9 @@ def _reduce_dataarray_as_pandas(
     reduce_attrs = {f"{dataarray.name}": dataarray.attrs, f"{out_xr.name}": out_xr.attrs}
 
     if geodataframe is None:
+        mask_dim = kwargs.get("mask_dim", "index")
+        if mask_dim not in out_xr.dims:
+            out_xr = xr.concat([out_xr], dim=mask_dim)
         # If no geodataframe, then just convert xarray to dataframe
         out = out_xr.to_dataframe()
         # Add attributes to the dataframe
@@ -694,22 +697,25 @@ def _reduce_dataarray_as_pandas(
         **geodataframe.attrs.get("reduce_attrs", {}),
         **reduce_attrs,
     }
+
     # TODO: somehow remove repeat call of get_mask_dim_index (see _reduce_dataarray_as_xarray)
     mask_dim_index = get_mask_dim_index(kwargs.get("mask_dim"), geodataframe)
+    mask_dim_name = mask_dim_index.name
     out = geodataframe.set_index(mask_dim_index)
+    if mask_dim_name not in out_xr.dims:
+        out_xr = xr.concat([out_xr], dim=mask_dim_name)
     if not compact:  # Return as a fully expanded pandas.DataFrame
         # Convert to DataFrame
         out = out.join(out_xr.to_dataframe())
     else:
         # add the reduced data into a new column as a numpy array,
         # store the dim information in the attributes
-        # TODO: check typing
         _out_dims = [str(dim) for dim in dataarray.coords if dim in out_xr.dims]
         out_dims = {dim: dataarray[dim].values for dim in _out_dims}
         reduce_attrs[f"{out_xr.name}"].update({"dims": out_dims})
         reduced_list = [
-            out_xr.sel(**{mask_dim_index: mask_dim_value}).values
-            for mask_dim_value in out_xr[mask_dim_index].values
+            out_xr.sel(**{mask_dim_name: mask_dim_value}).values
+            for mask_dim_value in out_xr[mask_dim_name].values
         ]
         out = out.assign(**{f"{out_xr.name}": reduced_list})
 

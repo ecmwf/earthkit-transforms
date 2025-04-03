@@ -264,3 +264,34 @@ def test_return_geometry_as_coord():
     )
     assert "geometry" in result.coords
     assert len(result.coords["geometry"].values) == len(geodataframe)
+
+
+def test_reduce_as_pandas():
+    dataarray = create_test_dataarray()
+    result = spatial._reduce_dataarray_as_pandas(dataarray, how="mean")
+    assert isinstance(result, pd.DataFrame)
+
+
+def test_reduce_as_pandas_with_geodataframe():
+    dataarray = create_test_dataarray()
+    geodataframe = create_test_geodataframe()
+    result = spatial._reduce_dataarray_as_pandas(dataarray, geodataframe=geodataframe, how="mean")
+    assert isinstance(result, pd.DataFrame)
+    assert not result.empty
+
+
+def test_reduce_as_pandas_compact():
+    dataarray = create_test_dataarray()
+    geodataframe = create_test_geodataframe()
+    result = spatial._reduce_dataarray_as_pandas(
+        dataarray, geodataframe=geodataframe, compact=True, how="mean"
+    )
+    assert isinstance(result, pd.DataFrame)
+    assert f"{dataarray.name}" in result.columns
+
+
+def test_reduce_as_pandas_without_geodataframe():
+    dataarray = create_test_dataarray()
+    result = spatial._reduce_dataarray_as_pandas(dataarray, how="sum")
+    assert isinstance(result, pd.DataFrame)
+    assert not result.empty
