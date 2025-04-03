@@ -430,9 +430,6 @@ def reduce(
         Each slice of layer corresponds to a feature in layer.
 
     """
-    assert (geodataframe is not None) or (
-        mask_arrays is not None
-    ), "Either a geodataframe or mask arrays must be provided"
     assert not (
         geodataframe is not None and mask_arrays is not None
     ), "Either a geodataframe or mask arrays must be provided, not both"
