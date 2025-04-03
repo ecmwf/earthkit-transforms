@@ -21,14 +21,14 @@ ek_data.settings.set("cache-policy", "user")
 
 SAMPLE_ARRAY = xr.DataArray(
     [
-        [0, 0, 0],
-        [1, 1, 1],
-        [2, 2, 2],
+        [1, 1, 1, 1],
+        [2, 2, 2, 2],
+        [3, 3, 3, 3],
     ],
     dims=["latitude", "longitude"],
     coords={
-        "latitude": [0, 20, 30],
-        "longitude": [0, 20, 30],
+        "latitude": [0, 60, 90],  # Chosen for latitude weight tests
+        "longitude": [0, 30, 60, 90],
     },
 )
 
@@ -40,17 +40,13 @@ class dummy_class:
 
 
 def get_grid_data():
-    remote_era5_file = earthkit_remote_test_data_file(
-        "test-data", "era5_temperature_europe_20150101.grib"
-    )
+    remote_era5_file = earthkit_remote_test_data_file("test-data", "era5_temperature_europe_20150101.grib")
     return ek_data.from_source("url", remote_era5_file)
 
 
 def get_shape_data():
     if rasterio_available:
-        remote_nuts_url = earthkit_remote_test_data_file(
-            "test-data", "NUTS_RG_60M_2021_4326_LEVL_0.geojson"
-        )
+        remote_nuts_url = earthkit_remote_test_data_file("test-data", "NUTS_RG_60M_2021_4326_LEVL_0.geojson")
         return ek_data.from_source("url", remote_nuts_url)
     return dummy_class()
 
@@ -102,9 +98,9 @@ def test_spatial_reduce_no_geometry(era5_data, expected_result_type):
 
 def test_spatial_reduce_no_geometry_result():
     reduced_data = spatial.reduce(SAMPLE_ARRAY, how="mean")
-    assert reduced_data.values == 1.0
+    assert reduced_data.values == 2.0
     reduced_data = spatial.reduce(SAMPLE_ARRAY, how="mean", weights="latitude")
-    assert np.isclose(reduced_data.values, 0.95224944)
+    assert np.isclose(reduced_data.values, 1 + (1.0 / 3))
 
 
 @pytest.mark.skipif(
