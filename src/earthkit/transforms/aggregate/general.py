@@ -13,7 +13,7 @@ def how_label_rename(
         # Update variable names, depends on dataset or dataarray format
         if isinstance(dataarray, xr.Dataset):
             renames = {data_arr: f"{data_arr}_{how_label}" for data_arr in dataarray}
-            dataarray = dataarray.rename(**renames)
+            dataarray = dataarray.rename(renames)
         else:
             dataarray = dataarray.rename(f"{dataarray.name}_{how_label}")
 
@@ -62,16 +62,16 @@ def _reduce_dataarray(
     if weights is not None:
         # Create any standard weights, e.g. latitude
         if isinstance(weights, str):
-            weights = tools.standard_weights(dataarray, weights, **kwargs)
+            _weights = tools.standard_weights(dataarray, weights, **kwargs)
+        else:
+            _weights = weights
         # We ensure the callable is always a string
         if callable(how):
-            how = how.__name__
+            how = weighted_how = how.__name__
         # map any alias methods:
-        how = tools.WEIGHTED_HOW_METHODS.get(how, how)
+        weighted_how = tools.WEIGHTED_HOW_METHODS.get(how, how)
 
-        dataarray = dataarray.weighted(weights)
-
-        red_array = dataarray.__getattribute__(how)(**kwargs)
+        red_array = dataarray.weighted(_weights).__getattribute__(weighted_how)(**kwargs)
 
     else:
         # If how is string, fetch function from dictionary:
@@ -80,7 +80,7 @@ def _reduce_dataarray(
         else:
             if isinstance(how, str):
                 how = tools.get_how(how)
-            assert isinstance(how, T.Callable), f"how method not recognised: {how}"
+            assert callable(how), f"how method not recognised: {how}"
 
             red_array = dataarray.reduce(how, **kwargs)
 
@@ -129,14 +129,19 @@ def reduce(
     """
     # handle how as arg or kwarg
     kwargs["how"] = _args[0] if _args else kwargs.get("how", "mean")
-    out = _reduce_dataarray(dataarray, **kwargs)
-    # Ensure any input attributes are preserved (maybe not necessary)
+
     if isinstance(dataarray, xr.Dataset):
-        out.attrs.update(dataarray.attrs)
+        out_ds = xr.Dataset().assign_attrs(dataarray.attrs)
+        for var in dataarray.data_vars:
+            out_da = _reduce_dataarray(dataarray[var], **kwargs)
+            out_ds[out_da.name] = out_da
+        return out_ds
+
+    out = _reduce_dataarray(dataarray, **kwargs)
     return out
 
 
-def rolling_reduce(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs) -> xr.DataArray:
+def rolling_reduce(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs) -> xr.Dataset | xr.DataArray:
     """Return reduced data using a moving window over which to apply the reduction.
 
     Parameters
@@ -214,7 +219,7 @@ def _rolling_reduce_dataarray(
     if isinstance(kwargs.get("dim"), dict):
         kwargs.update(kwargs.pop("dim"))
 
-    window_dims = [_dim for _dim in list(dataarray.dims) if _dim in list(kwargs)]
+    window_dims = [str(_dim) for _dim in list(dataarray.dims) if _dim in list(kwargs)]
     rolling_kwargs_keys = ["min_periods", "center"] + window_dims
     rolling_kwargs_keys = [_kwarg for _kwarg in kwargs if _kwarg in rolling_kwargs_keys]
     rolling_kwargs = {_kwarg: kwargs.pop(_kwarg) for _kwarg in rolling_kwargs_keys}
@@ -225,7 +230,7 @@ def _rolling_reduce_dataarray(
     data_rolling = dataarray.rolling(**rolling_kwargs)
 
     reduce_kwargs.setdefault("how", how_reduce)
-    data_windowed = _reduce_dataarray(data_rolling, **reduce_kwargs)
+    data_windowed = _reduce_dataarray(data_rolling, **reduce_kwargs)  # type: ignore
 
     data_windowed = _dropna(data_windowed, window_dims, how_dropna)
 

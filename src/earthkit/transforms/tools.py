@@ -1,4 +1,5 @@
 import functools
+import typing as T
 
 import numpy as np
 import pandas as pd
@@ -27,7 +28,7 @@ _BIN_MAXES = {
 }
 
 
-def ensure_list(thing):
+def ensure_list(thing) -> list[T.Any]:
     if isinstance(thing, list):
         return thing
     try:
@@ -77,7 +78,7 @@ def time_dim_decorator(func):
     return wrapper
 
 
-GROUPBY_KWARGS = ["frequency", "bin_widths", "squeeze"]
+GROUPBY_KWARGS = ["frequency", "bin_widths"]
 
 
 def groupby_kwargs_decorator(func):
@@ -379,7 +380,7 @@ def get_spatial_info(dataarray, lat_key=None, lon_key=None):
 
 def _pandas_frequency_and_bins(
     frequency: str,
-) -> tuple:
+) -> tuple[str, int | None]:
     freq = frequency.lstrip("0123456789")
     bins = int(frequency[: -len(freq)]) or None
     freq = _PANDAS_FREQUENCIES.get(freq.lstrip(" "), frequency)
@@ -390,7 +391,6 @@ def groupby_time(
     dataarray: xr.Dataset | xr.DataArray,
     frequency: str | None = None,
     bin_widths: int | None = None,
-    squeeze: bool = False,
     time_dim: str = "time",
 ):
     if frequency is None:
@@ -404,10 +404,10 @@ def groupby_time(
         bin_widths = bin_widths or possible_bins
 
     if bin_widths is not None:
-        grouped_data = groupby_bins(dataarray, frequency, bin_widths, squeeze, time_dim=time_dim)
+        grouped_data = groupby_bins(dataarray, frequency, bin_widths, time_dim=time_dim)
     else:
         try:
-            grouped_data = dataarray.groupby(f"{time_dim}.{frequency}", squeeze=squeeze)
+            grouped_data = dataarray.groupby(f"{time_dim}.{frequency}")
         except AttributeError:
             raise ValueError(
                 f"Invalid frequency '{frequency}' - see xarray documentation for "
@@ -420,15 +420,14 @@ def groupby_time(
 def groupby_bins(
     dataarray: xr.Dataset | xr.DataArray,
     frequency: str,
-    bin_widths: int = 1,
-    squeeze: bool = False,
+    bin_widths: list[int] | int = 1,
     time_dim: str = "time",
 ):
     if not isinstance(bin_widths, (list, tuple)):
         max_value = _BIN_MAXES[frequency]
         bin_widths = list(range(0, max_value + 1, bin_widths))
     try:
-        grouped_data = dataarray.groupby_bins(f"{time_dim}.{frequency}", bin_widths, squeeze=squeeze)
+        grouped_data = dataarray.groupby_bins(f"{time_dim}.{frequency}", bin_widths)
     except AttributeError:
         raise ValueError(
             f"Invalid frequency '{frequency}' - see xarray documentation for "

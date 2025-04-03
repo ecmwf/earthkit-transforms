@@ -103,7 +103,7 @@ def test_groupby_kwargs_decorator_none():
 # Test case for the decorator when groupby_kwargs is provided
 def test_groupby_kwargs_decorator_provided():
     # Prepare groupby_kwargs and other kwargs
-    groupby_kwargs = {"frequency": "day", "bin_widths": 1, "squeeze": True}
+    groupby_kwargs = {"frequency": "day", "bin_widths": 1}
     other_kwargs = {"method": "linear", "fill_value": 0}
 
     # Call the decorated function with groupby_kwargs provided
@@ -133,7 +133,7 @@ def test_groupby_kwargs_decorator_partial_provided():
 # Test case for the decorator when groupby_kwargs is provided
 def test_groupby_kwargs_decorator_override():
     # Prepare groupby_kwargs and other kwargs
-    groupby_kwargs = {"frequency": "day", "bin_widths": 1, "squeeze": True}
+    groupby_kwargs = {"frequency": "day", "bin_widths": 1}
     other_kwargs = {"method": "linear", "fill_value": 0}
 
     override_groupby_kwargs = {"frequency": "hour"}

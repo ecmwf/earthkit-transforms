@@ -19,6 +19,20 @@ except ImportError:
 ek_data.settings.set("cache-policy", "user")
 
 
+SAMPLE_ARRAY = xr.DataArray(
+    [
+        [1, 1, 1, 1],
+        [2, 2, 2, 2],
+        [3, 3, 3, 3],
+    ],
+    dims=["latitude", "longitude"],
+    coords={
+        "latitude": [0, 60, 90],  # Chosen for latitude weight tests
+        "longitude": [0, 30, 60, 90],
+    },
+)
+
+
 class dummy_class:
     def __init__(self):
         self.to_pandas = pd.DataFrame
@@ -80,6 +94,13 @@ def test_spatial_reduce_no_geometry(era5_data, expected_result_type):
 
     assert isinstance(reduced_data, expected_result_type)
     assert list(reduced_data.dims) == ["forecast_reference_time"]
+
+
+def test_spatial_reduce_no_geometry_result():
+    reduced_data = spatial.reduce(SAMPLE_ARRAY, how="mean")
+    assert reduced_data.values == 2.0
+    reduced_data = spatial.reduce(SAMPLE_ARRAY, how="mean", weights="latitude")
+    assert np.isclose(reduced_data.values, 1 + (1.0 / 3))
 
 
 @pytest.mark.skipif(

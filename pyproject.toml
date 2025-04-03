@@ -37,6 +37,9 @@ rasterio = [
 [tool.coverage.run]
 branch = true
 
+[tool.mypy]
+ignore_missing_imports = true
+
 [tool.ruff]
 # Black line length is 88, but black does not format comments.
 line-length = 110

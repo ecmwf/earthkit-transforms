@@ -37,7 +37,6 @@ def rasterize(
     coords: xr.core.coordinates.Coordinates,
     lat_key: str = "latitude",
     lon_key: str = "longitude",
-    dtype: type = int,
     **kwargs,
 ) -> xr.DataArray:
     """Rasterize a list of geometries onto the given xarray coordinates.
@@ -70,12 +69,18 @@ def rasterize(
 
     transform = _transform_from_latlon(coords[lat_key], coords[lon_key])
     out_shape = (len(coords[lat_key]), len(coords[lon_key]))
-    raster = features.rasterize(shape_list, out_shape=out_shape, transform=transform, dtype=dtype, **kwargs)
+    raster = features.rasterize(shape_list, out_shape=out_shape, transform=transform, **kwargs)
     spatial_coords = {lat_key: coords[lat_key], lon_key: coords[lon_key]}
     return xr.DataArray(raster, coords=spatial_coords, dims=(lat_key, lon_key))
 
 
-def mask_contains_points(shape_list, coords, lat_key="lat", lon_key="lon", **_kwargs) -> xr.DataArray:
+def mask_contains_points(
+    shape_list: T.List,
+    coords: xr.core.coordinates.Coordinates,
+    lat_key: str = "latitude",
+    lon_key: str = "longitude",
+    **_kwargs,
+) -> xr.DataArray:
     """Return a mask array for the spatial points of data that lie within shapes in shape_list.
 
     Function uses matplotlib.Path so can accept a list of points, this is much faster than shapely.
@@ -360,7 +365,7 @@ def mask(
     if union_geometries:
         out = masked_arrays[0]
     else:
-        out = xr.concat(masked_arrays, dim=mask_dim_index.name)
+        out = xr.concat(masked_arrays, dim=mask_dim_index.name)  # type: ignore
         if chunk:
             out = out.chunk({mask_dim_index.name: 1})
 
@@ -375,7 +380,6 @@ def reduce(
     dataarray: xr.Dataset | xr.DataArray,
     geodataframe: gpd.GeoDataFrame | None = None,
     mask_arrays: xr.DataArray | list[xr.DataArray] | None = None,
-    *_args,
     **kwargs,
 ) -> xr.Dataset | xr.DataArray:
     """Apply a shape object to an xarray.DataArray object using the specified 'how' method.
@@ -426,15 +430,21 @@ def reduce(
         Each slice of layer corresponds to a feature in layer.
 
     """
+    assert not (
+        geodataframe is not None and mask_arrays is not None
+    ), "Either a geodataframe or mask arrays must be provided, not both"
     if mask_arrays is not None:
-        mask_arrays = ensure_list(mask_arrays)
+        _mask_arrays: list[xr.DataArray] | None = ensure_list(mask_arrays)
+    else:
+        _mask_arrays = None
+
     if isinstance(dataarray, xr.Dataset):
         return_as: str = kwargs.get("return_as", "xarray")
         if return_as in ["xarray"]:
             out_ds = xr.Dataset().assign_attrs(dataarray.attrs)
             for var in dataarray.data_vars:
                 out_da = _reduce_dataarray(
-                    dataarray[var], geodataframe=geodataframe, mask_arrays=mask_arrays, *_args, **kwargs
+                    dataarray[var], geodataframe=geodataframe, mask_arrays=_mask_arrays, **kwargs
                 )
                 out_ds[out_da.name] = out_da
             return out_ds
@@ -446,24 +456,23 @@ def reduce(
             if geodataframe is not None:
                 out = geodataframe
                 for var in dataarray.data_vars:
-                    out = _reduce_dataarray(dataarray[var], geodataframe=out, *_args, **kwargs)
+                    out = _reduce_dataarray(dataarray[var], geodataframe=out, **kwargs)
             else:
                 out = None
                 for var in dataarray.data_vars:
-                    _out = _reduce_dataarray(dataarray[var], mask_arrays=mask_arrays, *_args, **kwargs)
+                    _out = _reduce_dataarray(dataarray[var], mask_arrays=_mask_arrays, **kwargs)
                     if out is None:
                         out = _out
                     else:
-                        out = pd.merge(out, _out)
+                        out = pd.merge(out, _out)  # type: ignore
             return out
         else:
             raise TypeError("Return as type not recognised or incompatible with inputs")
     else:
-        return _reduce_dataarray(
-            dataarray, geodataframe=geodataframe, mask_arrays=mask_arrays, *_args, **kwargs
-        )
+        return _reduce_dataarray(dataarray, geodataframe=geodataframe, mask_arrays=_mask_arrays, **kwargs)  # type: ignore
 
 
+# TODO: split into two functions, one for xarray and one for pandas
 def _reduce_dataarray(
     dataarray: xr.DataArray,
     geodataframe: gpd.GeoDataFrame | None = None,
@@ -540,8 +549,10 @@ def _reduce_dataarray(
         # convert how string to a method to apply
         if isinstance(how, str):
             how_str = deepcopy(how)
-            how = get_how(how)
-        assert isinstance(how, T.Callable), f"how must be a callable: {how}"
+            how = reduce_how = get_how(how)
+        # else:
+        #     reduce_how = how
+        assert callable(how), f"how must be a callable: {how}"
         if how_str is None:
             # get label from how method
             how_str = how.__name__
@@ -549,10 +560,14 @@ def _reduce_dataarray(
         # Create any standard weights, e.g. latitude.
         # TODO: handle kwargs better, currently only lat_key is accepted
         if isinstance(weights, str):
-            weights = standard_weights(dataarray, weights, lat_key=lat_key)
+            _weights = standard_weights(dataarray, weights, lat_key=lat_key)
+        else:
+            _weights = weights
         # We ensure the callable is a string
         if callable(how):
-            how = how.__name__
+            how = weighted_how = how.__name__
+        else:
+            weighted_how = how
         if how_str is None:
             how_str = how
 
@@ -561,7 +576,7 @@ def _reduce_dataarray(
         comp for comp in [how_str, dataarray.attrs.get("long_name", dataarray.name)] if comp is not None
     ]
     new_long_name = " ".join(new_long_name_components)
-    new_short_name_components = [comp for comp in [dataarray.name, how_label] if comp is not None]
+    new_short_name_components = [f"{comp}" for comp in [dataarray.name, how_label] if comp is not None]
     new_short_name = "_".join(new_short_name_components)
 
     if isinstance(extra_reduce_dims, str):
@@ -597,10 +612,10 @@ def _reduce_dataarray(
 
         # If weighted, use xarray weighted arrays which correctly handle missing values etc.
         if weights is not None:
-            this = this.weighted(weights)
-            reduced_list.append(this.__getattribute__(how)(**reduce_kwargs))
+            this_weighted = this.weighted(_weights)
+            reduced_list.append(this_weighted.__getattribute__(weighted_how)(**reduce_kwargs))
         else:
-            reduced = this.reduce(how, **reduce_kwargs).compute()
+            reduced = this.reduce(reduce_how, **reduce_kwargs).compute()
             reduced = reduced.assign_attrs(dataarray.attrs)
             reduced_list.append(reduced)
 
@@ -646,8 +661,9 @@ def _reduce_dataarray(
                 # add the reduced data into a new column as a numpy array,
                 # store the dim information in the attributes
 
+                # TODO: fix typing
                 out_dims = {
-                    dim: dataarray.coords.get(dim).values if dim in dataarray.coords else None
+                    dim: dataarray.coords.get(dim).values if dim in dataarray.coords else None  # type: ignore
                     for dim in reduced_list[0].dims
                 }
                 reduce_attrs[f"{new_short_name}"].update({"dims": out_dims})
