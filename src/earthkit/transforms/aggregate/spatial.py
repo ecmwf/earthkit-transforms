@@ -644,9 +644,7 @@ def _reduce_dataarray_as_xarray(
     if geodataframe is not None:
         if return_geometry_as_coord:
             out_xr = out_xr.assign_coords(
-                **{
-                    "geometry": (mask_dim, [geom for geom in geodataframe["geometry"]]),
-                }
+                **{"geometry": (mask_dim_index.name, [_g for _g in geodataframe["geometry"]])}
             )
         out_xr = out_xr.assign_attrs({**geodataframe.attrs, **extra_out_attrs})
 
