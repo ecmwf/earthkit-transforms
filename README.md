@@ -65,10 +65,10 @@ Please refer the [earthkit-transforms readthedocs page](https://earthkit-transfo
 
 ## Workflow for developers/contributors
 
-For best experience create a new conda environment (e.g. DEVELOP) with Python 3.11:
+For best experience create a new conda environment (e.g. DEVELOP) with latest stable version of Python (version 3.13 at time of writing):
 
 ```
-conda create -n DEVELOP -c conda-forge python=3.11
+conda create -n DEVELOP -c conda-forge python=3.13
 conda activate DEVELOP
 ```
 
