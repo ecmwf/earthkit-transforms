@@ -365,7 +365,8 @@ def mask(
     if union_geometries:
         out = masked_arrays[0]
     else:
-        out = xr.concat(masked_arrays, dim=mask_dim_index.name)  # type: ignore
+        # TODO: remove ignore type if xarray concat typing is updated
+        out = xr.concat(masked_arrays, dim=mask_dim_index.name) # type: ignore
         if chunk:
             out = out.chunk({mask_dim_index.name: 1})
 
