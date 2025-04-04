@@ -365,6 +365,7 @@ def mask(
     if union_geometries:
         out = masked_arrays[0]
     else:
+        # TODO: remove ignore type if xarray concat typing is updated
         out = xr.concat(masked_arrays, dim=mask_dim_index.name)  # type: ignore
         if chunk:
             out = out.chunk({mask_dim_index.name: 1})
@@ -418,6 +419,10 @@ def reduce(
         They must be on the same spatial grid as the dataarray.
     return_as :
         what format to return the data object, `pandas` or `xarray`. Work In Progress
+    compact :
+        If True, return a compact pandas.DataFrame with the reduced data as a new column.
+        If False, return a fully expanded pandas.DataFrame.
+        Only valid if return_as is `pandas`
     how_label :
         label to append to variable name in returned object, default is not to append
     kwargs :
@@ -443,37 +448,39 @@ def reduce(
         if return_as in ["xarray"]:
             out_ds = xr.Dataset().assign_attrs(dataarray.attrs)
             for var in dataarray.data_vars:
-                out_da = _reduce_dataarray(
+                out_da = _reduce_dataarray_as_xarray(
                     dataarray[var], geodataframe=geodataframe, mask_arrays=_mask_arrays, **kwargs
                 )
                 out_ds[out_da.name] = out_da
             return out_ds
         elif "pandas" in return_as:
             logger.warning(
-                "Returning reduced data in pandas format is considered experimental and may change in future"
+                "Returning reduced data in pandas format is considered "
+                "experimental and may change in future"
                 "versions of earthkit"
             )
             if geodataframe is not None:
                 out = geodataframe
                 for var in dataarray.data_vars:
-                    out = _reduce_dataarray(dataarray[var], geodataframe=out, **kwargs)
+                    out = _reduce_dataarray_as_pandas(dataarray[var], geodataframe=out, **kwargs)
             else:
                 out = None
                 for var in dataarray.data_vars:
-                    _out = _reduce_dataarray(dataarray[var], mask_arrays=_mask_arrays, **kwargs)
+                    _out = _reduce_dataarray_as_pandas(dataarray[var], mask_arrays=_mask_arrays, **kwargs)
                     if out is None:
                         out = _out
                     else:
-                        out = pd.merge(out, _out)  # type: ignore
+                        out = pd.merge(out, _out)
             return out
         else:
             raise TypeError("Return as type not recognised or incompatible with inputs")
     else:
-        return _reduce_dataarray(dataarray, geodataframe=geodataframe, mask_arrays=_mask_arrays, **kwargs)  # type: ignore
+        return _reduce_dataarray_as_xarray(
+            dataarray, geodataframe=geodataframe, mask_arrays=_mask_arrays, **kwargs
+        )
 
 
-# TODO: split into two functions, one for xarray and one for pandas
-def _reduce_dataarray(
+def _reduce_dataarray_as_xarray(
     dataarray: xr.DataArray,
     geodataframe: gpd.GeoDataFrame | None = None,
     mask_arrays: list[xr.DataArray] | None = None,
@@ -483,14 +490,13 @@ def _reduce_dataarray(
     lon_key: str | None = None,
     extra_reduce_dims: list | str = [],
     mask_dim: str | None = None,
-    return_as: str = "xarray",
     how_label: str | None = None,
     squeeze: bool = True,
     all_touched: bool = False,
     mask_kwargs: dict[str, T.Any] = dict(),
     return_geometry_as_coord: bool = False,
     **reduce_kwargs,
-) -> xr.DataArray | pd.DataFrame:
+) -> xr.DataArray:
     """Reduce an xarray.DataArray object over its geospatial dimensions using the specified 'how' method.
 
     If a geodataframe is provided the DataArray is reduced over each feature in the geodataframe.
@@ -538,7 +544,7 @@ def _reduce_dataarray(
 
     Returns
     -------
-    xr.Dataset | xr.DataArray | pd.DataFrame
+    xr.DataArray
         A data array with dimensions [features] + [data.dims not in ['lat','lon']].
         Each slice of layer corresponds to a feature in layer
 
@@ -576,6 +582,7 @@ def _reduce_dataarray(
         comp for comp in [how_str, dataarray.attrs.get("long_name", dataarray.name)] if comp is not None
     ]
     new_long_name = " ".join(new_long_name_components)
+    extra_out_attrs.update({"long_name": new_long_name})
     new_short_name_components = [f"{comp}" for comp in [dataarray.name, how_label] if comp is not None]
     new_short_name = "_".join(new_short_name_components)
 
@@ -596,7 +603,8 @@ def _reduce_dataarray(
     reduce_dims = spatial_dims + extra_reduce_dims
     extra_out_attrs.update({"reduce_dims": reduce_dims})
     reduce_kwargs.update({"dim": reduce_dims})
-    # If using a pre-computed mask arrays, then iterator is just dataarray*mask_array
+    # If using a pre-computed mask arrays,
+    # then iterator is just dataarray*mask_array
     if mask_arrays is not None:
         masked_data_list = _array_mask_iterator(mask_arrays)
     else:
@@ -610,7 +618,8 @@ def _reduce_dataarray(
     for masked_data in masked_data_list:
         this = dataarray.where(masked_data, other=np.nan)
 
-        # If weighted, use xarray weighted arrays which correctly handle missing values etc.
+        # If weighted, use xarray weighted arrays which
+        # correctly handle missing values etc.
         if weights is not None:
             this_weighted = this.weighted(_weights)
             reduced_list.append(this_weighted.__getattribute__(weighted_how)(**reduce_kwargs))
@@ -626,59 +635,91 @@ def _reduce_dataarray(
     if geodataframe is not None:
         mask_dim_index = get_mask_dim_index(mask_dim, geodataframe)
         out_xr = xr.concat(reduced_list, dim=mask_dim_index)
-    elif len(reduced_list) == 1:
+    elif mask_dim is None and len(reduced_list) == 1:
         out_xr = reduced_list[0]
     else:
         _concat_dim_name = mask_dim or "index"
         out_xr = xr.concat(reduced_list, dim=_concat_dim_name)
 
     out_xr = out_xr.rename(new_short_name)
+    if geodataframe is not None:
+        if return_geometry_as_coord:
+            out_xr = out_xr.assign_coords(
+                **{"geometry": (mask_dim_index.name, [_g for _g in geodataframe["geometry"]])}
+            )
+        out_xr = out_xr.assign_attrs({**geodataframe.attrs, **extra_out_attrs})
 
-    if "pandas" in return_as:
-        reduce_attrs = {
-            f"{dataarray.name}": dataarray.attrs,
-            f"{new_short_name}": {
-                "long_name": new_long_name,
-                "units": dataarray.attrs.get("units", "No units found"),
-                **extra_out_attrs,
-            },
-        }
+    return out_xr
 
-        if geodataframe is None:
-            # If no geodataframe, then just convert xarray to dataframe
-            out = out_xr.to_dataframe()
-        else:
-            # Otherwise, splice the geodataframe and reduced xarray
-            reduce_attrs = {
-                **geodataframe.attrs.get("reduce_attrs", {}),
-                **reduce_attrs,
-            }
-            out = geodataframe.set_index(mask_dim_index)
-            if return_as in ["pandas"]:  # Return as a fully expanded pandas.DataFrame
-                # Convert to DataFrame
-                out = out.join(out_xr.to_dataframe())
-            elif return_as in ["pandas_compact"]:
-                # add the reduced data into a new column as a numpy array,
-                # store the dim information in the attributes
 
-                # TODO: fix typing
-                out_dims = {
-                    dim: dataarray.coords.get(dim).values if dim in dataarray.coords else None  # type: ignore
-                    for dim in reduced_list[0].dims
-                }
-                reduce_attrs[f"{new_short_name}"].update({"dims": out_dims})
-                reduced_list = [red.values for red in reduced_list]
-                out = out.assign(**{new_short_name: reduced_list})
+def _reduce_dataarray_as_pandas(
+    dataarray: xr.DataArray, geodataframe: gpd.GeoDataFrame | None = None, compact: bool = False, **kwargs
+) -> pd.DataFrame:
+    """Reduce an xarray.DataArray object over its geospatial dimensions using the specified 'how' method.
+
+    If a geodataframe is provided the DataArray is reduced over each feature in the geodataframe.
+    Geospatial coordinates are reduced to a dimension representing the list of features in the shape object.
+
+    Parameters
+    ----------
+    dataarray :
+        Xarray data object (must have geospatial coordinates).
+    geodataframe :
+        Geopandas Dataframe containing the polygons for aggregations
+    compact :
+        If True, return a compact pandas.DataFrame with the reduced data as a new column.
+        If False, return a fully expanded pandas.DataFrame.
+    kwargs :
+        kwargs accepted by the :function:_reduce_dataarray_as_xarray function
+
+    Returns
+    -------
+    pd.DataFrame
+        A pandas.DataFrame similar to the geopandas dataframe, with the reduced data
+        added as a new column.
+
+    """
+    out_xr = _reduce_dataarray_as_xarray(dataarray, **kwargs)
+
+    reduce_attrs = {f"{dataarray.name}": dataarray.attrs, f"{out_xr.name}": out_xr.attrs}
+
+    if geodataframe is None:
+        mask_dim = kwargs.get("mask_dim", "index")
+        if mask_dim not in out_xr.dims:
+            out_xr = xr.concat([out_xr], dim=mask_dim)
+        # If no geodataframe, then just convert xarray to dataframe
+        out = out_xr.to_dataframe()
+        # Add attributes to the dataframe
         out.attrs.update({"reduce_attrs": reduce_attrs})
+        return out
+
+    # Otherwise, splice the geodataframe and reduced xarray
+    reduce_attrs = {
+        **geodataframe.attrs.get("reduce_attrs", {}),
+        **reduce_attrs,
+    }
+
+    # TODO: somehow remove repeat call of get_mask_dim_index (see _reduce_dataarray_as_xarray)
+    mask_dim_index = get_mask_dim_index(kwargs.get("mask_dim"), geodataframe)
+    mask_dim_name = mask_dim_index.name
+    out = geodataframe.set_index(mask_dim_index)
+    if mask_dim_name not in out_xr.dims:
+        out_xr = xr.concat([out_xr], dim=mask_dim_name)
+    if not compact:  # Return as a fully expanded pandas.DataFrame
+        # Convert to DataFrame
+        out = out.join(out_xr.to_dataframe())
     else:
-        if geodataframe is not None:
-            if return_geometry_as_coord:
-                out_xr = out_xr.assign_coords(
-                    **{
-                        "geometry": (mask_dim, [geom for geom in geodataframe["geometry"]]),
-                    }
-                )
-            out_xr = out_xr.assign_attrs({**geodataframe.attrs, **extra_out_attrs})
-        out = out_xr
+        # add the reduced data into a new column as a numpy array,
+        # store the dim information in the attributes
+        _out_dims = [str(dim) for dim in dataarray.coords if dim in out_xr.dims]
+        out_dims = {dim: dataarray[dim].values for dim in _out_dims}
+        reduce_attrs[f"{out_xr.name}"].update({"dims": out_dims})
+        reduced_list = [
+            out_xr.sel(**{mask_dim_name: mask_dim_value}).values
+            for mask_dim_value in out_xr[mask_dim_name].values
+        ]
+        out = out.assign(**{f"{out_xr.name}": reduced_list})
+
+    out.attrs.update({"reduce_attrs": reduce_attrs})
 
     return out

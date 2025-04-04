@@ -230,6 +230,7 @@ def _rolling_reduce_dataarray(
     data_rolling = dataarray.rolling(**rolling_kwargs)
 
     reduce_kwargs.setdefault("how", how_reduce)
+    # TODO: remove type ignore when xarray puts types in stable location
     data_windowed = _reduce_dataarray(data_rolling, **reduce_kwargs)  # type: ignore
 
     data_windowed = _dropna(data_windowed, window_dims, how_dropna)

@@ -1,12 +1,14 @@
+import geopandas as gpd
 import numpy as np
 import pandas as pd
 import pytest
+import xarray as xr
 
 # from earthkit.data.core.temporary import temp_directory
-import xarray as xr
 from earthkit import data as ek_data
 from earthkit.data.testing import earthkit_remote_test_data_file
 from earthkit.transforms.aggregate import spatial
+from shapely.geometry import Polygon
 
 try:
     import rasterio  # noqa: F401
@@ -198,3 +200,98 @@ def test_mask_kwargs():
     reduced_data_nested_2 = spatial.reduce(era5_xr, nuts_DK, mask_kwargs=dict(all_touched=False))
     xr.testing.assert_equal(reduced_data_2, reduced_data_nested_2)
     np.testing.assert_allclose(reduced_data_2["2t"].mean(), 279.54733)
+
+
+def create_test_dataarray():
+    lat = np.linspace(-90, 90, 10)
+    lon = np.linspace(-180, 180, 20)
+    data = np.random.rand(10, 20)
+    return xr.DataArray(
+        data,
+        coords={"lat": lat, "lon": lon},
+        dims=("lat", "lon"),
+        name="test_var",
+    )
+
+
+def create_test_geodataframe():
+    polygons = [Polygon([(-180, -90), (-180, 90), (180, 90), (180, -90)])]
+    return gpd.GeoDataFrame(geometry=polygons, index=[1])
+
+
+def test_reduce_mean():
+    dataarray = create_test_dataarray()
+    result = spatial._reduce_dataarray_as_xarray(dataarray, how="mean")
+    assert isinstance(result, xr.DataArray)
+    assert "lat" not in result.dims
+    assert "lon" not in result.dims
+
+
+def test_reduce_with_geodataframe():
+    dataarray = create_test_dataarray()
+    geodataframe = create_test_geodataframe()
+    result = spatial._reduce_dataarray_as_xarray(dataarray, geodataframe=geodataframe, how="mean")
+    assert isinstance(result, xr.DataArray)
+    assert "index" in result.dims  # Default mask_dim is "index"
+
+
+def test_reduce_with_weights():
+    dataarray = create_test_dataarray()
+    result = spatial._reduce_dataarray_as_xarray(dataarray, how="mean", weights="latitude")
+    assert isinstance(result, xr.DataArray)
+
+
+def test_reduce_invalid_how():
+    dataarray = create_test_dataarray()
+    with pytest.raises(ValueError):
+        spatial._reduce_dataarray_as_xarray(dataarray, how="invalid_method")
+
+
+def test_reduce_with_mask():
+    dataarray = create_test_dataarray()
+    mask = xr.DataArray(
+        np.random.randint(0, 2, size=dataarray.shape), coords=dataarray.coords, dims=dataarray.dims
+    )
+    result = spatial._reduce_dataarray_as_xarray(dataarray, mask_arrays=[mask], how="sum")
+    assert isinstance(result, xr.DataArray)
+
+
+def test_return_geometry_as_coord():
+    dataarray = create_test_dataarray()
+    geodataframe = create_test_geodataframe()
+    result = spatial._reduce_dataarray_as_xarray(
+        dataarray, geodataframe=geodataframe, return_geometry_as_coord=True
+    )
+    assert "geometry" in result.coords
+    assert len(result.coords["geometry"].values) == len(geodataframe)
+
+
+def test_reduce_as_pandas():
+    dataarray = create_test_dataarray()
+    result = spatial._reduce_dataarray_as_pandas(dataarray, how="mean")
+    assert isinstance(result, pd.DataFrame)
+
+
+def test_reduce_as_pandas_with_geodataframe():
+    dataarray = create_test_dataarray()
+    geodataframe = create_test_geodataframe()
+    result = spatial._reduce_dataarray_as_pandas(dataarray, geodataframe=geodataframe, how="mean")
+    assert isinstance(result, pd.DataFrame)
+    assert not result.empty
+
+
+def test_reduce_as_pandas_compact():
+    dataarray = create_test_dataarray()
+    geodataframe = create_test_geodataframe()
+    result = spatial._reduce_dataarray_as_pandas(
+        dataarray, geodataframe=geodataframe, compact=True, how="mean"
+    )
+    assert isinstance(result, pd.DataFrame)
+    assert f"{dataarray.name}" in result.columns
+
+
+def test_reduce_as_pandas_without_geodataframe():
+    dataarray = create_test_dataarray()
+    result = spatial._reduce_dataarray_as_pandas(dataarray, how="sum")
+    assert isinstance(result, pd.DataFrame)
+    assert not result.empty
