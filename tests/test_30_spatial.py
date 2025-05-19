@@ -34,6 +34,29 @@ SAMPLE_ARRAY = xr.DataArray(
     },
 )
 
+SAMPLE_GPD = gpd.GeoDataFrame(
+    {
+        "geometry": [
+            Polygon([(0, 0), (0, 45), (45, 45), (45, 0)]),
+            Polygon([(0, 0), (0, 90.1), (90, 90.1), (90, 0)]),  # Note: 90.1 to ensure overlap at pole
+        ]
+    },
+    index=[1, 2],
+)
+
+SAMPLE_MASK = xr.DataArray(
+    [
+        [1, 1, 0, 0],
+        [1, 0, 0, 0],
+        [1, 0, 0, 0],
+    ],
+    dims=["latitude", "longitude"],
+    coords={
+        "latitude": [0, 60, 90],
+        "longitude": [0, 30, 60, 90],
+    },
+)
+
 
 class dummy_class:
     def __init__(self):
@@ -103,6 +126,35 @@ def test_spatial_reduce_no_geometry_result():
     assert reduced_data.values == 2.0
     reduced_data = spatial.reduce(SAMPLE_ARRAY, how="mean", weights="latitude")
     assert np.isclose(reduced_data.values, 1 + (1.0 / 3))
+
+
+def test_spatial_reduce_with_geometry_result():
+    reduced_data = spatial.reduce(
+        SAMPLE_ARRAY, geodataframe=SAMPLE_GPD, how="mean"
+    )
+    assert np.array_equal(reduced_data.values, [1, 1.5])
+    reduced_data = spatial.reduce(
+        SAMPLE_ARRAY, geodataframe=SAMPLE_GPD, how="mean",
+        all_touched=True
+    )
+    assert np.array_equal(reduced_data.values, [1.5, 2.0])
+    reduced_data = spatial.reduce(
+        SAMPLE_ARRAY, geodataframe=SAMPLE_GPD, how="mean",
+        all_touched=True, weights="latitude"
+    )
+    assert np.array_equal(reduced_data.values, [1 + (1.0 / 3), 1 + (1.0 / 3)])
+
+
+def test_spatial_reduce_with_mask_result():
+    reduced_data = spatial.reduce(
+        SAMPLE_ARRAY, mask_arrays=SAMPLE_MASK, how="mean"
+    )
+    assert reduced_data.values == 1.75
+    reduced_data = spatial.reduce(
+        SAMPLE_ARRAY, geodataframe=SAMPLE_MASK, how="mean",
+        weights="latitude"
+    )
+    assert reduced_data.values == 1.2
 
 
 @pytest.mark.skipif(
