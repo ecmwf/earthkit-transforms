@@ -305,7 +305,7 @@ def resample(
         resample = dataarray.resample(skipna=skipna, **kwargs)
     except ValueError as e:
         raise ValueError(
-            f"{e}\nPlease ensure you are not passing erroneous kwargs. "
+            f"{e}\nPlease ensure you are not passing erroneous/undocumented kwargs. "
             f"kwargs received by xarray.resample: {kwargs}."
         ) from e
     result = resample.__getattribute__(how)(*how_args, dim=time_dim, **how_kwargs)
