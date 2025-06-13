@@ -301,7 +301,13 @@ def resample(
     # Translate and xarray frequencies to pandas language:
     frequency = tools._PANDAS_FREQUENCIES_R.get(frequency, frequency)
     kwargs[time_dim] = frequency
-    resample = dataarray.resample(skipna=skipna, **kwargs)
+    try:
+        resample = dataarray.resample(skipna=skipna, **kwargs)
+    except ValueError as e:
+        raise ValueError(
+            f"{e}\nPlease ensure you are not passing erroneous kwargs. "
+            f"kwargs received by xarray.resample: {kwargs}."
+        ) from e
     result = resample.__getattribute__(how)(*how_args, dim=time_dim, **how_kwargs)
 
     result = how_label_rename(result, how_label=how_label)
