@@ -679,7 +679,7 @@ def _reduce_dataarray_as_pandas(
         added as a new column.
 
     """
-    out_xr = _reduce_dataarray_as_xarray(dataarray, **kwargs)
+    out_xr = _reduce_dataarray_as_xarray(dataarray, geodataframe=geodataframe, **kwargs)
 
     reduce_attrs = {f"{dataarray.name}": dataarray.attrs, f"{out_xr.name}": out_xr.attrs}
 
