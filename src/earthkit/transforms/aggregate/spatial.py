@@ -444,7 +444,7 @@ def reduce(
         _mask_arrays = None
 
     if isinstance(dataarray, xr.Dataset):
-        return_as: str = kwargs.get("return_as", "xarray")
+        return_as: str = kwargs.pop("return_as", "xarray")
         if return_as in ["xarray"]:
             out_ds = xr.Dataset().assign_attrs(dataarray.attrs)
             for var in dataarray.data_vars:
