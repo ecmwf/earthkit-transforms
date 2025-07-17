@@ -129,7 +129,8 @@ def array_namespace_robust(data_object: T.Any) -> types.ModuleType:
     Raises
     ------
     TypeError
-        If the array namespace cannot be inferred from the data object.
+        If the input data_object contains an compatible array interface,
+        e.g. a xr.Dataset with mixed array namespaces.
     """
     if isinstance(data_object, xr.DataArray):
         return array_namespace(data_object.data)
@@ -146,7 +147,14 @@ def array_namespace_robust(data_object: T.Any) -> types.ModuleType:
         else:
             raise TypeError("data_object must contain at least one data_variable to infer xp.")
 
-    return array_namespace(data_object)
+    try:
+        return array_namespace(data_object)
+    except Exception:
+        logger.warning(
+            "Unable to infer array namespace from data_object, defaulting to numpy. "
+            "If you are using a custom data object, please ensure it has a compatible array interface.",
+        )
+        return np
 
 
 def nanaverage(data, weights=None, **kwargs):
@@ -154,24 +162,24 @@ def nanaverage(data, weights=None, **kwargs):
 
     Parameters
     ----------
-    data : numpy array
+    data : array
         Data to average.
     weights:
         Weights to apply to the data for averaging.
         Weights will be normalised and must correspond to the
-        shape of the numpy data array and axis/axes that is/are
+        shape of the data array and axis/axes that is/are
         averaged over.
     axis:
         axis/axes to compute the nanaverage over.
     kwargs:
-        any other np.nansum kwargs
+        any other xp.nansum kwargs
 
     Returns
     -------
-    numpy array mean of data (along axis) where nan-values are ignored
+    Array mean of data (along axis) where nan-values are ignored
     and weights applied if provided.
     """
-    xp = array_namespace(data)
+    xp = array_namespace_robust(data)
     if weights is not None:
         # set weights to nan where data is nan:
         this_weights = xp.ones(data.shape) * weights
@@ -445,27 +453,11 @@ def get_how_xp(
 
     if xp is None:
         if data_object is not None:
-            # Attempt to infer the array API from the data object
-            if isinstance(data_object, xr.DataArray):
-                xp = array_namespace(data_object.data)
-            elif isinstance(data_object, xr.Dataset):
-                data_vars = list(data_object.data_vars)
-                xps = [array_namespace(data_object[var].data) for var in data_vars]
-                if len(set(xps)) == 1:
-                    xp = xps[0]
-                elif len(set(xps)) > 1:
-                    raise ValueError(
-                        "Data object contains variables with different array namespaces, "
-                        "cannot infer a single xp for computation."
-                    )
-                else:
-                    raise ValueError("data_object must contain at least one data_variable to infer xp.")
-            else:
-                try:
-                    xp = array_namespace(data_object)
-                except Exception:
-                    logger.warning("Unable to infer array namespace from data_object, defaulting to numpy.")
-                    xp = np
+            try:
+                xp = array_namespace_robust(data_object)
+            except Exception:
+                logger.warning("Unable to infer array namespace from data_object, defaulting to numpy.")
+                xp = np
         else:
             # Default to numpy if no xp or data_object is provided
             xp = np
