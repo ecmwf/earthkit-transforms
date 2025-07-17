@@ -98,7 +98,7 @@ def reduce(
         If string, it must be an in-built xarray reduce method, a earthkit how method or any numpy method.
         In the case of duplicate names, method selection is first in the order: xarray, earthkit, numpy.
         Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
-        to return the result of reducing an np.ndarray over an integer valued axis
+        to return the result of reducing an array over an integer valued axis
     weights : str
         Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_label : str
@@ -379,7 +379,7 @@ def daily_reduce(
         If string, it must be an in-built xarray reduce method, a earthkit how method or any numpy method.
         In the case of duplicate names, method selection is first in the order: xarray, earthkit, numpy.
         Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
-        to return the result of reducing an np.ndarray over an integer valued axis
+        to return the result of reducing an array over an integer valued axis
     time_dim : str
         Name of the time dimension, or coordinate, in the xarray object,
         default behaviour is to deduce time dimension from
@@ -630,7 +630,7 @@ def monthly_reduce(
         If string, it must be an in-built xarray reduce method, a earthkit how method or any numpy method.
         In the case of duplicate names, method selection is first in the order: xarray, earthkit, numpy.
         Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
-        to return the result of reducing an np.ndarray over an integer valued axis
+        to return the result of reducing an array over an integer valued axis
     time_dim : str
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
         default behaviour is to deduce time dimension from
