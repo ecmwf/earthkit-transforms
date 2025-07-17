@@ -1,7 +1,7 @@
 import functools
 import logging
-import typing as T
 import types
+import typing as T
 
 import numpy as np
 import pandas as pd
