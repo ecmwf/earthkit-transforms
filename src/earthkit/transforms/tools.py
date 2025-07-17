@@ -1,11 +1,11 @@
 import functools
 import logging
 import typing as T
+import types
 
 import numpy as np
 import pandas as pd
 import xarray as xr
-
 from earthkit.utils.array import array_namespace
 
 logger = logging.getLogger(__name__)
@@ -324,9 +324,9 @@ def get_how(how: str, how_methods=HOW_METHODS):
 
 def get_how_xp(
     how_str: str,
-    xp: T.Any = None,
+    xp: types.ModuleType | None = None,
     how_methods_mapping: dict[str, str] = HOW_METHODS_MAPPING,
-    data_object: T.Any = None
+    data_object: T.Any = None,
 ) -> T.Callable:
     """Resolve a method name to a callable from the given module (xp), using an optional mapping for aliases.
 
@@ -340,6 +340,9 @@ def get_how_xp(
 
     how_methods_mapping : dict
         Mapping of aliases to method names.
+
+    data_object : Any, optional
+        The data object to infer the array API from, if xp is not provided explicitly
 
     Returns
     -------
@@ -372,11 +375,11 @@ def get_how_xp(
                 try:
                     xp = array_namespace(data_object)
                 except Exception:
-                    logger.warning(
-                        "Unable to infer array namespace from data_object, defaulting to numpy."
-                    )
-                    import numpy as np
+                    logger.warning("Unable to infer array namespace from data_object, defaulting to numpy.")
                     xp = np
+        else:
+            # Default to numpy if no xp or data_object is provided
+            xp = np
 
     resolved_name = how_methods_mapping.get(how_str, how_str)
 
