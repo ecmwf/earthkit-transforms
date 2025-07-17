@@ -120,13 +120,13 @@ def mask_contains_points(
     assert (lat_dims == lon_dims) or (lat_dims == (lat_key,) and lon_dims == (lon_key,))
     if lat_dims == (lat_key,) and lon_dims == (lon_key,):
         lon_full, lat_full = xp.meshgrid(
-            coords[lon_key].values,
-            coords[lat_key].values,
+            coords[lon_key].data,
+            coords[lat_key].data,
         )
     else:
         lon_full, lat_full = (
-            coords[lon_key].values,
-            coords[lat_key].values,
+            coords[lon_key].data,
+            coords[lat_key].data,
         )
     # convert lat lon pairs to to points:
     points = list(
@@ -716,11 +716,11 @@ def _reduce_dataarray_as_pandas(
         # add the reduced data into a new column as a numpy array,
         # store the dim information in the attributes
         _out_dims = [str(dim) for dim in dataarray.coords if dim in out_xr.dims]
-        out_dims = {dim: dataarray[dim].values for dim in _out_dims}
+        out_dims = {dim: dataarray[dim].data for dim in _out_dims}
         reduce_attrs[f"{out_xr.name}"].update({"dims": out_dims})
         reduced_list = [
-            out_xr.sel(**{mask_dim_name: mask_dim_value}).values
-            for mask_dim_value in out_xr[mask_dim_name].values
+            out_xr.sel(**{mask_dim_name: mask_dim_value}).data
+            for mask_dim_value in out_xr[mask_dim_name].data
         ]
         out = out.assign(**{f"{out_xr.name}": reduced_list})
 

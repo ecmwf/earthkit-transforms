@@ -1,9 +1,14 @@
 import functools
+import logging
 import typing as T
 
 import numpy as np
 import pandas as pd
 import xarray as xr
+
+from earthkit.utils.array import array_namespace
+
+logger = logging.getLogger(__name__)
 
 #: Mapping from pandas frequency strings to xarray time groups
 _PANDAS_FREQUENCIES = {
@@ -321,6 +326,7 @@ def get_how_xp(
     how_str: str,
     xp: T.Any = None,
     how_methods_mapping: dict[str, str] = HOW_METHODS_MAPPING,
+    data_object: T.Any = None
 ) -> T.Callable:
     """Resolve a method name to a callable from the given module (xp), using an optional mapping for aliases.
 
@@ -346,9 +352,31 @@ def get_how_xp(
         If the method cannot be found in xp.
     """
     if xp is None:
-        import numpy as np
-
-        xp = np
+        if data_object is not None:
+            # Attempt to infer the array API from the data object
+            if isinstance(data_object, xr.DataArray):
+                xp = array_namespace(data_object.data)
+            elif isinstance(data_object, xr.Dataset):
+                data_vars = list(data_object.data_vars)
+                xps = [array_namespace(data_object[var].data) for var in data_vars]
+                if len(set(xps)) == 1:
+                    xp = xps[0]
+                elif len(set(xps)) > 1:
+                    raise ValueError(
+                        "Data object contains variables with different array namespaces, "
+                        "cannot infer a single xp for computation."
+                    )
+                else:
+                    raise ValueError("data_object must contain at least one data_variable to infer xp.")
+            else:
+                try:
+                    xp = array_namespace(data_object)
+                except Exception:
+                    logger.warning(
+                        "Unable to infer array namespace from data_object, defaulting to numpy."
+                    )
+                    import numpy as np
+                    xp = np
 
     resolved_name = how_methods_mapping.get(how_str, how_str)
 

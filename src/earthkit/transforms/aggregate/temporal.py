@@ -50,10 +50,10 @@ def standardise_time(
 
     """
     try:
-        source_times = [time_value.strftime(target_format) for time_value in dataarray[time_dim].values]
+        source_times = [time_value.strftime(target_format) for time_value in dataarray[time_dim].data]
     except AttributeError:
         source_times = [
-            pd.to_datetime(time_value).strftime(target_format) for time_value in dataarray[time_dim].values
+            pd.to_datetime(time_value).strftime(target_format) for time_value in dataarray[time_dim].data
         ]
 
     standardised_times = np.array(
@@ -424,12 +424,12 @@ def daily_reduce(
         else:
             # If how is string, fetch function from dictionary:
             if isinstance(how, str):
-                how = tools.get_how(how)
+                how = tools.get_how_xp(how, data_object=dataarray)
             assert callable(how), f"how method not recognised: {how}"
 
             red_array = grouped_data.reduce(how, **kwargs)
         try:
-            red_array[group_key] = pd.DatetimeIndex(red_array[group_key].values)
+            red_array[group_key] = pd.DatetimeIndex(red_array[group_key].data)
         except TypeError:
             logger.warning(f"Failed to convert {group_key} to datetime, it may already be a datetime object")
 
@@ -683,7 +683,7 @@ def monthly_reduce(
         else:
             # If how is string, fetch function from dictionary:
             if isinstance(how, str):
-                how = tools.get_how(how)
+                how = tools.get_how_xp(how, data_object=dataarray)
             assert callable(how), f"how method not recognised: {how}"
 
             red_array = grouped_data.reduce(how, **kwargs)
