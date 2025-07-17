@@ -3,10 +3,11 @@ import typing as T
 from copy import deepcopy
 
 import geopandas as gpd
-import numpy as np
 import pandas as pd
 import xarray as xr
 from earthkit.transforms.tools import ensure_list, get_how, get_spatial_info, standard_weights
+from earthkit.utils.array import array_namespace
+from numpy import ndarray
 
 logger = logging.getLogger(__name__)
 
@@ -108,6 +109,8 @@ def mask_contains_points(
     """
     import matplotlib.path as mpltPath
 
+    xp = array_namespace(coords[lat_key].data)
+
     lat_dims = coords[lat_key].dims
     lon_dims = coords[lon_key].dims
     # Assert that latitude and longitude have the same dimensions
@@ -116,7 +119,7 @@ def mask_contains_points(
     # just use the rasterize function for the regular case
     assert (lat_dims == lon_dims) or (lat_dims == (lat_key,) and lon_dims == (lon_key,))
     if lat_dims == (lat_key,) and lon_dims == (lon_key,):
-        lon_full, lat_full = np.meshgrid(
+        lon_full, lat_full = xp.meshgrid(
             coords[lon_key].values,
             coords[lat_key].values,
         )
@@ -136,7 +139,7 @@ def mask_contains_points(
     # get spatial dims and create output array:
     spatial_dims = list(set(lat_dims + lon_dims))
     outdata_shape = [len(coords[dim]) for dim in spatial_dims]
-    outdata = np.zeros(outdata_shape).astype(bool) * np.nan
+    outdata = xp.zeros(outdata_shape).astype(bool) * xp.nan
     # loop over shapes and mask any point that is in the shape
     for shape in shape_list:
         for shp in shape[0]:
@@ -203,7 +206,7 @@ def shapes_to_masks(shapes: gpd.GeoDataFrame | list[gpd.GeoDataFrame], target, r
     Returns
     -------
     list[xr.DataArray]
-        A list of masks where points inside each geometry are 1, and those outside are np.nan
+        A list of masks where points inside each geometry are 1, and those outside are xp.nan
 
     """
     if isinstance(shapes, gpd.GeoDataFrame):
@@ -242,7 +245,7 @@ def shapes_to_mask(shapes, target, regular=True, **kwargs):
     Returns
     -------
     xr.DataArray
-        A mask where points inside any geometry are 1, and those outside are np.nan
+        A mask where points inside any geometry are 1, and those outside are xp.nan
 
     """
     if isinstance(shapes, gpd.GeoDataFrame):
@@ -397,7 +400,7 @@ def reduce(
         precomputed mask array[s], if provided this will be used instead of creating a new mask.
         They must be on the same spatial grid as the dataarray.
     how :
-        method used to apply mask. Default='mean', which calls np.nanmean
+        method used to apply mask. Default='mean', which calls xp.nanmean
     weights :
         Provide weights for aggregation, also accepts recognised keys for weights, e.g.
         'latitude'
@@ -485,7 +488,7 @@ def _reduce_dataarray_as_xarray(
     geodataframe: gpd.GeoDataFrame | None = None,
     mask_arrays: list[xr.DataArray] | None = None,
     how: T.Callable | str = "mean",
-    weights: None | str | np.ndarray = None,
+    weights: None | str | ndarray = None,
     lat_key: str | None = None,
     lon_key: str | None = None,
     extra_reduce_dims: list | str = [],
@@ -512,7 +515,7 @@ def _reduce_dataarray_as_xarray(
         precomputed mask array[s], if provided this will be used instead of creating a new mask.
         They must be on the same spatial grid as the dataarray.
     how :
-        method used to apply mask. Default='mean', which calls np.nanmean
+        method used to apply mask. Default='mean', which calls xp.nanmean
     weights :
         Provide weights for aggregation, also accepts recognised keys for weights, e.g.
         'latitude'
@@ -549,6 +552,7 @@ def _reduce_dataarray_as_xarray(
         Each slice of layer corresponds to a feature in layer
 
     """
+    xp = array_namespace(dataarray.data)
     extra_out_attrs = {}
     how_str: None | str = None
     if weights is None:
@@ -616,7 +620,7 @@ def _reduce_dataarray_as_xarray(
 
     reduced_list = []
     for masked_data in masked_data_list:
-        this = dataarray.where(masked_data, other=np.nan)
+        this = dataarray.where(masked_data, other=xp.nan)
 
         # If weighted, use xarray weighted arrays which
         # correctly handle missing values etc.

@@ -253,6 +253,21 @@ HOW_METHODS = {
     "p": np.nanpercentile,
 }
 
+HOW_METHODS_MAPPING = {
+    "average": nanaverage,
+    "mean": "nanmean",
+    "stddev": "nanstd",
+    "std": "nanstd",
+    "stdev": "nanstd",
+    "sum": "nansum",
+    "max": "nanmax",
+    "min": "nanmin",
+    "median": "nanmedian",
+    "q": "nanquantile",
+    "quantile": "nanquantile",
+    "percentile": "nanpercentile",
+    "p": "nanpercentile",
+}
 
 WEIGHTED_HOW_METHODS = {
     "average": "mean",
@@ -300,6 +315,48 @@ def get_how(how: str, how_methods=HOW_METHODS):
             raise AttributeError(f"module '{module}' has no attribute " f"'{function}'")
 
     return how
+
+
+def get_how_xp(
+    how_str: str,
+    xp: T.Any = None,
+    how_methods_mapping: dict[str, T.Callable] = HOW_METHODS_MAPPING,
+) -> T.Callable:
+    """Resolve a method name to a callable from the given module (xp), using an optional mapping for aliases.
+
+    Parameters
+    ----------
+    how_str : str
+        The method name or alias.
+
+    xp : module, optional
+        The array API module (e.g., numpy). Defaults to numpy.
+
+    how_methods_mapping : dict
+        Mapping of aliases to method names.
+
+    Returns
+    -------
+    T.Callable
+        The resolved method.
+
+    Raises
+    ------
+    ValueError
+        If the method cannot be found in xp.
+    """
+    if xp is None:
+        import numpy as np
+
+        xp = np
+
+    resolved_name = how_methods_mapping.get(how_str, how_str)
+
+    for name in (resolved_name, how_str):
+        if hasattr(xp, name):
+            return getattr(xp, name)
+
+    raise ValueError(f"how method not recognised or found: how={how_str} for xp={xp.__name__}.")
 
 
 STANDARD_AXIS_KEYS: dict[str, list[str]] = {

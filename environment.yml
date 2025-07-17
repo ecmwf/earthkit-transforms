@@ -19,3 +19,4 @@ dependencies:
 - geopandas
 - rasterio
 - earthkit-data[all]
+- earthkit-utils
