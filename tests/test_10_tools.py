@@ -1,12 +1,17 @@
 from typing import Any
 
 import numpy as np
+try:
+    import cupy as cp
+except ImportError:
+    cp = None
 import pandas as pd
 import pytest
 import xarray as xr
 from earthkit.transforms.tools import (
     get_dim_key,
     get_how,
+    get_how_xp,
     get_spatial_info,
     groupby_kwargs_decorator,
     latitude_weights,
@@ -172,6 +177,86 @@ def test_groupby_kwargs_decorator_override():
 )
 def test_get_how(how_str: str, how_expected: Any):
     assert how_expected == get_how(how_str)
+
+
+def test_get_how_xp_np():
+    test_case = (
+        ["mean", np.nanmean],
+        ["numpy.mean", np.mean],
+        ["numpy.nanmean", np.nanmean],
+        ["nanaverage", nanaverage],
+        ["average", nanaverage],
+        ["numpy.average", np.average],
+        ["stddev", np.nanstd],
+        ["std", np.nanstd],
+        ["stdev", np.nanstd],
+        ["sum", np.nansum],
+        ["max", np.nanmax],
+        ["min", np.nanmin],
+        ["median", np.nanmedian],
+        ["q", np.nanquantile],
+        ["quantile", np.nanquantile],
+        ["percentile", np.nanpercentile],
+        ["p", np.nanpercentile],
+    )
+    for how_str, expected in test_case:
+        assert expected == get_how_xp(how_str, xp=np)
+
+@pytest.mark.parametrize(
+    "data_object",
+    (
+        xr.DataArray(np.random.rand(10, 10), dims=["x", "y"]),
+        xr.Dataset({"var": (["x", "y"], np.random.rand(10, 10))}, coords={"x": np.arange(10), "y": np.arange(10)}),
+        np.random.rand(10, 10),
+    )
+)
+def test_get_how_xp_np_objects(data_object):
+    test_cases = (
+        ["mean", np.nanmean],
+        ["numpy.mean", np.mean],
+        ["numpy.nanmean", np.nanmean],
+        ["nanaverage", nanaverage],
+        ["average", nanaverage],
+        ["numpy.average", np.average],
+        ["stddev", np.nanstd],
+        ["std", np.nanstd],
+        ["stdev", np.nanstd],
+        ["sum", np.nansum],
+        ["max", np.nanmax],
+        ["min", np.nanmin],
+        ["median", np.nanmedian],
+        ["q", np.nanquantile],
+        ["quantile", np.nanquantile],
+        ["percentile", np.nanpercentile],
+        ["p", np.nanpercentile],
+    )
+    for how_str, expected in test_cases:
+        assert expected == get_how_xp(how_str, data_object=data_object)
+
+
+@pytest.mark.skipif(cp is None, reason="Cupy is not installed")
+def test_get_how_xp_cp():
+    test_cases = [
+        ("mean", cp.nanmean),
+        ("numpy.mean", cp.mean),
+        ("numpy.nanmean", cp.nanmean),
+        ("nanaverage", nanaverage),
+        ("average", nanaverage),
+        ("numpy.average", cp.average),
+        ("stddev", cp.nanstd),
+        ("std", cp.nanstd),
+        ("stdev", cp.nanstd),
+        ("sum", cp.nansum),
+        ("max", cp.nanmax),
+        ("min", cp.nanmin),
+        ("median", cp.nanmedian),
+        ("q", cp.nanquantile),
+        ("quantile", cp.nanquantile),
+        ("percentile", cp.nanpercentile),
+        ("p", cp.nanpercentile),
+    ]
+    for how_str, expected in test_cases:
+        assert get_how_xp(how_str, xp=cp) == expected
 
 
 # Define a helper function to create dummy dataarray with given axis attribute
