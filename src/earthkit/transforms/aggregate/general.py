@@ -1,8 +1,9 @@
 import typing as T
 
-import numpy as np
 import xarray as xr
 from earthkit.transforms import tools
+from earthkit.utils.array import array_namespace
+from numpy import ndarray
 
 
 def how_label_rename(
@@ -23,7 +24,7 @@ def how_label_rename(
 def _reduce_dataarray(
     dataarray: xr.DataArray,
     how: T.Callable | str = "mean",
-    weights: None | str | np.ndarray = None,
+    weights: None | str | ndarray = None,
     how_label: str | None = None,
     how_dropna=False,
     **kwargs,
@@ -35,14 +36,14 @@ def _reduce_dataarray(
 
     Parameters
     ----------
-    dataarray : xr.DataArray or xr.Dataset
+    dataarray : xr.DataArray
         Data object to reduce
     how: str or callable
         Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
         If string, it must be an in-built xarray reduce method, a earthkit how method or any numpy method.
         In the case of duplicate names, method selection is first in the order: xarray, earthkit, numpy.
         Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
-        to return the result of reducing an np.ndarray over an integer valued axis
+        to return the result of reducing an xp.ndarray over an integer valued axis
     weights : str
         Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_dropna : str
@@ -58,6 +59,7 @@ def _reduce_dataarray(
     A data array with reduce dimensions removed.
 
     """
+    xp = array_namespace(dataarray.data)
     # If weighted, use xarray weighted methods
     if weights is not None:
         # Create any standard weights, e.g. latitude
@@ -79,7 +81,7 @@ def _reduce_dataarray(
             red_array = dataarray.__getattribute__(how)(**kwargs)
         else:
             if isinstance(how, str):
-                how = tools.get_how(how)
+                how = tools.get_how_xp(how, xp=xp)
             assert callable(how), f"how method not recognised: {how}"
 
             red_array = dataarray.reduce(how, **kwargs)
@@ -111,7 +113,7 @@ def reduce(
         If string, it must be an in-built xarray reduce method, a earthkit how method or any numpy method.
         In the case of duplicate names, method selection is first in the order: xarray, earthkit, numpy.
         Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
-        to return the result of reducing an np.ndarray over an integer valued axis
+        to return the result of reducing an xp.ndarray over an integer valued axis
     weights : str
         Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_label : str
@@ -261,7 +263,7 @@ def resample(
     how_kwargs: dict[str, T.Any] = {},
     how_label: str | None = None,
     **kwargs,
-) -> xr.DataArray:
+) -> xr.Dataset | xr.DataArray:
     """Resample dataarray to a user-defined frequency using a user-defined "how" method.
 
     Parameters

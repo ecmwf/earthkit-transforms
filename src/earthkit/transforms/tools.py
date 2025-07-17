@@ -254,7 +254,7 @@ HOW_METHODS = {
 }
 
 HOW_METHODS_MAPPING = {
-    "average": nanaverage,
+    "average": "nanaverage",
     "mean": "nanmean",
     "stddev": "nanstd",
     "std": "nanstd",
@@ -320,7 +320,7 @@ def get_how(how: str, how_methods=HOW_METHODS):
 def get_how_xp(
     how_str: str,
     xp: T.Any = None,
-    how_methods_mapping: dict[str, T.Callable] = HOW_METHODS_MAPPING,
+    how_methods_mapping: dict[str, str] = HOW_METHODS_MAPPING,
 ) -> T.Callable:
     """Resolve a method name to a callable from the given module (xp), using an optional mapping for aliases.
 
