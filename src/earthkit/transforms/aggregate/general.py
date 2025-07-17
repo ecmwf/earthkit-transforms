@@ -2,7 +2,6 @@ import typing as T
 
 import xarray as xr
 from earthkit.transforms import tools
-from earthkit.utils.array import array_namespace
 from numpy import ndarray
 
 
@@ -26,7 +25,8 @@ def _reduce_dataarray(
     how: T.Callable | str = "mean",
     weights: None | str | ndarray = None,
     how_label: str | None = None,
-    how_dropna=False,
+    how_dropna: bool = False,
+    xp: T.Any = None,
     **kwargs,
 ):
     """Reduce an xarray.dataarray or xarray.dataset using a specified `how` method.
@@ -51,6 +51,8 @@ def _reduce_dataarray(
         Default is None and na values are preserved. Options are 'any' and 'all'.
     how_label : str
         Label to append to the name of the variable in the reduced object, default is nothing
+    xp : T.Any
+        The array namespace to use for the reduction. If None, it will be inferred from the dataarray.
     **kwargs :
         kwargs recognised by the how :func: `reduce`
 
@@ -59,7 +61,8 @@ def _reduce_dataarray(
     A data array with reduce dimensions removed.
 
     """
-    xp = array_namespace(dataarray.data)
+    if xp is None:
+        xp = tools.array_namespace_robust(dataarray)
     # If weighted, use xarray weighted methods
     if weights is not None:
         # Create any standard weights, e.g. latitude
