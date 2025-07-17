@@ -155,61 +155,6 @@ def nanaverage(data, weights=None, **kwargs):
     return _nanaverage
 
 
-## DEPRECATED latitude_weights method. xarray.Weights can handle nans, therefore bespoke method not needed
-# def latitude_weights(latitudes, data_shape=None, lat_dims=None):
-#     """Function to return latitude weights.
-
-#     This is a very basic latitudinal
-#     weights function where weights are the normalised cosine of latitude,
-#     i.e. weight = cosine(latitude) / SUM(cosine(latitude)).
-
-#     Parameters
-#     ----------
-#     latitudes: numpy.array
-#         Latitude values to calculate weights
-#     data_shape (optional): list
-#         The shape of the data which the weights apply to,
-#         default is the shape of `latitudes`
-#     lat_dims (optional): integer or list
-#         The dimension indices that corresponde to the latitude data,
-#         default is the shape of the latitudes array. If latitudes is a multi-dimensional,
-#         then order of latitudes must be in the same order as the lat_dims.
-
-#     Returns
-#     -------
-#     numpy.array
-#         weights equal to cosine of latitude coordinate in the shape of latitudes,
-#         or a user defined data_shape
-#     """
-#     # Calculate the weights
-#     weights = np.cos(np.radians(latitudes))
-#     weights = weights / np.nanmean(weights)
-
-#     if data_shape is None:
-#         data_shape = latitudes.shape
-#     ndims = len(data_shape)
-
-#     # Treat lat_dim as a list so we can handle irregular data
-#     if lat_dims is None:
-#         lat_dims = latitudes.shape
-#     elif isinstance(lat_dims, int):
-#         lat_dims = [lat_dims]
-
-#     # create shape for weights, where latitude dependant take
-#     # appropriate weight shape, where not fill with ones.
-#     i_w = 0
-#     w_shape = []
-#     for i_d in range(ndims):
-#         if i_d in lat_dims:
-#             w_shape.append(weights.shape[i_w])
-#             i_w += 1
-#         else:
-#             w_shape.append(1)
-
-#     ones = np.ones(data_shape)
-#     return ones * weights.reshape(w_shape)
-
-
 def standard_weights(dataarray: xr.DataArray, weights: str, **kwargs):
     """Implement any standard weights functions included in earthkit-transforms."""
     if weights in ["latitude", "lat"]:
