@@ -5,7 +5,7 @@ from copy import deepcopy
 import geopandas as gpd
 import pandas as pd
 import xarray as xr
-from earthkit.transforms.tools import ensure_list, get_how, get_spatial_info, standard_weights
+from earthkit.transforms.tools import ensure_list, get_how_xp, get_spatial_info, standard_weights
 from earthkit.utils.array import array_namespace
 from numpy import ndarray
 
@@ -559,7 +559,7 @@ def _reduce_dataarray_as_xarray(
         # convert how string to a method to apply
         if isinstance(how, str):
             how_str = deepcopy(how)
-            how = reduce_how = get_how(how)
+            how = reduce_how = get_how_xp(how, xp=xp)
         # else:
         #     reduce_how = how
         assert callable(how), f"how must be a callable: {how}"
