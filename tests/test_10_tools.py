@@ -1,6 +1,7 @@
 from typing import Any
 
 import numpy as np
+
 try:
     import cupy as cp
 except ImportError:
@@ -202,13 +203,16 @@ def test_get_how_xp_np():
     for how_str, expected in test_case:
         assert expected == get_how_xp(how_str, xp=np)
 
+
 @pytest.mark.parametrize(
     "data_object",
     (
         xr.DataArray(np.random.rand(10, 10), dims=["x", "y"]),
-        xr.Dataset({"var": (["x", "y"], np.random.rand(10, 10))}, coords={"x": np.arange(10), "y": np.arange(10)}),
+        xr.Dataset(
+            {"var": (["x", "y"], np.random.rand(10, 10))}, coords={"x": np.arange(10), "y": np.arange(10)}
+        ),
         np.random.rand(10, 10),
-    )
+    ),
 )
 def test_get_how_xp_np_objects(data_object):
     test_cases = (
