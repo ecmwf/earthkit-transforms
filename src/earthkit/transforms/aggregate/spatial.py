@@ -3,10 +3,16 @@ import typing as T
 from copy import deepcopy
 
 import geopandas as gpd
-import numpy as np
 import pandas as pd
 import xarray as xr
-from earthkit.transforms.tools import ensure_list, get_how, get_spatial_info, standard_weights
+from earthkit.transforms.tools import (
+    array_namespace_from_object,
+    ensure_list,
+    get_how_xp,
+    get_spatial_info,
+    standard_weights,
+)
+from numpy import ndarray
 
 logger = logging.getLogger(__name__)
 
@@ -108,6 +114,8 @@ def mask_contains_points(
     """
     import matplotlib.path as mpltPath
 
+    xp = array_namespace_from_object(coords[lat_key])
+
     lat_dims = coords[lat_key].dims
     lon_dims = coords[lon_key].dims
     # Assert that latitude and longitude have the same dimensions
@@ -116,14 +124,14 @@ def mask_contains_points(
     # just use the rasterize function for the regular case
     assert (lat_dims == lon_dims) or (lat_dims == (lat_key,) and lon_dims == (lon_key,))
     if lat_dims == (lat_key,) and lon_dims == (lon_key,):
-        lon_full, lat_full = np.meshgrid(
-            coords[lon_key].values,
-            coords[lat_key].values,
+        lon_full, lat_full = xp.meshgrid(
+            coords[lon_key].data,
+            coords[lat_key].data,
         )
     else:
         lon_full, lat_full = (
-            coords[lon_key].values,
-            coords[lat_key].values,
+            coords[lon_key].data,
+            coords[lat_key].data,
         )
     # convert lat lon pairs to to points:
     points = list(
@@ -136,7 +144,7 @@ def mask_contains_points(
     # get spatial dims and create output array:
     spatial_dims = list(set(lat_dims + lon_dims))
     outdata_shape = [len(coords[dim]) for dim in spatial_dims]
-    outdata = np.zeros(outdata_shape).astype(bool) * np.nan
+    outdata = xp.zeros(outdata_shape).astype(bool) * xp.nan
     # loop over shapes and mask any point that is in the shape
     for shape in shape_list:
         for shp in shape[0]:
@@ -203,7 +211,7 @@ def shapes_to_masks(shapes: gpd.GeoDataFrame | list[gpd.GeoDataFrame], target, r
     Returns
     -------
     list[xr.DataArray]
-        A list of masks where points inside each geometry are 1, and those outside are np.nan
+        A list of masks where points inside each geometry are 1, and those outside are xp.nan
 
     """
     if isinstance(shapes, gpd.GeoDataFrame):
@@ -242,7 +250,7 @@ def shapes_to_mask(shapes, target, regular=True, **kwargs):
     Returns
     -------
     xr.DataArray
-        A mask where points inside any geometry are 1, and those outside are np.nan
+        A mask where points inside any geometry are 1, and those outside are xp.nan
 
     """
     if isinstance(shapes, gpd.GeoDataFrame):
@@ -397,7 +405,7 @@ def reduce(
         precomputed mask array[s], if provided this will be used instead of creating a new mask.
         They must be on the same spatial grid as the dataarray.
     how :
-        method used to apply mask. Default='mean', which calls np.nanmean
+        method used to apply mask. Default='mean', which calls xp.nanmean
     weights :
         Provide weights for aggregation, also accepts recognised keys for weights, e.g.
         'latitude'
@@ -485,7 +493,7 @@ def _reduce_dataarray_as_xarray(
     geodataframe: gpd.GeoDataFrame | None = None,
     mask_arrays: list[xr.DataArray] | None = None,
     how: T.Callable | str = "mean",
-    weights: None | str | np.ndarray = None,
+    weights: None | str | ndarray = None,
     lat_key: str | None = None,
     lon_key: str | None = None,
     extra_reduce_dims: list | str = [],
@@ -512,7 +520,7 @@ def _reduce_dataarray_as_xarray(
         precomputed mask array[s], if provided this will be used instead of creating a new mask.
         They must be on the same spatial grid as the dataarray.
     how :
-        method used to apply mask. Default='mean', which calls np.nanmean
+        method used to apply mask. Default='mean', which calls xp.nanmean
     weights :
         Provide weights for aggregation, also accepts recognised keys for weights, e.g.
         'latitude'
@@ -549,13 +557,14 @@ def _reduce_dataarray_as_xarray(
         Each slice of layer corresponds to a feature in layer
 
     """
+    xp = array_namespace_from_object(dataarray)
     extra_out_attrs = {}
     how_str: None | str = None
     if weights is None:
         # convert how string to a method to apply
         if isinstance(how, str):
             how_str = deepcopy(how)
-            how = reduce_how = get_how(how)
+            how = reduce_how = get_how_xp(how, xp=xp)
         # else:
         #     reduce_how = how
         assert callable(how), f"how must be a callable: {how}"
@@ -616,7 +625,7 @@ def _reduce_dataarray_as_xarray(
 
     reduced_list = []
     for masked_data in masked_data_list:
-        this = dataarray.where(masked_data, other=np.nan)
+        this = dataarray.where(masked_data, other=xp.nan)
 
         # If weighted, use xarray weighted arrays which
         # correctly handle missing values etc.
@@ -712,11 +721,11 @@ def _reduce_dataarray_as_pandas(
         # add the reduced data into a new column as a numpy array,
         # store the dim information in the attributes
         _out_dims = [str(dim) for dim in dataarray.coords if dim in out_xr.dims]
-        out_dims = {dim: dataarray[dim].values for dim in _out_dims}
+        out_dims = {dim: dataarray[dim].data for dim in _out_dims}
         reduce_attrs[f"{out_xr.name}"].update({"dims": out_dims})
         reduced_list = [
-            out_xr.sel(**{mask_dim_name: mask_dim_value}).values
-            for mask_dim_value in out_xr[mask_dim_name].values
+            out_xr.sel(**{mask_dim_name: mask_dim_value}).data
+            for mask_dim_value in out_xr[mask_dim_name].data
         ]
         out = out.assign(**{f"{out_xr.name}": reduced_list})
 
