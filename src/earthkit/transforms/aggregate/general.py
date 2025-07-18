@@ -62,7 +62,7 @@ def _reduce_dataarray(
 
     """
     if xp is None:
-        xp = tools.array_namespace_robust(dataarray)
+        xp = tools.array_namespace_from_object(dataarray)
     # If weighted, use xarray weighted methods
     if weights is not None:
         # Create any standard weights, e.g. latitude
@@ -218,7 +218,7 @@ def _rolling_reduce_dataarray(
     -------
     xr.DataArray
     """
-    xp = tools.array_namespace_robust(dataarray)
+    xp = tools.array_namespace_from_object(dataarray)
 
     if chunk:
         dataarray = dataarray.chunk()

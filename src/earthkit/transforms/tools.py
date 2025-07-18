@@ -113,7 +113,7 @@ def season_order_decorator(func):
     return wrapper
 
 
-def array_namespace_robust(data_object: T.Any) -> types.ModuleType:
+def array_namespace_from_object(data_object: T.Any) -> types.ModuleType:
     """Attempt to infer the array namespace from the data object.
 
     Parameters
@@ -179,7 +179,7 @@ def nanaverage(data, weights=None, **kwargs):
     Array mean of data (along axis) where nan-values are ignored
     and weights applied if provided.
     """
-    xp = array_namespace_robust(data)
+    xp = array_namespace_from_object(data)
     if weights is not None:
         # set weights to nan where data is nan:
         this_weights = xp.ones(data.shape) * weights
@@ -399,7 +399,7 @@ def get_how_xp(
     if xp is None:
         if data_object is not None:
             try:
-                xp = array_namespace_robust(data_object)
+                xp = array_namespace_from_object(data_object)
             except Exception:
                 logger.warning("Unable to infer array namespace from data_object, defaulting to numpy.")
                 xp = np

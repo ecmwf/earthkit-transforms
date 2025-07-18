@@ -6,7 +6,7 @@ import geopandas as gpd
 import pandas as pd
 import xarray as xr
 from earthkit.transforms.tools import (
-    array_namespace_robust,
+    array_namespace_from_object,
     ensure_list,
     get_how_xp,
     get_spatial_info,
@@ -114,7 +114,7 @@ def mask_contains_points(
     """
     import matplotlib.path as mpltPath
 
-    xp = array_namespace_robust(coords[lat_key])
+    xp = array_namespace_from_object(coords[lat_key])
 
     lat_dims = coords[lat_key].dims
     lon_dims = coords[lon_key].dims
@@ -557,7 +557,7 @@ def _reduce_dataarray_as_xarray(
         Each slice of layer corresponds to a feature in layer
 
     """
-    xp = array_namespace_robust(dataarray)
+    xp = array_namespace_from_object(dataarray)
     extra_out_attrs = {}
     how_str: None | str = None
     if weights is None:
