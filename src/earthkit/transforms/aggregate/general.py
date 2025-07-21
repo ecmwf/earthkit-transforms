@@ -261,7 +261,7 @@ def resample(
     how_kwargs: dict[str, T.Any] = {},
     how_label: str | None = None,
     **kwargs,
-) -> xr.DataArray:
+) -> xr.Dataset | xr.DataArray:
     """Resample dataarray to a user-defined frequency using a user-defined "how" method.
 
     Parameters
@@ -289,7 +289,7 @@ def resample(
 
     Returns
     -------
-    xr.DataArray
+    xr.Dataset | xr.DataArray
     """
     # Handle legacy API instances:
     time_dim = kwargs.pop("dim", time_dim)
