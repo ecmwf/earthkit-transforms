@@ -24,8 +24,10 @@ ENSEMBLE_DIM_NAMES = [
 
 
 def reduce(
-    dataarray: xr.DataArray | xr.Dataset, how: Union[str, Callable] = "mean", dim: Optional[str] = None
-) -> xr.Dataset | xr.DataArray:
+    dataarray: xr.DataArray | xr.Dataset,
+    how: Union[str, Callable] = "mean",
+    dim: Optional[str] = None,
+):
     """Reduce data over the ensemble dimension.
 
     Parameters
