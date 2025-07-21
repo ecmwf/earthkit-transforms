@@ -10,10 +10,8 @@
 from typing import Any, Callable, Optional, Union
 
 import xarray as xr
-
 from earthkit.transforms.aggregate.general import reduce as _reduce
 from earthkit.transforms.tools import identify_dim
-
 
 ENSEMBLE_DIM_NAMES = [
     "ensemble_member",
@@ -26,13 +24,10 @@ ENSEMBLE_DIM_NAMES = [
 
 
 def reduce(
-    dataarray: xr.DataArray | xr.Dataset,
-    how: Union[str, Callable] = "mean",
-    dim: Optional[str] = None
+    dataarray: xr.DataArray | xr.Dataset, how: Union[str, Callable] = "mean", dim: Optional[str] = None
 ) -> xr.Dataset | xr.DataArray:
-    """
-    Reduce data over the ensemble dimension.
-    
+    """Reduce data over the ensemble dimension.
+
     Parameters
     ----------
     dataarray : xr.DataArray | xr.Dataset
@@ -53,14 +48,9 @@ def reduce(
     return _reduce(dataarray, how=how, dim=dim)
 
 
-def mean(
-    dataarray: xr.DataArray | xr.Dataset,
-    *args: Any,
-    **kwargs: Any
-) -> xr.Dataset | xr.DataArray:
-    """
-    Calculate the ensemble mean.
-    
+def mean(dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
+    """Calculate the ensemble mean.
+
     Parameters
     ----------
     dataarray : xr.DataArray | xr.Dataset
@@ -69,18 +59,17 @@ def mean(
     dim : str (optional)
         Name of the ensemble dimension in the data object, default behaviour is to detect the
         ensemble dimension from the input object.
+    *args, **kwargs
+        Additional arguments and keyword arguments to pass to the underlying reduce function.
     """
     return reduce(dataarray, how="mean", *args, **kwargs)
 
 
 def standard_deviation(
-    dataarray: xr.DataArray | xr.Dataset,
-    *args: Any,
-    **kwargs: Any
+    dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any
 ) -> xr.Dataset | xr.DataArray:
-    """
-    Calculate the ensemble standard deviation.
-    
+    """Calculate the ensemble standard deviation.
+
     Parameters
     ----------
     dataarray : xr.DataArray | xr.Dataset
@@ -89,18 +78,15 @@ def standard_deviation(
     dim : str (optional)
         Name of the ensemble dimension in the data object, default behaviour is to detect the
         ensemble dimension from the input object.
+    *args, **kwargs
+        Additional arguments and keyword arguments to pass to the underlying reduce function.
     """
     return reduce(dataarray, how="std", *args, **kwargs)
 
 
-def min(
-    dataarray: xr.DataArray | xr.Dataset,
-    *args: Any,
-    **kwargs: Any
-) -> xr.Dataset | xr.DataArray:
-    """
-    Calculate the ensemble minimum.
-    
+def min(dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
+    """Calculate the ensemble minimum.
+
     Parameters
     ----------
     dataarray : xr.DataArray | xr.Dataset
@@ -109,18 +95,15 @@ def min(
     dim : str (optional)
         Name of the ensemble dimension in the data object, default behaviour is to detect the
         ensemble dimension from the input object.
+    *args, **kwargs
+        Additional arguments and keyword arguments to pass to the underlying reduce function.
     """
     return reduce(dataarray, how="min", *args, **kwargs)
 
 
-def max(
-    dataarray: xr.DataArray | xr.Dataset,
-    *args: Any,
-    **kwargs: Any
-) -> xr.Dataset | xr.DataArray:
-    """
-    Calculate the ensemble maximum.
-    
+def max(dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
+    """Calculate the ensemble maximum.
+
     Parameters
     ----------
     dataarray : xr.DataArray | xr.Dataset
@@ -129,18 +112,15 @@ def max(
     dim : str (optional)
         Name of the ensemble dimension in the data object, default behaviour is to detect the
         ensemble dimension from the input object.
+    *args, **kwargs
+        Additional arguments and keyword arguments to pass to the underlying reduce function.
     """
     return reduce(dataarray, how="max", *args, **kwargs)
 
 
-def sum(
-    dataarray: xr.DataArray | xr.Dataset,
-    *args: Any,
-    **kwargs: Any
-) -> xr.Dataset | xr.DataArray:
-    """
-    Calculate the ensemble sum.
-    
+def sum(dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
+    """Calculate the ensemble sum.
+
     Parameters
     ----------
     dataarray : xr.DataArray | xr.Dataset
@@ -149,5 +129,7 @@ def sum(
     dim : str (optional)
         Name of the ensemble dimension in the data object, default behaviour is to detect the
         ensemble dimension from the input object.
+    *args, **kwargs
+        Additional arguments and keyword arguments to pass to the underlying reduce function.
     """
     return reduce(dataarray, how="sum", *args, **kwargs)

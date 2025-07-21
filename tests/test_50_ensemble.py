@@ -6,12 +6,18 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
-import pytest
-import numpy as np
-import xarray as xr
-from unittest.mock import patch
 
-from earthkit.transforms.aggregate.ensemble import reduce, mean, standard_deviation, min, max, ENSEMBLE_DIM_NAMES
+import numpy as np
+import pytest
+import xarray as xr
+from earthkit.transforms.aggregate.ensemble import (
+    max,
+    mean,
+    min,
+    reduce,
+    standard_deviation,
+)
+
 
 # Sample data for tests
 @pytest.fixture
@@ -19,16 +25,13 @@ def sample_data():
     data = xr.DataArray(
         np.arange(12).reshape(3, 2, 2),
         dims=("ensemble_member", "lat", "lon"),
-        coords={"ensemble_member": [0, 1, 2]}
+        coords={"ensemble_member": [0, 1, 2]},
     )
     return data
 
 
 def test_reduce_raises_if_no_ensemble_dim_found():
-    data = xr.DataArray(
-        np.arange(8).reshape(2, 2, 2),
-        dims=("foo", "lat", "lon")
-    )
+    data = xr.DataArray(np.arange(8).reshape(2, 2, 2), dims=("foo", "lat", "lon"))
     with pytest.raises(ValueError, match="None of the candidates"):
         reduce(data)
 
