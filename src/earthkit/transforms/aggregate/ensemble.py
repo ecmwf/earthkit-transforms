@@ -62,7 +62,8 @@ def mean(dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any) -> xr.
     *args, **kwargs
         Additional arguments and keyword arguments to pass to the underlying reduce function.
     """
-    return reduce(dataarray, how="mean", *args, **kwargs)
+    kwargs["how"] = "mean"
+    return reduce(dataarray, *args, **kwargs)
 
 
 def standard_deviation(
@@ -81,7 +82,8 @@ def standard_deviation(
     *args, **kwargs
         Additional arguments and keyword arguments to pass to the underlying reduce function.
     """
-    return reduce(dataarray, how="std", *args, **kwargs)
+    kwargs["how"] = "std"
+    return reduce(dataarray, *args, **kwargs)
 
 
 def min(dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
@@ -98,7 +100,8 @@ def min(dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any) -> xr.D
     *args, **kwargs
         Additional arguments and keyword arguments to pass to the underlying reduce function.
     """
-    return reduce(dataarray, how="min", *args, **kwargs)
+    kwargs["how"] = "min"
+    return reduce(dataarray, *args, **kwargs)
 
 
 def max(dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
@@ -115,7 +118,8 @@ def max(dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any) -> xr.D
     *args, **kwargs
         Additional arguments and keyword arguments to pass to the underlying reduce function.
     """
-    return reduce(dataarray, how="max", *args, **kwargs)
+    kwargs["how"] = "max"
+    return reduce(dataarray, *args, **kwargs)
 
 
 def sum(dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
@@ -132,4 +136,5 @@ def sum(dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any) -> xr.D
     *args, **kwargs
         Additional arguments and keyword arguments to pass to the underlying reduce function.
     """
-    return reduce(dataarray, how="sum", *args, **kwargs)
+    kwargs["how"] = "sum"
+    return reduce(dataarray, *args, **kwargs)
