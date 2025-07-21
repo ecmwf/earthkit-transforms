@@ -37,6 +37,25 @@ def ensure_list(thing) -> list[T.Any]:
         return [thing]
 
 
+def identify_dim(
+    dataarray: xr.Dataset | xr.DataArray,
+    candidates: list[str],
+) -> str:
+    """Identify the dimension in the dataset that matches one of the candidates.
+
+    Parameters
+    ----------
+    dataarray : xr.Dataset or xr.DataArray
+        The data to search for the dimension in.
+    candidates : list
+        A list of strings that are potential dimension names.
+    """
+    for candidate in candidates:
+        if candidate in dataarray.dims:
+            return candidate
+    raise ValueError(f"None of the candidates {candidates} were found in the data.")
+
+
 def time_dim_decorator(func):
     @functools.wraps(func)
     def wrapper(

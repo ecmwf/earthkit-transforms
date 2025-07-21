@@ -9,6 +9,7 @@ from earthkit.transforms.tools import (
     get_how,
     get_spatial_info,
     groupby_kwargs_decorator,
+    identify_dim,
     latitude_weights,
     nanaverage,
     time_dim_decorator,
@@ -219,3 +220,29 @@ def test_latitude_weights():
 
     weights = latitude_weights(da.rename({"y": "latitude"}))
     assert np.allclose(weights, [0, 0.5, 1, 0.5, 0])
+
+
+def test_identify_dim_single_match():
+    da = xr.DataArray([[1, 2], [3, 4]], dims=("lat", "lon"))
+    candidates = ["time", "lat"]
+    assert identify_dim(da, candidates) == "lat"
+
+
+def test_identify_dim_multiple_candidates():
+    ds = xr.Dataset({"a": (("x", "y"), [[1, 2], [3, 4]])})
+    candidates = ["y", "x"]
+    assert identify_dim(ds, candidates) == "y"  # returns the first match
+
+
+def test_identify_dim_no_match_raises():
+    da = xr.DataArray([1, 2, 3], dims=("depth",))
+    candidates = ["lat", "lon"]
+    with pytest.raises(ValueError, match="None of the candidates"):
+        identify_dim(da, candidates)
+
+
+def test_identify_dim_empty_candidates():
+    ds = xr.Dataset({"a": (("foo",), [1, 2, 3])})
+    candidates = []
+    with pytest.raises(ValueError):
+        identify_dim(ds, candidates)
