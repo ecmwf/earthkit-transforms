@@ -4,6 +4,13 @@ import pandas as pd
 import pytest
 import xarray as xr
 
+
+try:
+    import cupy_xarray
+except ImportError:
+    cupy_xarray = None
+
+
 # from earthkit.data.core.temporary import temp_directory
 from earthkit import data as ek_data
 from earthkit.data.testing import earthkit_remote_test_data_file
@@ -124,6 +131,24 @@ def test_spatial_reduce_with_geometry(era5_data, nuts_data, expected_result_type
     assert isinstance(reduced_data, expected_result_type)
     assert all([dim in ["forecast_reference_time", "index"] for dim in reduced_data.dims])
     assert len(reduced_data["index"]) == len(nuts_data)
+
+
+@pytest.mark.skipif(cupy_xarray is None, reason="Cupy-xarray is not installed")
+@pytest.mark.parametrize(
+    "era5_data, nuts_data, expected_result_type",
+    (
+        [get_grid_data().to_xarray(), get_shape_data().to_pandas(), xr.Dataset],
+        [get_grid_data().to_xarray()["2t"], get_shape_data(), xr.DataArray],
+    ),
+)
+def test_spatial_reduce_with_geometry_cupy(era5_data, nuts_data, expected_result_type):
+    era5_data = era5_data.cupy.as_cupy()
+    reduced_data = spatial.reduce(era5_data, nuts_data)
+    assert isinstance(reduced_data, expected_result_type)
+    assert all([dim in ["forecast_reference_time", "index"] for dim in reduced_data.dims])
+    assert len(reduced_data["index"]) == len(nuts_data)
+
+
 
 
 @pytest.mark.skipif(

@@ -293,7 +293,8 @@ def latitude_weights(dataarray: xr.DataArray, lat_key: str | None = None):
 
     lat_array = dataarray.coords.get(lat_key)
     if lat_array is not None:
-        return np.cos(np.radians(lat_array[lat_key]))
+        xp = array_namespace_from_object(lat_array[lat_key])
+        return xp.cos(xp.radians(lat_array[lat_key]))
 
     raise KeyError(
         "Latitude variable name not detected or found in the dataarray. Please provide the correct key."

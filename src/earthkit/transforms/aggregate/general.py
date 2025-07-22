@@ -2,7 +2,9 @@ import typing as T
 
 import xarray as xr
 from earthkit.transforms import tools
-from numpy import ndarray
+
+# Use numpy.ndarray for Array type hinting
+from numpy import ndarray as Array
 
 
 def how_label_rename(
@@ -23,7 +25,7 @@ def how_label_rename(
 def _reduce_dataarray(
     dataarray: xr.DataArray,
     how: T.Callable | str = "mean",
-    weights: None | str | ndarray = None,
+    weights: None | str | Array = None,
     how_label: str | None = None,
     how_dropna: bool = False,
     xp: T.Any = None,
@@ -296,7 +298,7 @@ def resample(
 
     Returns
     -------
-    xr.DataArray
+    xr.Dataset | xr.DataArray
     """
     # Handle legacy API instances:
     time_dim = kwargs.pop("dim", time_dim)
