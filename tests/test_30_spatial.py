@@ -142,6 +142,7 @@ def test_spatial_reduce_with_geometry(era5_data, nuts_data, expected_result_type
     ),
 )
 def test_spatial_reduce_with_geometry_cupy(era5_data, nuts_data, expected_result_type):
+    era5_data = era5_data.cupy.as_cupy()
     reduced_data = spatial.reduce(era5_data, nuts_data)
     assert isinstance(reduced_data, expected_result_type)
     assert all([dim in ["forecast_reference_time", "index"] for dim in reduced_data.dims])
