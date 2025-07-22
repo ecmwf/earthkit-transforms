@@ -1,9 +1,10 @@
 import typing as T
 
 import xarray as xr
+from earthkit.transforms import tools
+
 # Use numpy.ndarray for Array type hinting
 from numpy import ndarray as Array
-from earthkit.transforms import tools
 
 
 def how_label_rename(
