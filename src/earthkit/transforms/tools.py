@@ -7,7 +7,7 @@ import typing as T
 import numpy as np
 import pandas as pd
 import xarray as xr
-from earthkit.utils.array import array_namespace
+from earthkit.utils.array import array_namespace, to_device
 
 logger = logging.getLogger(__name__)
 
@@ -133,10 +133,22 @@ def array_namespace_from_object(data_object: T.Any) -> types.ModuleType:
         e.g. a xr.Dataset with mixed array namespaces.
     """
     if isinstance(data_object, xr.DataArray):
-        return array_namespace(data_object.data)
+        if data_object.chunks is not None:
+            # If the data is dask-chunked, we need to use the first chunk
+            # to infer the array namespace
+            return array_namespace(data_object.data.to_delayed().flatten()[0].compute())
+        else:
+            # If the data is not dask-chunked, we can use the data directly
+            return array_namespace(data_object.data)
     elif isinstance(data_object, xr.Dataset):
         data_vars = list(data_object.data_vars)
-        xps = [array_namespace(data_object[var].data) for var in data_vars]
+        if data_object.chunks is not None:
+            # If the data is dask-chunked, we need to use the first chunk
+            # of each data variable to infer the array namespace
+            xps = [array_namespace(data_object[var].data.to_delayed().flatten()[0].compute()) for var in data_vars]
+        else:
+            # If the data is not dask-chunked, we can use the data directly
+            xps = [array_namespace(data_object[var].data) for var in data_vars]
         if len(set(xps)) == 1:
             return xps[0]
         elif len(set(xps)) > 1:
@@ -155,6 +167,62 @@ def array_namespace_from_object(data_object: T.Any) -> types.ModuleType:
             "If you are using a custom data object, please ensure it has a compatible array interface.",
         )
         return np
+
+
+NAMESPACE_TO_DEVICE_MAPPING = {
+    "numpy": "cpu",
+    "cupy": "cuda",
+    "torch": "cuda",
+    # "jax": "gpu",
+    # "tensorflow": "gpu",
+}
+
+DEFAULT_DEVICE_TO_NAMESPACE_MAPPING = {
+    "cpu": "numpy",
+    "cuda": "cupy",
+    # "gpu": "jax",  # Assuming JAX is used for GPU operations
+}
+
+def object_to_device(data_object: T.Any, device: str | None = None, xp: T.Optional[types.ModuleType] = None) -> T.Any:
+    """Move the data object to the specified device.
+
+    Parameters
+    ----------
+    data_object : T.Any
+        The data object to move.
+    device : str | None, optional
+        The device to move the data object to (e.g., 'cuda:0', 'cpu'). If None, no operation is performed.
+
+    Returns
+    -------
+    T.Any
+        The data object moved to the specified device.
+    """
+    assert (device is not None) or (array_namespace is not None), "Either device or array_namespace must be provided."
+    if array_namespace is None:
+        xp_name = DEFAULT_DEVICE_TO_NAMESPACE_MAPPING[device]
+        try:
+            xp = importlib.import_module(xp_name)
+        except ImportError:
+            raise logger.warning(
+                f"Could not import array namespace for device '{device}'. "
+                "Please ensure it is installed, or choose an alternate, compatible namespace. "
+            )
+    if device is None:
+        xp_name = xp.__name__.split(".")[-1]
+        try:
+            device = NAMESPACE_TO_DEVICE_MAPPING[xp_name]
+        except KeyError:
+            logger.warning(
+                f"Device mapping not found for array namespace '{xp_name}'. "
+                "Not modifying data object. "
+            )
+            return data_object
+
+    if isinstance(data_object, (xr.Dataset, xr.DataArray)):
+        return data_object.earthkit.to_device(device=device, array_backend=xp)
+    else:
+        return to_device(data_object, device=device, array_backend=xp)
 
 
 def nanaverage(data, weights=None, **kwargs):

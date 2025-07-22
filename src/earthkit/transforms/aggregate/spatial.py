@@ -10,6 +10,7 @@ from earthkit.transforms.tools import (
     ensure_list,
     get_how_xp,
     get_spatial_info,
+    object_to_device,
     standard_weights,
 )
 from numpy import ndarray
@@ -625,6 +626,9 @@ def _reduce_dataarray_as_xarray(
 
     reduced_list = []
     for masked_data in masked_data_list:
+        masked_data = object_to_device(masked_data, xp=xp)
+        print(type(masked_data.data))
+        print(masked_data)
         this = dataarray.where(masked_data, other=xp.nan)
 
         # If weighted, use xarray weighted arrays which
