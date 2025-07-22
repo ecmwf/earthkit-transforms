@@ -26,10 +26,12 @@ def reduce(
         contain a `time` dimension.
     how: str or callable
         Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
-        If string, it must be an in-built xarray reduce method, an earthkit how method or any numpy method.
-        In the case of duplicate names, method selection is first in the order: xarray, earthkit, numpy.
+        If string, it must be an in-built xarray reduce method, an earthkit how method or
+        any method compatible with the array namespace of the data.
+        In the case of duplicate names, method selection is first in the order: xarray, earthkit,
+        array_namespace.
         Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
-        to return the result of reducing an np.ndarray over an integer valued axis
+        to return the result of reducing an array over an integer valued axis
     frequency : str (optional)
         Valid options are `day`, `week` and `month`.
     bin_widths : int or list (optional)
@@ -207,10 +209,12 @@ def daily_reduce(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.
         contain a `time` dimension.
     how: str or callable
         Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
-        If string, it must be an in-built xarray reduce method, an earthkit how method or any numpy method.
-        In the case of duplicate names, method selection is first in the order: xarray, earthkit, numpy.
+        If string, it must be an in-built xarray reduce method, an earthkit how method or
+        any method compatible with the array namespace of the data.
+        In the case of duplicate names, method selection is first in the order: xarray, earthkit,
+        array_namespace.
         Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
-        to return the result of reducing an np.ndarray over an integer valued axis
+        to return the result of reducing an array over an integer valued axis
     bin_widths : int or list (optional)
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
@@ -370,10 +374,12 @@ def monthly_reduce(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> x
         contain a `time` dimension.
     how: str or callable
         Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
-        If string, it must be an in-built xarray reduce method, an earthkit how method or any numpy method.
-        In the case of duplicate names, method selection is first in the order: xarray, earthkit, numpy.
+        If string, it must be an in-built xarray reduce method, an earthkit how method or
+        any method compatible with the array namespace of the data.
+        In the case of duplicate names, method selection is first in the order: xarray, earthkit,
+        array_namespace.
         Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
-        to return the result of reducing an np.ndarray over an integer valued axis
+        to return the result of reducing an array over an integer valued axis
     bin_widths : int or list (optional)
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence

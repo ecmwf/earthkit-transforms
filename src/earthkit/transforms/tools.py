@@ -1,9 +1,15 @@
 import functools
+import importlib
+import logging
+import types
 import typing as T
 
 import numpy as np
 import pandas as pd
 import xarray as xr
+from earthkit.utils.array import array_namespace
+
+logger = logging.getLogger(__name__)
 
 #: Mapping from pandas frequency strings to xarray time groups
 _PANDAS_FREQUENCIES = {
@@ -107,35 +113,80 @@ def season_order_decorator(func):
     return wrapper
 
 
+def array_namespace_from_object(data_object: T.Any) -> types.ModuleType:
+    """Attempt to infer the array namespace from the data object.
+
+    Parameters
+    ----------
+    data_object : T.Any
+        The data object from which to infer the array namespace.
+
+    Returns
+    -------
+    types.ModuleType
+        The inferred array namespace.
+
+    Raises
+    ------
+    TypeError
+        If the input data_object contains an compatible array interface,
+        e.g. a xr.Dataset with mixed array namespaces.
+    """
+    if isinstance(data_object, xr.DataArray):
+        return array_namespace(data_object.data)
+    elif isinstance(data_object, xr.Dataset):
+        data_vars = list(data_object.data_vars)
+        xps = [array_namespace(data_object[var].data) for var in data_vars]
+        if len(set(xps)) == 1:
+            return xps[0]
+        elif len(set(xps)) > 1:
+            raise TypeError(
+                "Data object contains variables with different array namespaces, "
+                "cannot infer a single xp for computation."
+            )
+        else:
+            raise TypeError("data_object must contain at least one data_variable to infer xp.")
+
+    try:
+        return array_namespace(data_object)
+    except Exception:
+        logger.warning(
+            "Unable to infer array namespace from data_object, defaulting to numpy. "
+            "If you are using a custom data object, please ensure it has a compatible array interface.",
+        )
+        return np
+
+
 def nanaverage(data, weights=None, **kwargs):
     """Calculate the average of data ignoring nan-values.
 
     Parameters
     ----------
-    data : numpy array
+    data : array
         Data to average.
     weights:
         Weights to apply to the data for averaging.
         Weights will be normalised and must correspond to the
-        shape of the numpy data array and axis/axes that is/are
+        shape of the data array and axis/axes that is/are
         averaged over.
     axis:
         axis/axes to compute the nanaverage over.
     kwargs:
-        any other np.nansum kwargs
+        any other xp.nansum kwargs
 
     Returns
     -------
-    numpy array mean of data (along axis) where nan-values are ignored
+    Array mean of data (along axis) where nan-values are ignored
     and weights applied if provided.
     """
+    xp = array_namespace_from_object(data)
     if weights is not None:
         # set weights to nan where data is nan:
-        this_weights = np.ones(data.shape) * weights
-        this_weights[np.isnan(data)] = np.nan
+        this_weights = xp.ones(data.shape) * weights
+        this_weights[xp.isnan(data)] = xp.nan
         # Weights must be scaled to the sum of valid
         #  weights for each relevant axis:
-        this_denom = np.nansum(this_weights, **kwargs)
+        this_denom = xp.nansum(this_weights, **kwargs)
         # If averaging over an axis then we must add dummy
         # dimension[s] to the denominator to make compatible
         # with the weights.
@@ -147,10 +198,10 @@ def nanaverage(data, weights=None, **kwargs):
         # Scale weights to mean of valid weights:
         this_weights = this_weights / this_denom
         # Apply weights to data:
-        _nanaverage = np.nansum(data * this_weights, **kwargs)
+        _nanaverage = xp.nansum(data * this_weights, **kwargs)
     else:
         # If no weights, then nanmean will suffice
-        _nanaverage = np.nanmean(data, **kwargs)
+        _nanaverage = xp.nanmean(data, **kwargs)
 
     return _nanaverage
 
@@ -174,7 +225,8 @@ def latitude_weights(dataarray: xr.DataArray, lat_key: str | None = None):
 
     lat_array = dataarray.coords.get(lat_key)
     if lat_array is not None:
-        return np.cos(np.radians(lat_array[lat_key]))
+        xp = array_namespace_from_object(lat_array[lat_key])
+        return xp.cos(xp.radians(lat_array[lat_key]))
 
     raise KeyError(
         "Latitude variable name not detected or found in the dataarray. Please provide the correct key."
@@ -198,6 +250,21 @@ HOW_METHODS = {
     "p": np.nanpercentile,
 }
 
+HOW_METHODS_MAPPING = {
+    "average": "nanaverage",
+    "mean": "nanmean",
+    "stddev": "nanstd",
+    "std": "nanstd",
+    "stdev": "nanstd",
+    "sum": "nansum",
+    "max": "nanmax",
+    "min": "nanmin",
+    "median": "nanmedian",
+    "q": "nanquantile",
+    "quantile": "nanquantile",
+    "percentile": "nanpercentile",
+    "p": "nanpercentile",
+}
 
 WEIGHTED_HOW_METHODS = {
     "average": "mean",
@@ -219,6 +286,7 @@ WEIGHTED_HOW_METHODS = {
 # Libraries which are usable with reduce
 ALLOWED_LIBS = {
     "numpy": "np",
+    "cupy": "cp",
 }
 
 # Dictionary containing recognised weight functions.
@@ -245,6 +313,106 @@ def get_how(how: str, how_methods=HOW_METHODS):
             raise AttributeError(f"module '{module}' has no attribute " f"'{function}'")
 
     return how
+
+
+def resolve_function_from_path(path: str) -> T.Callable:
+    """Given a string like 'numpy.mean' or 'some.module.func', dynamically import module and return callable.
+
+    Parameters
+    ----------
+    path : str
+        Fully qualified path to a function (e.g., 'numpy.mean').
+
+    Returns
+    -------
+    T.Callable
+        The resolved function object.
+
+
+    Raises
+    ------
+    ValueError
+        If the path is invalid or the function/module is not found.
+    """
+    if "." not in path:
+        raise ValueError(f"Invalid path '{path}'. Must be in the form 'module.func'.")
+
+    module_path, func_name = path.rsplit(".", 1)
+
+    try:
+        module = importlib.import_module(module_path)
+    except ImportError as e:
+        raise ValueError(f"Module '{module_path}' could not be imported: {e}") from e
+
+    try:
+        func = getattr(module, func_name)
+    except AttributeError as e:
+        raise ValueError(f"Function '{func_name}' not found in module '{module_path}'.") from e
+
+    if not callable(func):
+        raise ValueError(f"Resolved attribute '{func_name}' in '{module_path}' is not callable.")
+
+    return func
+
+
+def get_how_xp(
+    how_str: str,
+    xp: types.ModuleType | None = None,
+    how_methods_mapping: dict[str, str] = HOW_METHODS_MAPPING,
+    data_object: T.Any = None,
+) -> T.Callable:
+    """Resolve a method name to a callable from the given module (xp), using an optional mapping for aliases.
+
+    Parameters
+    ----------
+    how_str : str
+        The method name or alias.
+
+    xp : module, optional
+        The array API module (e.g., numpy). Defaults to numpy.
+
+    how_methods_mapping : dict
+        Mapping of aliases to method names.
+
+    data_object : Any, optional
+        The data object to infer the array API from, if xp is not provided explicitly
+
+    Returns
+    -------
+    T.Callable
+        The resolved method.
+
+    Raises
+    ------
+    ValueError
+        If the method cannot be found in xp.
+    """
+    # First check if the "how_str" has a `.`, if so, we assume it is a full path to the method
+    if "." in how_str:
+        return resolve_function_from_path(how_str)
+
+    resolved_name = how_methods_mapping.get(how_str, how_str)
+
+    # Check if the resolved name is in this script's globals
+    if resolved_name in globals():
+        return globals()[resolved_name]
+
+    if xp is None:
+        if data_object is not None:
+            try:
+                xp = array_namespace_from_object(data_object)
+            except Exception:
+                logger.warning("Unable to infer array namespace from data_object, defaulting to numpy.")
+                xp = np
+        else:
+            # Default to numpy if no xp or data_object is provided
+            xp = np
+
+    for name in (resolved_name, how_str):
+        if hasattr(xp, name):
+            return getattr(xp, name)
+
+    raise ValueError(f"how method not recognised or found: how={how_str} for xp={xp.__name__}.")
 
 
 STANDARD_AXIS_KEYS: dict[str, list[str]] = {

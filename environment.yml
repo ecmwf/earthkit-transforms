@@ -6,16 +6,16 @@ dependencies:
 - mypy
 - myst-parser
 - pre-commit
-# - pydata-sphinx-theme
 - sphinx-rtd-theme
 - pytest
 - pytest-cov
 - sphinx
 - sphinx-autoapi
 - nbsphinx
-# DO NOT EDIT ABOVE THIS LINE, ADD DEPENDENCIES BELOW AS SHOWN IN THE EXAMPLE
+- array-api-compat
 - numpy
 - xarray
 - geopandas
 - rasterio
 - earthkit-data[all]
+- earthkit-utils
