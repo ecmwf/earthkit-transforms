@@ -1,8 +1,8 @@
 import typing as T
 
 import xarray as xr
+from array_api_compat.typing import Array
 from earthkit.transforms import tools
-from numpy import ndarray
 
 
 def how_label_rename(
@@ -23,7 +23,7 @@ def how_label_rename(
 def _reduce_dataarray(
     dataarray: xr.DataArray,
     how: T.Callable | str = "mean",
-    weights: None | str | ndarray = None,
+    weights: None | str | Array = None,
     how_label: str | None = None,
     how_dropna: bool = False,
     xp: T.Any = None,
