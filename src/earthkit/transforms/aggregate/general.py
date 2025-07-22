@@ -296,7 +296,7 @@ def resample(
 
     Returns
     -------
-    xr.DataArray
+    xr.Dataset | xr.DataArray
     """
     # Handle legacy API instances:
     time_dim = kwargs.pop("dim", time_dim)
