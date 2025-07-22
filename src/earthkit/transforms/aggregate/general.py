@@ -1,7 +1,10 @@
 import typing as T
 
 import xarray as xr
-from array_api_compat.typing import Array
+# TODO: If array_api_compat makes typing public, use that instead,
+#       for now we use numpy.ndarray as a stand-in for array API arrays.
+# from array_api_compat.common._typing import Array  
+from numpy import ndarray as Array
 from earthkit.transforms import tools
 
 
