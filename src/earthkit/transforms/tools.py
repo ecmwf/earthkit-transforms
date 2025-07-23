@@ -265,7 +265,7 @@ STANDARD_AXIS_CF_NAMES: dict[str, list[str]] = {
 def get_dim_key(
     dataarray: xr.Dataset | xr.DataArray,
     axis: str,
-):
+) -> str:
     """Return the key of the dimension.
 
     Parameters
