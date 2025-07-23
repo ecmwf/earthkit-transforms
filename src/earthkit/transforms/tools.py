@@ -37,25 +37,6 @@ def ensure_list(thing) -> list[T.Any]:
         return [thing]
 
 
-def identify_dim(
-    dataarray: xr.Dataset | xr.DataArray,
-    candidates: list[str],
-) -> str:
-    """Identify the dimension in the dataset that matches one of the candidates.
-
-    Parameters
-    ----------
-    dataarray : xr.Dataset or xr.DataArray
-        The data to search for the dimension in.
-    candidates : list
-        A list of strings that are potential dimension names.
-    """
-    for candidate in candidates:
-        if candidate in dataarray.dims:
-            return candidate
-    raise ValueError(f"None of the candidates {candidates} were found in the data.")
-
-
 def time_dim_decorator(func):
     @functools.wraps(func)
     def wrapper(
@@ -270,12 +251,14 @@ STANDARD_AXIS_KEYS: dict[str, list[str]] = {
     "y": ["lat", "latitude"],
     "x": ["lon", "long", "longitude"],
     "t": ["time", "valid_time", "forecast_reference_time"],
+    "member": ["ensemble_member", "ensemble", "member", "number", "realization", "realisation"],
 }
 
 STANDARD_AXIS_CF_NAMES: dict[str, list[str]] = {
     "y": ["projection_y_coordinate", "latitude", "grid_latitude"],
     "x": ["projection_x_coordinate", "longitude", "grid_longitude"],
     "t": ["time", "valid_time", "forecast_reference_time"],
+    "member": ["realization"],
 }
 
 
@@ -283,7 +266,21 @@ def get_dim_key(
     dataarray: xr.Dataset | xr.DataArray,
     axis: str,
 ):
-    """Return the key of the dimension."""
+    """Return the key of the dimension.
+
+    Parameters
+    ----------
+    dataarray : xr.Dataset or xr.DataArray
+        The data to search for the dimension in.
+    axis : str
+        The axis to search for. This should be a CF standard axis key like 'x', 'y', 'z' or 't',
+        or one of the earthkit-transforms recognised axis, e.g. "member".
+
+    Returns
+    -------
+    str
+        The key of the dimension in the dataarray that matches the axis.
+    """
     # First check if the axis value is in any dim:
     for dim in dataarray.dims:
         if "axis" in dataarray[dim].attrs and dataarray[dim].attrs["axis"].lower() == axis.lower():
