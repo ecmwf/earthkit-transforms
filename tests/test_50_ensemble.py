@@ -32,7 +32,7 @@ def sample_data():
 
 def test_reduce_raises_if_no_ensemble_dim_found():
     data = xr.DataArray(np.arange(8).reshape(2, 2, 2), dims=("foo", "lat", "lon"))
-    with pytest.raises(ValueError, match="None of the candidates"):
+    with pytest.raises(ValueError, match="Unable to find dimension key for axis 'member' in dataarray"):
         reduce(data)
 
 

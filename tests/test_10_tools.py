@@ -208,6 +208,16 @@ def test_get_dim_keys(axis, dim_expected):
 
 
 # Test case for the function when axis matches an attribute in the dataset's dimensions
+def test_get_dim_keys_raises():
+    axis = "z"
+    # Create a dataarray with an axis attribute
+    dataarray = create_dataarray_with_axis(["x", None], ["lon", "realization"])
+    # Check if the correct dimension key is returned
+    with pytest.raises(ValueError, match=f"Unable to find dimension key for axis '{axis}' in dataarray"):
+        get_dim_key(dataarray, axis, raise_error=True)
+
+
+# Test case for the function when axis matches an attribute in the dataset's dimensions
 def test_get_spatial_info():
     # Create a dataarray with an axis attribute
     dataarray = create_dataarray_with_axis(["x", "y", "t"], ["lon", "lat", "time"])

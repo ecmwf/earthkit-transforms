@@ -265,6 +265,7 @@ STANDARD_AXIS_CF_NAMES: dict[str, list[str]] = {
 def get_dim_key(
     dataarray: xr.Dataset | xr.DataArray,
     axis: str,
+    raise_error: bool = False,
 ) -> str:
     """Return the key of the dimension.
 
@@ -275,6 +276,8 @@ def get_dim_key(
     axis : str
         The axis to search for. This should be a CF standard axis key like 'x', 'y', 'z' or 't',
         or one of the earthkit-transforms recognised axis, e.g. "member".
+    raise_error : bool
+        If True, raises an error if the axis is not found in the dataarray.
 
     Returns
     -------
@@ -299,7 +302,12 @@ def get_dim_key(
         if standard_axis_key in dataarray.dims:
             return standard_axis_key
 
-    # We have not been able to detect, so return the axis key
+    # We have not been able to detect, so raise an error
+    if raise_error:
+        raise ValueError(
+            f"Unable to find dimension key for axis '{axis}' in dataarray with dims: {dataarray.dims}."
+        )
+
     return axis
 
 
