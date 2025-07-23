@@ -9,7 +9,6 @@ from earthkit.transforms.tools import (
     get_how,
     get_spatial_info,
     groupby_kwargs_decorator,
-    identify_dim,
     latitude_weights,
     nanaverage,
     time_dim_decorator,
@@ -193,12 +192,17 @@ def create_dataarray_with_axis(axes, dims):
         ["y", "lat"],
         ["t", "time"],
         ["z", "z"],
+        ["member", "realization"],
     ),
 )
 # Test case for the function when axis matches an attribute in the dataset's dimensions
 def test_get_dim_keys(axis, dim_expected):
     # Create a dataarray with an axis attribute
-    dataarray = create_dataarray_with_axis(["x", "y", "t"], ["lon", "lat", "time"])
+    dataarray = create_dataarray_with_axis(["x", "y", "t", None], ["lon", "lat", "time", "realization"])
+    # Check if the correct dimension key is returned
+    assert dim_expected == get_dim_key(dataarray, axis)
+    # Create a dataarray with an axis attribute
+    dataarray = create_dataarray_with_axis([None, None, None, None], ["lon", "lat", "time", "realization"])
     # Check if the correct dimension key is returned
     assert dim_expected == get_dim_key(dataarray, axis)
 
@@ -220,29 +224,3 @@ def test_latitude_weights():
 
     weights = latitude_weights(da.rename({"y": "latitude"}))
     assert np.allclose(weights, [0, 0.5, 1, 0.5, 0])
-
-
-def test_identify_dim_single_match():
-    da = xr.DataArray([[1, 2], [3, 4]], dims=("lat", "lon"))
-    candidates = ["time", "lat"]
-    assert identify_dim(da, candidates) == "lat"
-
-
-def test_identify_dim_multiple_candidates():
-    ds = xr.Dataset({"a": (("x", "y"), [[1, 2], [3, 4]])})
-    candidates = ["y", "x"]
-    assert identify_dim(ds, candidates) == "y"  # returns the first match
-
-
-def test_identify_dim_no_match_raises():
-    da = xr.DataArray([1, 2, 3], dims=("depth",))
-    candidates = ["lat", "lon"]
-    with pytest.raises(ValueError, match="None of the candidates"):
-        identify_dim(da, candidates)
-
-
-def test_identify_dim_empty_candidates():
-    ds = xr.Dataset({"a": (("foo",), [1, 2, 3])})
-    candidates = []
-    with pytest.raises(ValueError):
-        identify_dim(ds, candidates)
