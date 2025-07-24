@@ -11,16 +11,7 @@ from typing import Any, Callable, Optional, Union
 
 import xarray as xr
 from earthkit.transforms.aggregate.general import reduce as _reduce
-from earthkit.transforms.tools import identify_dim
-
-ENSEMBLE_DIM_NAMES = [
-    "ensemble_member",
-    "ensemble",
-    "member",
-    "number",
-    "realization",
-    "realisation",
-]
+from earthkit.transforms.tools import get_dim_key
 
 
 def reduce(
@@ -46,7 +37,7 @@ def reduce(
         ensemble dimension from the input object.
     """
     if dim is None:
-        dim = identify_dim(dataarray, ENSEMBLE_DIM_NAMES)
+        dim = get_dim_key(dataarray, "realization", raise_error=True)
     return _reduce(dataarray, how=how, dim=dim)
 
 

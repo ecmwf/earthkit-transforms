@@ -37,25 +37,6 @@ def ensure_list(thing) -> list[T.Any]:
         return [thing]
 
 
-def identify_dim(
-    dataarray: xr.Dataset | xr.DataArray,
-    candidates: list[str],
-) -> str:
-    """Identify the dimension in the dataset that matches one of the candidates.
-
-    Parameters
-    ----------
-    dataarray : xr.Dataset or xr.DataArray
-        The data to search for the dimension in.
-    candidates : list
-        A list of strings that are potential dimension names.
-    """
-    for candidate in candidates:
-        if candidate in dataarray.dims:
-            return candidate
-    raise ValueError(f"None of the candidates {candidates} were found in the data.")
-
-
 def time_dim_decorator(func):
     @functools.wraps(func)
     def wrapper(
@@ -270,20 +251,39 @@ STANDARD_AXIS_KEYS: dict[str, list[str]] = {
     "y": ["lat", "latitude"],
     "x": ["lon", "long", "longitude"],
     "t": ["time", "valid_time", "forecast_reference_time"],
+    "realization": ["ensemble_member", "ensemble", "member", "number", "realization", "realisation"],
 }
 
 STANDARD_AXIS_CF_NAMES: dict[str, list[str]] = {
     "y": ["projection_y_coordinate", "latitude", "grid_latitude"],
     "x": ["projection_x_coordinate", "longitude", "grid_longitude"],
     "t": ["time", "valid_time", "forecast_reference_time"],
+    "realization": ["realization"],
 }
 
 
 def get_dim_key(
     dataarray: xr.Dataset | xr.DataArray,
     axis: str,
-):
-    """Return the key of the dimension."""
+    raise_error: bool = False,
+) -> str:
+    """Return the key of the dimension.
+
+    Parameters
+    ----------
+    dataarray : xr.Dataset or xr.DataArray
+        The data to search for the dimension in.
+    axis : str
+        The axis to search for. This should be a CF standard axis key like 'x', 'y', 'z' or 't',
+        or one of the earthkit-transforms recognised axis, e.g. "member".
+    raise_error : bool
+        If True, raises an error if the axis is not found in the dataarray.
+
+    Returns
+    -------
+    str
+        The key of the dimension in the dataarray that matches the axis.
+    """
     # First check if the axis value is in any dim:
     for dim in dataarray.dims:
         if "axis" in dataarray[dim].attrs and dataarray[dim].attrs["axis"].lower() == axis.lower():
@@ -302,7 +302,12 @@ def get_dim_key(
         if standard_axis_key in dataarray.dims:
             return standard_axis_key
 
-    # We have not been able to detect, so return the axis key
+    # We have not been able to detect, so raise an error
+    if raise_error:
+        raise ValueError(
+            f"Unable to find dimension key for axis '{axis}' in dataarray with dims: {dataarray.dims}."
+        )
+
     return axis
 
 
