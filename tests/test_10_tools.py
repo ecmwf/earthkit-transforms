@@ -192,7 +192,7 @@ def create_dataarray_with_axis(axes, dims):
         ["y", "lat"],
         ["t", "time"],
         ["z", "z"],
-        ["member", "realization"],
+        ["realization", "realization"],
     ),
 )
 # Test case for the function when axis matches an attribute in the dataset's dimensions
