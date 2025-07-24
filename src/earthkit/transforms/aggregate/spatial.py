@@ -143,8 +143,8 @@ def mask_contains_points(
 
     # get spatial dims and create output array:
     spatial_dims = list(set(lat_dims + lon_dims))
-    outdata_shape = [len(coords[dim]) for dim in spatial_dims]
-    outdata = xp.zeros(outdata_shape).astype(bool) * xp.nan
+    outdata_shape = tuple(len(coords[dim]) for dim in spatial_dims)
+    outdata = xp.full(outdata_shape, xp.nan)
     # loop over shapes and mask any point that is in the shape
     for shape in shape_list:
         for shp in shape[0]:
