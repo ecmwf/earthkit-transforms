@@ -287,14 +287,14 @@ def get_dim_key(
     # First check if the axis value is in any dim:
     for dim in dataarray.dims:
         if "axis" in dataarray[dim].attrs and dataarray[dim].attrs["axis"].lower() == axis.lower():
-            return dim
+            return str(dim)
 
     # Then check if any dims have CF recognised standard names,
     #  Prioritised in order of the STANDARD_AXIS_CF_NAMES list order
     for standard_name in STANDARD_AXIS_CF_NAMES.get(axis.lower(), []):
         for dim in dataarray.dims:
             if dataarray[dim].attrs.get("standard_name") == standard_name:
-                return dim
+                return str(dim)
 
     # Then check if any dims match our "standard" axis,
     #  Prioritised in order of the STANDARD_AXIS_KEYS list order
