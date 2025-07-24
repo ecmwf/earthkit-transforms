@@ -37,7 +37,7 @@ def reduce(
         ensemble dimension from the input object.
     """
     if dim is None:
-        dim = get_dim_key(dataarray, "member", raise_error=True)
+        dim = get_dim_key(dataarray, "realization", raise_error=True)
     return _reduce(dataarray, how=how, dim=dim)
 
 

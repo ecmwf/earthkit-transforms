@@ -251,14 +251,14 @@ STANDARD_AXIS_KEYS: dict[str, list[str]] = {
     "y": ["lat", "latitude"],
     "x": ["lon", "long", "longitude"],
     "t": ["time", "valid_time", "forecast_reference_time"],
-    "member": ["ensemble_member", "ensemble", "member", "number", "realization", "realisation"],
+    "realization": ["ensemble_member", "ensemble", "member", "number", "realization", "realisation"],
 }
 
 STANDARD_AXIS_CF_NAMES: dict[str, list[str]] = {
     "y": ["projection_y_coordinate", "latitude", "grid_latitude"],
     "x": ["projection_x_coordinate", "longitude", "grid_longitude"],
     "t": ["time", "valid_time", "forecast_reference_time"],
-    "member": ["realization"],
+    "realization": ["realization"],
 }
 
 
