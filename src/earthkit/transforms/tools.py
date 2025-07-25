@@ -172,6 +172,69 @@ def array_namespace_from_object(data_object: T.Any) -> types.ModuleType:
         return np
 
 
+def device_from_object(data_object: T.Any) -> str:
+    """Infer the device from the data object.
+
+    Parameters
+    ----------
+    data_object : T.Any
+        The data object from which to infer the device.
+
+    Returns
+    -------
+    str
+        The inferred device (e.g., 'cpu', 'cuda').
+    """
+    if isinstance(data_object, xr.DataArray):
+        if data_object.chunks is not None:
+            # If the data is dask-chunked, we need to use the first chunk
+            # to infer the device
+            this_device = data_object.data.to_delayed().flatten()[0].compute().device
+        else:
+            # If the data is not dask-chunked, we can use the data directly
+            this_device = data_object.data.device
+    elif isinstance(data_object, xr.Dataset):
+        data_vars = list(data_object.data_vars)
+        if data_object.chunks is not None:
+            # If the data is dask-chunked, we need to use the first chunk
+            # of each data variable to infer the device
+            devices = [
+                data_object[var].data.to_delayed().flatten()[0].compute().device for var in data_vars
+            ]
+        else:
+            # If the data is not dask-chunked, we can use the data directly
+            devices = [data_object[var].data.device for var in data_vars]
+        if len(set(devices)) == 1:
+            this_device = devices[0]
+        elif len(set(devices)) > 1:
+            raise TypeError(
+                "Data object contains variables with different devices, "
+                "cannot infer a single device for computation."
+            )
+        else:
+            raise TypeError("data_object must contain at least one data_variable to infer device.")
+    else:
+        try:
+            this_device = data_object.device
+        except AttributeError:
+            logger.warning(
+                "Unable to infer device from data_object, defaulting to 'cpu'. "
+                "If you are using a custom data object, please ensure it has a compatible device attribute.",
+            )
+            return "cpu"
+
+    if isinstance(this_device, str):
+        # If the device is already a string, return it directly
+        return this_device
+    else:
+        # Otherwise, convert the device to a string representation
+        logger.warning(
+            "Unrecognised device type, this may not be compatible with all operations. "
+            f"Attempting to proceed with device name: {str(this_device).lower()}"
+        )
+        return str(this_device).lower()
+
+
 NAMESPACE_TO_DEVICE_MAPPING: dict[str, str] = {
     "numpy": "cpu",
     "cupy": "cuda",
@@ -185,7 +248,6 @@ DEFAULT_DEVICE_TO_NAMESPACE_MAPPING: dict[str, str] = {
     "cuda": "cupy",
     # "gpu": "jax",  # Assuming JAX is used for GPU operations
 }
-
 
 def object_to_device(
     data_object: T.Any, device: str | None = None, xp: T.Optional[types.ModuleType] = None
@@ -227,6 +289,12 @@ def object_to_device(
                 f"Device mapping not found for array namespace '{xp_name}'. " "Not modifying data object. "
             )
             return data_object
+
+    # If data is already on target device, and in target namespace, we return it as is
+    object_xp = array_namespace_from_object(data_object)
+    object_device = device_from_object(data_object)
+    if xp == object_xp and device == object_device:
+        return data_object
 
     if isinstance(data_object, (xr.Dataset, xr.DataArray)):
         return data_object.earthkit.to_device(device=device, array_backend=xp)
