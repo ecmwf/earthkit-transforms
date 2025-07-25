@@ -84,7 +84,7 @@ def time_dim_decorator(func):
     return wrapper
 
 
-GROUPBY_KWARGS = ["frequency", "bin_widths"]
+GROUPBY_KWARGS: list[str] = ["frequency", "bin_widths"]
 
 
 def groupby_kwargs_decorator(func):
@@ -169,7 +169,7 @@ def array_namespace_from_object(data_object: T.Any) -> types.ModuleType:
         return np
 
 
-NAMESPACE_TO_DEVICE_MAPPING = {
+NAMESPACE_TO_DEVICE_MAPPING: dict[str, str] = {
     "numpy": "cpu",
     "cupy": "cuda",
     "torch": "cuda",
@@ -177,7 +177,7 @@ NAMESPACE_TO_DEVICE_MAPPING = {
     # "tensorflow": "gpu",
 }
 
-DEFAULT_DEVICE_TO_NAMESPACE_MAPPING = {
+DEFAULT_DEVICE_TO_NAMESPACE_MAPPING: dict[str, str] = {
     "cpu": "numpy",
     "cuda": "cupy",
     # "gpu": "jax",  # Assuming JAX is used for GPU operations
