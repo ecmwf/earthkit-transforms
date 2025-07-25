@@ -7,7 +7,7 @@ import typing as T
 import numpy as np
 import pandas as pd
 import xarray as xr
-from earthkit.utils.array import array_namespace
+from earthkit.utils.array import array_namespace, to_device
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +84,7 @@ def time_dim_decorator(func):
     return wrapper
 
 
-GROUPBY_KWARGS = ["frequency", "bin_widths"]
+GROUPBY_KWARGS: list[str] = ["frequency", "bin_widths"]
 
 
 def groupby_kwargs_decorator(func):
@@ -133,10 +133,25 @@ def array_namespace_from_object(data_object: T.Any) -> types.ModuleType:
         e.g. a xr.Dataset with mixed array namespaces.
     """
     if isinstance(data_object, xr.DataArray):
-        return array_namespace(data_object.data)
+        if data_object.chunks is not None:
+            # If the data is dask-chunked, we need to use the first chunk
+            # to infer the array namespace
+            return array_namespace(data_object.data.to_delayed().flatten()[0].compute())
+        else:
+            # If the data is not dask-chunked, we can use the data directly
+            return array_namespace(data_object.data)
     elif isinstance(data_object, xr.Dataset):
         data_vars = list(data_object.data_vars)
-        xps = [array_namespace(data_object[var].data) for var in data_vars]
+        if data_object.chunks is not None:
+            # If the data is dask-chunked, we need to use the first chunk
+            # of each data variable to infer the array namespace
+            xps = [
+                array_namespace(data_object[var].data.to_delayed().flatten()[0].compute())
+                for var in data_vars
+            ]
+        else:
+            # If the data is not dask-chunked, we can use the data directly
+            xps = [array_namespace(data_object[var].data) for var in data_vars]
         if len(set(xps)) == 1:
             return xps[0]
         elif len(set(xps)) > 1:
@@ -155,6 +170,135 @@ def array_namespace_from_object(data_object: T.Any) -> types.ModuleType:
             "If you are using a custom data object, please ensure it has a compatible array interface.",
         )
         return np
+
+
+def device_from_object(data_object: T.Any) -> str:
+    """Infer the device from the data object.
+
+    Parameters
+    ----------
+    data_object : T.Any
+        The data object from which to infer the device.
+
+    Returns
+    -------
+    str
+        The inferred device (e.g., 'cpu', 'cuda').
+    """
+    if isinstance(data_object, xr.DataArray):
+        if data_object.chunks is not None:
+            # If the data is dask-chunked, we need to use the first chunk
+            # to infer the device
+            this_device = data_object.data.to_delayed().flatten()[0].compute().device
+        else:
+            # If the data is not dask-chunked, we can use the data directly
+            this_device = data_object.data.device
+    elif isinstance(data_object, xr.Dataset):
+        data_vars = list(data_object.data_vars)
+        if data_object.chunks is not None:
+            # If the data is dask-chunked, we need to use the first chunk
+            # of each data variable to infer the device
+            devices = [data_object[var].data.to_delayed().flatten()[0].compute().device for var in data_vars]
+        else:
+            # If the data is not dask-chunked, we can use the data directly
+            devices = [data_object[var].data.device for var in data_vars]
+        if len(set(devices)) == 1:
+            this_device = devices[0]
+        elif len(set(devices)) > 1:
+            raise TypeError(
+                "Data object contains variables with different devices, "
+                "cannot infer a single device for computation."
+            )
+        else:
+            raise TypeError("data_object must contain at least one data_variable to infer device.")
+    else:
+        try:
+            this_device = data_object.device
+        except AttributeError:
+            logger.warning(
+                "Unable to infer device from data_object, defaulting to 'cpu'. "
+                "If you are using a custom data object, please ensure it has a compatible device attribute.",
+            )
+            return "cpu"
+
+    if isinstance(this_device, str):
+        # If the device is already a string, return it directly
+        return this_device
+    else:
+        # Otherwise, convert the device to a string representation
+        logger.warning(
+            "Unrecognised device type, this may not be compatible with all operations. "
+            f"Attempting to proceed with device name: {str(this_device).lower()}"
+        )
+        return str(this_device).lower()
+
+
+NAMESPACE_TO_DEVICE_MAPPING: dict[str, str] = {
+    "numpy": "cpu",
+    "cupy": "cuda",
+    "torch": "cuda",
+    # "jax": "gpu",
+    # "tensorflow": "gpu",
+}
+
+DEFAULT_DEVICE_TO_NAMESPACE_MAPPING: dict[str, str] = {
+    "cpu": "numpy",
+    "cuda": "cupy",
+    # "gpu": "jax",  # Assuming JAX is used for GPU operations
+}
+
+
+def object_to_device(
+    data_object: T.Any, device: str | None = None, xp: T.Optional[types.ModuleType] = None
+) -> T.Any:
+    """Move the data object to the specified device.
+
+    Parameters
+    ----------
+    data_object : T.Any
+        The data object to move.
+    device : str | None, optional
+        The device to move the data object to (e.g., 'cuda:0', 'cpu'). If None, no operation is performed.
+    xp : types.ModuleType, optional
+        The array namespace to use for the operation. If None, it will be inferred from the data object.
+
+    Returns
+    -------
+    T.Any
+        The data object moved to the specified device.
+    """
+    assert (device is not None) or (xp is not None), "Either device or xp must be provided."
+    if xp is None:
+        assert device is not None, "If xp is None, device must be provided."
+        xp_name = DEFAULT_DEVICE_TO_NAMESPACE_MAPPING[device]
+        try:
+            xp = importlib.import_module(xp_name)
+        except ImportError as e:
+            raise ImportError(
+                f"Could not import array namespace for device '{device}'. "
+                "Please ensure it is installed, or choose an alternate, compatible namespace. "
+            ) from e
+    if device is None:
+        assert xp is not None, "If device is None, xp must be provided."
+        xp_name = xp.__name__.split(".")[-1]
+        try:
+            device = NAMESPACE_TO_DEVICE_MAPPING[xp_name]
+        except KeyError:
+            logger.warning(
+                f"Device mapping not found for array namespace '{xp_name}'. " "Not modifying data object. "
+            )
+            return data_object
+
+    # If data is already on target device, and in target namespace, we return it as is
+    object_xp = array_namespace_from_object(data_object)
+    object_device = device_from_object(data_object)
+    if xp == object_xp and device == object_device:
+        return data_object
+
+    if isinstance(data_object, (xr.Dataset, xr.DataArray)):
+        return data_object.earthkit.to_device(device=device, array_backend=xp)
+    else:
+        return to_device(data_object, device=device, array_backend=xp)
 
 
 def nanaverage(data, weights=None, **kwargs):
