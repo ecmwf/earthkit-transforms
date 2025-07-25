@@ -17,6 +17,7 @@ dependencies:
 - xarray
 - geopandas
 - rasterio
+# TODO: Revert upstream packages when features are released
 # - earthkit-data[all]
 # - earthkit-utils
 - pip
