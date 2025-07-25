@@ -4,7 +4,6 @@ import pandas as pd
 import pytest
 import xarray as xr
 
-
 try:
     import cupy_xarray
 except ImportError:
@@ -147,8 +146,6 @@ def test_spatial_reduce_with_geometry_cupy(era5_data, nuts_data, expected_result
     assert isinstance(reduced_data, expected_result_type)
     assert all([dim in ["forecast_reference_time", "index"] for dim in reduced_data.dims])
     assert len(reduced_data["index"]) == len(nuts_data)
-
-
 
 
 @pytest.mark.skipif(

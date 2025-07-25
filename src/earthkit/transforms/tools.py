@@ -145,7 +145,10 @@ def array_namespace_from_object(data_object: T.Any) -> types.ModuleType:
         if data_object.chunks is not None:
             # If the data is dask-chunked, we need to use the first chunk
             # of each data variable to infer the array namespace
-            xps = [array_namespace(data_object[var].data.to_delayed().flatten()[0].compute()) for var in data_vars]
+            xps = [
+                array_namespace(data_object[var].data.to_delayed().flatten()[0].compute())
+                for var in data_vars
+            ]
         else:
             # If the data is not dask-chunked, we can use the data directly
             xps = [array_namespace(data_object[var].data) for var in data_vars]
@@ -183,7 +186,10 @@ DEFAULT_DEVICE_TO_NAMESPACE_MAPPING: dict[str, str] = {
     # "gpu": "jax",  # Assuming JAX is used for GPU operations
 }
 
-def object_to_device(data_object: T.Any, device: str | None = None, xp: T.Optional[types.ModuleType] = None) -> T.Any:
+
+def object_to_device(
+    data_object: T.Any, device: str | None = None, xp: T.Optional[types.ModuleType] = None
+) -> T.Any:
     """Move the data object to the specified device.
 
     Parameters
@@ -192,30 +198,33 @@ def object_to_device(data_object: T.Any, device: str | None = None, xp: T.Option
         The data object to move.
     device : str | None, optional
         The device to move the data object to (e.g., 'cuda:0', 'cpu'). If None, no operation is performed.
+    xp : types.ModuleType, optional
+        The array namespace to use for the operation. If None, it will be inferred from the data object.
 
     Returns
     -------
     T.Any
         The data object moved to the specified device.
     """
-    assert (device is not None) or (array_namespace is not None), "Either device or array_namespace must be provided."
-    if array_namespace is None:
+    assert (device is not None) or (xp is not None), "Either device or xp must be provided."
+    if xp is None:
+        assert device is not None, "If xp is None, device must be provided."
         xp_name = DEFAULT_DEVICE_TO_NAMESPACE_MAPPING[device]
         try:
             xp = importlib.import_module(xp_name)
-        except ImportError:
-            raise logger.warning(
+        except ImportError as e:
+            raise ImportError(
                 f"Could not import array namespace for device '{device}'. "
                 "Please ensure it is installed, or choose an alternate, compatible namespace. "
-            )
+            ) from e
     if device is None:
+        assert xp is not None, "If device is None, xp must be provided."
         xp_name = xp.__name__.split(".")[-1]
         try:
             device = NAMESPACE_TO_DEVICE_MAPPING[xp_name]
         except KeyError:
             logger.warning(
-                f"Device mapping not found for array namespace '{xp_name}'. "
-                "Not modifying data object. "
+                f"Device mapping not found for array namespace '{xp_name}'. " "Not modifying data object. "
             )
             return data_object
 
