@@ -487,31 +487,50 @@ STANDARD_AXIS_KEYS: dict[str, list[str]] = {
     "y": ["lat", "latitude"],
     "x": ["lon", "long", "longitude"],
     "t": ["time", "valid_time", "forecast_reference_time"],
+    "realization": ["ensemble_member", "ensemble", "member", "number", "realization", "realisation"],
 }
 
 STANDARD_AXIS_CF_NAMES: dict[str, list[str]] = {
     "y": ["projection_y_coordinate", "latitude", "grid_latitude"],
     "x": ["projection_x_coordinate", "longitude", "grid_longitude"],
     "t": ["time", "valid_time", "forecast_reference_time"],
+    "realization": ["realization"],
 }
 
 
 def get_dim_key(
     dataarray: xr.Dataset | xr.DataArray,
     axis: str,
-):
-    """Return the key of the dimension."""
+    raise_error: bool = False,
+) -> str:
+    """Return the key of the dimension.
+
+    Parameters
+    ----------
+    dataarray : xr.Dataset or xr.DataArray
+        The data to search for the dimension in.
+    axis : str
+        The axis to search for. This should be a CF standard axis key like 'x', 'y', 'z' or 't',
+        or one of the earthkit-transforms recognised axis, e.g. "member".
+    raise_error : bool
+        If True, raises an error if the axis is not found in the dataarray.
+
+    Returns
+    -------
+    str
+        The key of the dimension in the dataarray that matches the axis.
+    """
     # First check if the axis value is in any dim:
     for dim in dataarray.dims:
         if "axis" in dataarray[dim].attrs and dataarray[dim].attrs["axis"].lower() == axis.lower():
-            return dim
+            return str(dim)
 
     # Then check if any dims have CF recognised standard names,
     #  Prioritised in order of the STANDARD_AXIS_CF_NAMES list order
     for standard_name in STANDARD_AXIS_CF_NAMES.get(axis.lower(), []):
         for dim in dataarray.dims:
             if dataarray[dim].attrs.get("standard_name") == standard_name:
-                return dim
+                return str(dim)
 
     # Then check if any dims match our "standard" axis,
     #  Prioritised in order of the STANDARD_AXIS_KEYS list order
@@ -519,7 +538,12 @@ def get_dim_key(
         if standard_axis_key in dataarray.dims:
             return standard_axis_key
 
-    # We have not been able to detect, so return the axis key
+    # We have not been able to detect, so raise an error
+    if raise_error:
+        raise ValueError(
+            f"Unable to find dimension key for axis '{axis}' in dataarray with dims: {dataarray.dims}."
+        )
+
     return axis
 
 

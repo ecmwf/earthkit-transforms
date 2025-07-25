@@ -281,14 +281,29 @@ def create_dataarray_with_axis(axes, dims):
         ["y", "lat"],
         ["t", "time"],
         ["z", "z"],
+        ["realization", "realization"],
     ),
 )
 # Test case for the function when axis matches an attribute in the dataset's dimensions
 def test_get_dim_keys(axis, dim_expected):
     # Create a dataarray with an axis attribute
-    dataarray = create_dataarray_with_axis(["x", "y", "t"], ["lon", "lat", "time"])
+    dataarray = create_dataarray_with_axis(["x", "y", "t", None], ["lon", "lat", "time", "realization"])
     # Check if the correct dimension key is returned
     assert dim_expected == get_dim_key(dataarray, axis)
+    # Create a dataarray with an axis attribute
+    dataarray = create_dataarray_with_axis([None, None, None, None], ["lon", "lat", "time", "realization"])
+    # Check if the correct dimension key is returned
+    assert dim_expected == get_dim_key(dataarray, axis)
+
+
+# Test case for the function when axis matches an attribute in the dataset's dimensions
+def test_get_dim_keys_raises():
+    axis = "z"
+    # Create a dataarray with an axis attribute
+    dataarray = create_dataarray_with_axis(["x", None], ["lon", "realization"])
+    # Check if the correct dimension key is returned
+    with pytest.raises(ValueError, match=f"Unable to find dimension key for axis '{axis}' in dataarray"):
+        get_dim_key(dataarray, axis, raise_error=True)
 
 
 # Test case for the function when axis matches an attribute in the dataset's dimensions
