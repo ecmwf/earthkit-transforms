@@ -626,7 +626,6 @@ def _reduce_dataarray_as_xarray(
 
     reduced_list = []
     for masked_data in masked_data_list:
-        print(xp)
         masked_data = object_to_device(masked_data, xp=xp)
         this = dataarray.where(masked_data, other=xp.nan)
 
