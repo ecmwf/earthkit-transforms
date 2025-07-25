@@ -17,5 +17,9 @@ dependencies:
 - xarray
 - geopandas
 - rasterio
-- earthkit-data[all]
-- earthkit-utils
+# - earthkit-data[all]
+# - earthkit-utils
+- pip
+- pip:
+  - "earthkit.data@git+https://github.com/ecmwf/earthkit-data@develop"
+  - "earthkit.utils@git+https://github.com/ecmwf/earthkit-utils@feature/xarray-support"

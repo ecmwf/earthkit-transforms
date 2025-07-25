@@ -198,9 +198,7 @@ def device_from_object(data_object: T.Any) -> str:
         if data_object.chunks is not None:
             # If the data is dask-chunked, we need to use the first chunk
             # of each data variable to infer the device
-            devices = [
-                data_object[var].data.to_delayed().flatten()[0].compute().device for var in data_vars
-            ]
+            devices = [data_object[var].data.to_delayed().flatten()[0].compute().device for var in data_vars]
         else:
             # If the data is not dask-chunked, we can use the data directly
             devices = [data_object[var].data.device for var in data_vars]
@@ -248,6 +246,7 @@ DEFAULT_DEVICE_TO_NAMESPACE_MAPPING: dict[str, str] = {
     "cuda": "cupy",
     # "gpu": "jax",  # Assuming JAX is used for GPU operations
 }
+
 
 def object_to_device(
     data_object: T.Any, device: str | None = None, xp: T.Optional[types.ModuleType] = None
