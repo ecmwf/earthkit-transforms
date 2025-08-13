@@ -10,7 +10,7 @@
 import numpy as np
 import pytest
 import xarray as xr
-from earthkit.transforms.aggregate.ensemble import (
+from earthkit.transforms._aggregate.ensemble import (
     max,
     mean,
     min,

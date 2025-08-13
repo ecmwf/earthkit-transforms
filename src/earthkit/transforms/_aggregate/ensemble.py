@@ -10,8 +10,8 @@
 from typing import Any, Callable, Optional, Union
 
 import xarray as xr
-from earthkit.transforms.aggregate.general import reduce as _reduce
-from earthkit.transforms.tools import get_dim_key
+from earthkit.transforms._aggregate.general import reduce as _reduce
+from earthkit.transforms._tools import get_dim_key
 
 
 def reduce(
@@ -59,7 +59,7 @@ def mean(dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any) -> xr.
     return reduce(dataarray, *args, **kwargs)
 
 
-def standard_deviation(
+def std(
     dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any
 ) -> xr.Dataset | xr.DataArray:
     """Calculate the ensemble standard deviation.

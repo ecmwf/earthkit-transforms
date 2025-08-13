@@ -1,5 +1,5 @@
-from earthkit.transforms.aggregate import climatology, general, spatial, temporal
-from earthkit.transforms.aggregate.general import reduce, resample, rolling_reduce
+from earthkit.transforms._aggregate import climatology, general, spatial, temporal
+from earthkit.transforms._aggregate.general import reduce, resample, rolling_reduce
 
 try:
     from earthkit.data.utils.module_inputs_wrapper import (

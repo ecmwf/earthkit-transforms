@@ -9,7 +9,7 @@ except ImportError:
 import pandas as pd
 import pytest
 import xarray as xr
-from earthkit.transforms.tools import (
+from earthkit.transforms._tools import (
     get_dim_key,
     get_how,
     get_how_xp,

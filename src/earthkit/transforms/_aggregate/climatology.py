@@ -1,15 +1,15 @@
 import typing as T
 
 import xarray as xr
-from earthkit.transforms import tools
-from earthkit.transforms.aggregate.general import reduce as _reduce
-from earthkit.transforms.aggregate.general import resample
-from earthkit.transforms.tools import groupby_time
+from earthkit.transforms import _tools
+from earthkit.transforms._aggregate.general import reduce as _reduce
+from earthkit.transforms._aggregate.general import resample
+from earthkit.transforms._tools import groupby_time
 
 
-@tools.time_dim_decorator
-@tools.groupby_kwargs_decorator
-@tools.season_order_decorator
+@_tools.time_dim_decorator
+@_tools.groupby_kwargs_decorator
+@_tools.season_order_decorator
 def reduce(
     dataarray: xr.Dataset | xr.DataArray,
     time_dim: str | None = None,
@@ -529,9 +529,9 @@ def monthly_std(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.D
     return monthly_reduce(dataarray, *_args, **_kwargs)
 
 
-@tools.time_dim_decorator
-@tools.groupby_kwargs_decorator
-@tools.season_order_decorator
+@_tools.time_dim_decorator
+@_tools.groupby_kwargs_decorator
+@_tools.season_order_decorator
 def quantiles(
     dataarray: xr.Dataset | xr.DataArray,
     q: float | list,
@@ -669,9 +669,9 @@ def anomaly(
         return _anomaly_dataarray(dataarray, climatology, **_kwargs)
 
 
-@tools.time_dim_decorator
-@tools.groupby_kwargs_decorator
-@tools.season_order_decorator
+@_tools.time_dim_decorator
+@_tools.groupby_kwargs_decorator
+@_tools.season_order_decorator
 def _anomaly_dataarray(
     dataarray: xr.DataArray,
     climatology: xr.Dataset | xr.DataArray,
@@ -780,9 +780,9 @@ def update_anomaly_array(anomaly_array, original_array, var_name, name_tag, upda
     return anomaly_array
 
 
-@tools.time_dim_decorator
-@tools.groupby_kwargs_decorator
-@tools.season_order_decorator
+@_tools.time_dim_decorator
+@_tools.groupby_kwargs_decorator
+@_tools.season_order_decorator
 def relative_anomaly(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs):
     """Calculate the relative anomaly from a reference climatology, i.e. percentage change.
 

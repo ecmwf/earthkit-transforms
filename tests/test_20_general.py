@@ -1,13 +1,13 @@
 import numpy as np
 import pytest
 import xarray as xr
-from earthkit.transforms.aggregate.general import (
+from earthkit.transforms._aggregate.general import (
     _reduce_dataarray,
     _rolling_reduce_dataarray,
     reduce,
     rolling_reduce,
 )
-from earthkit.transforms.tools import nanaverage
+from earthkit.transforms._tools import nanaverage
 
 
 # Helper function to create a dummy DataArray

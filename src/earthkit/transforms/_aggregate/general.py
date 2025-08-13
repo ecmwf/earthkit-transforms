@@ -1,7 +1,7 @@
 import typing as T
 
 import xarray as xr
-from earthkit.transforms import tools
+from earthkit.transforms import _tools
 
 # Use numpy.ndarray for Array type hinting
 from numpy import ndarray as Array
@@ -64,19 +64,19 @@ def _reduce_dataarray(
 
     """
     if xp is None:
-        xp = tools.array_namespace_from_object(dataarray)
+        xp = _tools.array_namespace_from_object(dataarray)
     # If weighted, use xarray weighted methods
     if weights is not None:
         # Create any standard weights, e.g. latitude
         if isinstance(weights, str):
-            _weights = tools.standard_weights(dataarray, weights, **kwargs)
+            _weights = _tools.standard_weights(dataarray, weights, **kwargs)
         else:
             _weights = weights
         # We ensure the callable is always a string
         if callable(how):
             how = weighted_how = how.__name__
         # map any alias methods:
-        weighted_how = tools.WEIGHTED_HOW_METHODS.get(how, how)
+        weighted_how = _tools.WEIGHTED_HOW_METHODS.get(how, how)
 
         red_array = dataarray.weighted(_weights).__getattribute__(weighted_how)(**kwargs)
 
@@ -86,7 +86,7 @@ def _reduce_dataarray(
             red_array = dataarray.__getattribute__(how)(**kwargs)
         else:
             if isinstance(how, str):
-                how = tools.get_how_xp(how, xp=xp)
+                how = _tools.get_how_xp(how, xp=xp)
             assert callable(how), f"how method not recognised: {how}"
 
             red_array = dataarray.reduce(how, **kwargs)
@@ -220,7 +220,7 @@ def _rolling_reduce_dataarray(
     -------
     xr.DataArray
     """
-    xp = tools.array_namespace_from_object(dataarray)
+    xp = _tools.array_namespace_from_object(dataarray)
 
     if chunk:
         dataarray = dataarray.chunk()
@@ -259,7 +259,7 @@ def _dropna(data, dims, how):
     return data
 
 
-@tools.time_dim_decorator
+@_tools.time_dim_decorator
 def resample(
     dataarray: xr.Dataset | xr.DataArray,
     frequency: str | int | float,
@@ -308,7 +308,7 @@ def resample(
         if _k in kwargs:
             how_kwargs[_k] = kwargs.pop(_k)
     # Translate and xarray frequencies to pandas language:
-    frequency = tools._PANDAS_FREQUENCIES_R.get(frequency, frequency)
+    frequency = _tools._PANDAS_FREQUENCIES_R.get(frequency, frequency)
     kwargs[time_dim] = frequency
     resample = dataarray.resample(skipna=skipna, **kwargs)
     result = resample.__getattribute__(how)(*how_args, dim=time_dim, **how_kwargs)

@@ -4,16 +4,16 @@ import typing as T
 import numpy as np
 import pandas as pd
 import xarray as xr
-from earthkit.transforms import tools
-from earthkit.transforms.aggregate.general import how_label_rename, resample
-from earthkit.transforms.aggregate.general import reduce as _reduce
-from earthkit.transforms.aggregate.general import rolling_reduce as _rolling_reduce
-from earthkit.transforms.tools import groupby_time
+from earthkit.transforms import _tools
+from earthkit.transforms._aggregate.general import how_label_rename, resample
+from earthkit.transforms._aggregate.general import reduce as _reduce
+from earthkit.transforms._aggregate.general import rolling_reduce as _rolling_reduce
+from earthkit.transforms._tools import groupby_time
 
 logger = logging.getLogger(__name__)
 
 
-@tools.time_dim_decorator
+@_tools.time_dim_decorator
 def standardise_time(
     dataarray: xr.Dataset | xr.DataArray,
     target_format: str = "%Y-%m-%d %H:%M:%S",
@@ -72,7 +72,7 @@ def standardise_time(
     return dataarray
 
 
-@tools.time_dim_decorator
+@_tools.time_dim_decorator
 def reduce(
     dataarray: xr.Dataset | xr.DataArray,
     *_args,
@@ -118,7 +118,7 @@ def reduce(
     if "frequency" in kwargs:
         return resample(dataarray, *_args, time_dim=time_dim, **kwargs)
 
-    reduce_dims = tools.ensure_list(kwargs.get("dim", []))
+    reduce_dims = _tools.ensure_list(kwargs.get("dim", []))
     if time_dim is not None and time_dim not in reduce_dims:
         reduce_dims.append(time_dim)
     kwargs["dim"] = reduce_dims
@@ -361,7 +361,7 @@ def sum(
     return reduce(dataarray, *_args, **kwargs)
 
 
-@tools.time_dim_decorator
+@_tools.time_dim_decorator
 def daily_reduce(
     dataarray: xr.Dataset | xr.DataArray,
     how: str | T.Callable = "mean",
@@ -424,7 +424,7 @@ def daily_reduce(
         else:
             # If how is string, fetch function from dictionary:
             if isinstance(how, str):
-                how = tools.get_how_xp(how, data_object=dataarray)
+                how = _tools.get_how_xp(how, data_object=dataarray)
             assert callable(how), f"how method not recognised: {how}"
 
             red_array = grouped_data.reduce(how, **kwargs)
@@ -612,7 +612,7 @@ def daily_sum(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs):
     return daily_reduce(dataarray, *_args, how="sum", **kwargs)
 
 
-@tools.time_dim_decorator
+@_tools.time_dim_decorator
 def monthly_reduce(
     dataarray: xr.Dataset | xr.DataArray,
     how: str | T.Callable = "mean",
@@ -683,7 +683,7 @@ def monthly_reduce(
         else:
             # If how is string, fetch function from dictionary:
             if isinstance(how, str):
-                how = tools.get_how_xp(how, data_object=dataarray)
+                how = _tools.get_how_xp(how, data_object=dataarray)
             assert callable(how), f"how method not recognised: {how}"
 
             red_array = grouped_data.reduce(how, **kwargs)
@@ -893,7 +893,7 @@ def monthly_sum(
     return monthly_reduce(dataarray, *_args, how="sum", **kwargs)
 
 
-@tools.time_dim_decorator
+@_tools.time_dim_decorator
 def rolling_reduce(
     dataarray: xr.Dataset | xr.DataArray,
     window_length: int | None = None,
