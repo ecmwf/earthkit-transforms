@@ -361,10 +361,10 @@ def daily_std(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.Dat
     xr.DataArray
     """
     _kwargs["how"] = "std"
-    return daily_reduce(dataarray, *_args, **_kwargs)
+    return daily_reduce(*_args, **_kwargs)
 
 
-def monthly_reduce(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.Dataset | xr.DataArray:
+def monthly_reduce(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     """Reduce the data to the monthly climatology of the provided "how" method.
 
     Parameters
@@ -395,10 +395,10 @@ def monthly_reduce(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> x
     xr.DataArray
     """
     _kwargs["frequency"] = "month"
-    return reduce(dataarray, *_args, **_kwargs)
+    return reduce(*_args, **_kwargs)
 
 
-def monthly_mean(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.Dataset | xr.DataArray:
+def monthly_mean(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     """Calculate the monthly climatological mean.
 
     Parameters
@@ -421,10 +421,10 @@ def monthly_mean(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.
     xr.DataArray
     """
     _kwargs["how"] = "mean"
-    return monthly_reduce(dataarray, *_args, **_kwargs)
+    return monthly_reduce(*_args, **_kwargs)
 
 
-def monthly_median(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.Dataset | xr.DataArray:
+def monthly_median(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     """Calculate the monthly climatological median.
 
     Parameters
@@ -447,10 +447,10 @@ def monthly_median(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> x
     xr.DataArray
     """
     _kwargs["how"] = "median"
-    return monthly_reduce(dataarray, *_args, **_kwargs)
+    return monthly_reduce(*_args, **_kwargs)
 
 
-def monthly_min(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.Dataset | xr.DataArray:
+def monthly_min(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     """Calculate the monthly climatological min.
 
     Parameters
@@ -473,10 +473,10 @@ def monthly_min(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.D
     xr.DataArray
     """
     _kwargs["how"] = "min"
-    return monthly_reduce(dataarray, *_args, **_kwargs)
+    return monthly_reduce(*_args, **_kwargs)
 
 
-def monthly_max(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.Dataset | xr.DataArray:
+def monthly_max(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     """Calculate the monthly climatological max.
 
     Parameters
@@ -499,10 +499,10 @@ def monthly_max(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.D
     xr.DataArray
     """
     _kwargs["how"] = "max"
-    return monthly_reduce(dataarray, *_args, **_kwargs)
+    return monthly_reduce(*_args, **_kwargs)
 
 
-def monthly_std(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.Dataset | xr.DataArray:
+def monthly_std(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     """Calculate the monthly climatological standard deviation.
 
     Parameters
@@ -526,7 +526,7 @@ def monthly_std(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs) -> xr.D
     xr.DataArray
     """
     _kwargs["how"] = "std"
-    return monthly_reduce(dataarray, *_args, **_kwargs)
+    return monthly_reduce(*_args, **_kwargs)
 
 
 @_tools.transform_inputs_decorator()
@@ -782,11 +782,10 @@ def update_anomaly_array(anomaly_array, original_array, var_name, name_tag, upda
     return anomaly_array
 
 
-@_tools.transform_inputs_decorator()
 @_tools.time_dim_decorator
 @_tools.groupby_kwargs_decorator
 @_tools.season_order_decorator
-def relative_anomaly(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs):
+def relative_anomaly(*_args, **_kwargs):
     """Calculate the relative anomaly from a reference climatology, i.e. percentage change.
 
     Parameters
@@ -816,7 +815,7 @@ def relative_anomaly(dataarray: xr.Dataset | xr.DataArray, *_args, **_kwargs):
     -------
     xr.DataArray
     """
-    anomaly_xarray = anomaly(dataarray, *_args, relative=True, **_kwargs)
+    anomaly_xarray = anomaly(*_args, relative=True, **_kwargs)
 
     return anomaly_xarray
 

@@ -289,8 +289,6 @@ def get_mask_dim_index(
     return mask_dim_index
 
 def masks(
-    dataarray: xr.Dataset | xr.DataArray,
-    geodataframe: gpd.geodataframe.GeoDataFrame,
     *_args,
     **_kwargs,
 ):
@@ -298,7 +296,7 @@ def masks(
         "earthkit.transforms.aggregate.spatial.masks is deprecated, "
         "please use earthkit.transforms.aggregate.spatial.mask instead."
     )
-    return mask(dataarray, geodataframe, *_args, **_kwargs)
+    return mask(*_args, **_kwargs)
 
 
 @transform_inputs_decorator()
