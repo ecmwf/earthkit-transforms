@@ -5,12 +5,13 @@ from copy import deepcopy
 import geopandas as gpd
 import pandas as pd
 import xarray as xr
-from earthkit.transforms.tools import (
+from earthkit.transforms._tools import (
     array_namespace_from_object,
     ensure_list,
     get_how_xp,
     get_spatial_info,
     standard_weights,
+    transform_inputs_decorator
 )
 from numpy import ndarray
 
@@ -287,10 +288,7 @@ def get_mask_dim_index(
 
     return mask_dim_index
 
-
 def masks(
-    dataarray: xr.Dataset | xr.DataArray,
-    geodataframe: gpd.geodataframe.GeoDataFrame,
     *_args,
     **_kwargs,
 ):
@@ -298,9 +296,10 @@ def masks(
         "earthkit.transforms.aggregate.spatial.masks is deprecated, "
         "please use earthkit.transforms.aggregate.spatial.mask instead."
     )
-    return mask(dataarray, geodataframe, *_args, **_kwargs)
+    return mask(*_args, **_kwargs)
 
 
+@transform_inputs_decorator()
 def mask(
     dataarray: xr.Dataset | xr.DataArray,
     geodataframe: gpd.geodataframe.GeoDataFrame,
@@ -385,6 +384,7 @@ def mask(
     return out
 
 
+@transform_inputs_decorator()
 def reduce(
     dataarray: xr.Dataset | xr.DataArray,
     geodataframe: gpd.GeoDataFrame | None = None,

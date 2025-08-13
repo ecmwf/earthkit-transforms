@@ -20,6 +20,25 @@ except ImportError:  # pragma: no cover
     # Local copy or not installed with setuptools
     __version__ = "999"
 
-from earthkit.transforms import aggregate, tools
+from earthkit.transforms import (
+    _tools,
+    aggregate,  # TODO: Remove deprecated sub-modules in future version,
+    climatology,
+    ensemble,
+    spatial,
+    temporal,
+)
+from earthkit.transforms._aggregate import reduce, resample, rolling_reduce
 
-__all__ = ["__version__", "aggregate", "tools"]
+__all__ = [
+    "__version__",
+    "aggregate",
+    "_tools",
+    "spatial",
+    "temporal",
+    "climatology",
+    "ensemble",
+    "reduce",
+    "rolling_reduce",
+    "resample",
+]

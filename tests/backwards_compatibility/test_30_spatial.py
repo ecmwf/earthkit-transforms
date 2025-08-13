@@ -7,8 +7,7 @@ import xarray as xr
 # from earthkit.data.core.temporary import temp_directory
 from earthkit import data as ek_data
 from earthkit.data.testing import earthkit_remote_test_data_file
-from earthkit.transforms import spatial
-from earthkit.transforms.spatial import _aggregate as _spatial
+from earthkit.transforms.aggregate import spatial
 from shapely.geometry import Polygon
 
 try:
@@ -186,10 +185,10 @@ def test_mask_kwargs():
     nuts_gpd = nuts_data.to_geopandas()
     nuts_DK = nuts_gpd[nuts_gpd["CNTR_CODE"] == "DK"]
 
-    masked_data = spatial.mask(era5_xr, nuts_DK, all_touched=True)
+    masked_data = spatial.masks(era5_xr, nuts_DK, all_touched=True)
     assert len(np.where(~np.isnan(masked_data["2t"].values.flat))[0]) == 3432
 
-    masked_data = spatial.mask(era5_xr, nuts_DK, all_touched=False)
+    masked_data = spatial.masks(era5_xr, nuts_DK, all_touched=False)
     assert len(np.where(~np.isnan(masked_data["2t"].values.flat))[0]) == 2448
 
     reduced_data = spatial.reduce(era5_xr, nuts_DK, all_touched=True)
@@ -218,81 +217,3 @@ def create_test_dataarray():
 def create_test_geodataframe():
     polygons = [Polygon([(-180, -90), (-180, 90), (180, 90), (180, -90)])]
     return gpd.GeoDataFrame(geometry=polygons, index=[1])
-
-
-def test_reduce_mean():
-    dataarray = create_test_dataarray()
-    result = _spatial._reduce_dataarray_as_xarray(dataarray, how="mean")
-    assert isinstance(result, xr.DataArray)
-    assert "lat" not in result.dims
-    assert "lon" not in result.dims
-
-
-def test_reduce_with_geodataframe():
-    dataarray = create_test_dataarray()
-    geodataframe = create_test_geodataframe()
-    result = _spatial._reduce_dataarray_as_xarray(dataarray, geodataframe=geodataframe, how="mean")
-    assert isinstance(result, xr.DataArray)
-    assert "index" in result.dims  # Default mask_dim is "index"
-
-
-def test_reduce_with_weights():
-    dataarray = create_test_dataarray()
-    result = _spatial._reduce_dataarray_as_xarray(dataarray, how="mean", weights="latitude")
-    assert isinstance(result, xr.DataArray)
-
-
-def test_reduce_invalid_how():
-    dataarray = create_test_dataarray()
-    with pytest.raises(ValueError):
-        _spatial._reduce_dataarray_as_xarray(dataarray, how="invalid_method")
-
-
-def test_reduce_with_mask():
-    dataarray = create_test_dataarray()
-    mask = xr.DataArray(
-        np.random.randint(0, 2, size=dataarray.shape), coords=dataarray.coords, dims=dataarray.dims
-    )
-    result = _spatial._reduce_dataarray_as_xarray(dataarray, mask_arrays=[mask], how="sum")
-    assert isinstance(result, xr.DataArray)
-
-
-def test_return_geometry_as_coord():
-    dataarray = create_test_dataarray()
-    geodataframe = create_test_geodataframe()
-    result = _spatial._reduce_dataarray_as_xarray(
-        dataarray, geodataframe=geodataframe, return_geometry_as_coord=True
-    )
-    assert "geometry" in result.coords
-    assert len(result.coords["geometry"].values) == len(geodataframe)
-
-
-def test_reduce_as_pandas():
-    dataarray = create_test_dataarray()
-    result = _spatial._reduce_dataarray_as_pandas(dataarray, how="mean")
-    assert isinstance(result, pd.DataFrame)
-
-
-def test_reduce_as_pandas_with_geodataframe():
-    dataarray = create_test_dataarray()
-    geodataframe = create_test_geodataframe()
-    result = _spatial._reduce_dataarray_as_pandas(dataarray, geodataframe=geodataframe, how="mean")
-    assert isinstance(result, pd.DataFrame)
-    assert not result.empty
-
-
-def test_reduce_as_pandas_compact():
-    dataarray = create_test_dataarray()
-    geodataframe = create_test_geodataframe()
-    result = _spatial._reduce_dataarray_as_pandas(
-        dataarray, geodataframe=geodataframe, compact=True, how="mean"
-    )
-    assert isinstance(result, pd.DataFrame)
-    assert f"{dataarray.name}" in result.columns
-
-
-def test_reduce_as_pandas_without_geodataframe():
-    dataarray = create_test_dataarray()
-    result = _spatial._reduce_dataarray_as_pandas(dataarray, how="sum")
-    assert isinstance(result, pd.DataFrame)
-    assert not result.empty

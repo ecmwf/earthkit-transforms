@@ -4,16 +4,15 @@ import typing as T
 import numpy as np
 import pandas as pd
 import xarray as xr
-from earthkit.transforms import tools
-from earthkit.transforms.aggregate.general import how_label_rename, resample
-from earthkit.transforms.aggregate.general import reduce as _reduce
-from earthkit.transforms.aggregate.general import rolling_reduce as _rolling_reduce
-from earthkit.transforms.tools import groupby_time
+from earthkit.transforms import _tools
+from earthkit.transforms._aggregate import how_label_rename, resample
+from earthkit.transforms._aggregate import reduce as _reduce
+from earthkit.transforms._aggregate import rolling_reduce as _rolling_reduce
 
 logger = logging.getLogger(__name__)
 
-
-@tools.time_dim_decorator
+@_tools.time_dim_decorator
+@_tools.transform_inputs_decorator()
 def standardise_time(
     dataarray: xr.Dataset | xr.DataArray,
     target_format: str = "%Y-%m-%d %H:%M:%S",
@@ -72,7 +71,8 @@ def standardise_time(
     return dataarray
 
 
-@tools.time_dim_decorator
+@_tools.transform_inputs_decorator()
+@_tools.time_dim_decorator
 def reduce(
     dataarray: xr.Dataset | xr.DataArray,
     *_args,
@@ -118,7 +118,7 @@ def reduce(
     if "frequency" in kwargs:
         return resample(dataarray, *_args, time_dim=time_dim, **kwargs)
 
-    reduce_dims = tools.ensure_list(kwargs.get("dim", []))
+    reduce_dims = _tools.ensure_list(kwargs.get("dim", []))
     if time_dim is not None and time_dim not in reduce_dims:
         reduce_dims.append(time_dim)
     kwargs["dim"] = reduce_dims
@@ -127,7 +127,6 @@ def reduce(
 
 
 def mean(
-    dataarray: xr.Dataset | xr.DataArray,
     *_args,
     **kwargs,
 ):
@@ -162,11 +161,10 @@ def mean(
 
     """
     kwargs["how"] = "mean"
-    return reduce(dataarray, *_args, **kwargs)
+    return reduce(*_args, **kwargs)
 
 
 def median(
-    dataarray: xr.Dataset | xr.DataArray,
     *_args,
     **kwargs,
 ):
@@ -201,11 +199,10 @@ def median(
 
     """
     kwargs["how"] = "median"
-    return reduce(dataarray, *_args, **kwargs)
+    return reduce(*_args, **kwargs)
 
 
 def min(
-    dataarray: xr.Dataset | xr.DataArray,
     *_args,
     **kwargs,
 ):
@@ -240,11 +237,10 @@ def min(
 
     """
     kwargs["how"] = "min"
-    return reduce(dataarray, *_args, **kwargs)
+    return reduce(*_args, **kwargs)
 
 
 def max(
-    dataarray: xr.Dataset | xr.DataArray,
     *_args,
     **kwargs,
 ):
@@ -279,11 +275,10 @@ def max(
 
     """
     kwargs["how"] = "max"
-    return reduce(dataarray, *_args, **kwargs)
+    return reduce(*_args, **kwargs)
 
 
 def std(
-    dataarray: xr.Dataset | xr.DataArray,
     *_args,
     **kwargs,
 ) -> xr.Dataset | xr.DataArray:
@@ -318,11 +313,10 @@ def std(
 
     """
     kwargs["how"] = "std"
-    return reduce(dataarray, *_args, **kwargs)
+    return reduce(*_args, **kwargs)
 
 
 def sum(
-    dataarray: xr.Dataset | xr.DataArray,
     *_args,
     **kwargs,
 ) -> xr.Dataset | xr.DataArray:
@@ -358,10 +352,11 @@ def sum(
 
     """
     kwargs["how"] = "sum"
-    return reduce(dataarray, *_args, **kwargs)
+    return reduce(*_args, **kwargs)
 
 
-@tools.time_dim_decorator
+@_tools.transform_inputs_decorator()
+@_tools.time_dim_decorator
 def daily_reduce(
     dataarray: xr.Dataset | xr.DataArray,
     how: str | T.Callable = "mean",
@@ -417,14 +412,14 @@ def daily_reduce(
         else:
             raise TypeError(f"Invalid type for time dimension ({time_dim}): {dataarray[time_dim].dtype}")
 
-        grouped_data = groupby_time(dataarray, time_dim=time_dim, frequency=group_key)
+        grouped_data = _tools.groupby_time(dataarray, time_dim=time_dim, frequency=group_key)
         # If how is string and inbuilt method of grouped_data, we apply
         if isinstance(how, str) and how in dir(grouped_data):
             red_array = grouped_data.__getattribute__(how)(**kwargs)
         else:
             # If how is string, fetch function from dictionary:
             if isinstance(how, str):
-                how = tools.get_how_xp(how, data_object=dataarray)
+                how = _tools.get_how_xp(how, data_object=dataarray)
             assert callable(how), f"how method not recognised: {how}"
 
             red_array = grouped_data.reduce(how, **kwargs)
@@ -438,7 +433,7 @@ def daily_reduce(
     return red_array
 
 
-def daily_mean(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs) -> xr.Dataset | xr.DataArray:
+def daily_mean(*_args, **kwargs) -> xr.Dataset | xr.DataArray:
     """Return the daily mean of the datacube.
 
     Parameters
@@ -464,10 +459,10 @@ def daily_mean(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs) -> xr.Dat
     xr.DataArray | xr.Dataset
         A dataarray reduced to daily mean values
     """
-    return daily_reduce(dataarray, *_args, how="mean", **kwargs)
+    return daily_reduce(*_args, how="mean", **kwargs)
 
 
-def daily_median(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs):
+def daily_median(*_args, **kwargs):
     """Return the daily median of the datacube.
 
     Parameters
@@ -493,10 +488,10 @@ def daily_median(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs):
     xr.DataArray | xr.Dataset
         A dataarray reduced to daily median values
     """
-    return daily_reduce(dataarray, *_args, how="median", **kwargs)
+    return daily_reduce(*_args, how="median", **kwargs)
 
 
-def daily_max(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs):
+def daily_max(*_args, **kwargs):
     """Calculate the daily maximum.
 
     Parameters
@@ -522,10 +517,10 @@ def daily_max(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs):
     xr.DataArray | xr.Dataset
         A dataarray reduced to daily max values
     """
-    return daily_reduce(dataarray, *_args, how="max", **kwargs)
+    return daily_reduce(*_args, how="max", **kwargs)
 
 
-def daily_min(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs):
+def daily_min(*_args, **kwargs):
     """Calculate the daily minimum.
 
     Parameters
@@ -551,10 +546,10 @@ def daily_min(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs):
     xr.DataArray | xr.Dataset
         A dataarray reduced to daily min values
     """
-    return daily_reduce(dataarray, *_args, how="min", **kwargs)
+    return daily_reduce(*_args, how="min", **kwargs)
 
 
-def daily_std(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs):
+def daily_std(*_args, **kwargs):
     """Calculate the daily standard deviation.
 
     Parameters
@@ -580,10 +575,10 @@ def daily_std(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs):
     xr.DataArray | xr.Dataset
         A dataarray reduced to daily standard deviation values
     """
-    return daily_reduce(dataarray, *_args, how="std", **kwargs)
+    return daily_reduce(*_args, how="std", **kwargs)
 
 
-def daily_sum(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs):
+def daily_sum(*_args, **kwargs):
     """Calculate the daily sum (accumulation).
 
     Parameters
@@ -609,10 +604,11 @@ def daily_sum(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs):
     xr.DataArray | xr.Dataset
         A dataarray reduced to daily sum values
     """
-    return daily_reduce(dataarray, *_args, how="sum", **kwargs)
+    return daily_reduce(*_args, how="sum", **kwargs)
 
 
-@tools.time_dim_decorator
+@_tools.transform_inputs_decorator()
+@_tools.time_dim_decorator
 def monthly_reduce(
     dataarray: xr.Dataset | xr.DataArray,
     how: str | T.Callable = "mean",
@@ -683,7 +679,7 @@ def monthly_reduce(
         else:
             # If how is string, fetch function from dictionary:
             if isinstance(how, str):
-                how = tools.get_how_xp(how, data_object=dataarray)
+                how = _tools.get_how_xp(how, data_object=dataarray)
             assert callable(how), f"how method not recognised: {how}"
 
             red_array = grouped_data.reduce(how, **kwargs)
@@ -696,7 +692,6 @@ def monthly_reduce(
 
 
 def monthly_mean(
-    dataarray: xr.Dataset | xr.DataArray,
     *_args,
     **kwargs,
 ):
@@ -725,11 +720,10 @@ def monthly_mean(
     xr.DataArray | xr.Dataset
         A dataarray reduced to monthly mean values
     """
-    return monthly_reduce(dataarray, *_args, how="mean", **kwargs)
+    return monthly_reduce(*_args, how="mean", **kwargs)
 
 
 def monthly_median(
-    dataarray: xr.Dataset | xr.DataArray,
     *_args,
     **kwargs,
 ):
@@ -758,11 +752,10 @@ def monthly_median(
     xr.DataArray | xr.Dataset
         A dataarray reduced to monthly median values
     """
-    return monthly_reduce(dataarray, *_args, how="median", **kwargs)
+    return monthly_reduce(*_args, how="median", **kwargs)
 
 
 def monthly_min(
-    dataarray: xr.Dataset | xr.DataArray,
     *_args,
     **kwargs,
 ):
@@ -791,11 +784,10 @@ def monthly_min(
     xr.DataArray | xr.Dataset
         A dataarray reduced to monthly minimum values
     """
-    return monthly_reduce(dataarray, *_args, how="min", **kwargs)
+    return monthly_reduce(*_args, how="min", **kwargs)
 
 
 def monthly_max(
-    dataarray: xr.Dataset | xr.DataArray,
     *_args,
     **kwargs,
 ):
@@ -824,11 +816,10 @@ def monthly_max(
     xr.DataArray | xr.Dataset
         A dataarray reduced to monthly maximum values
     """
-    return monthly_reduce(dataarray, *_args, how="max", **kwargs)
+    return monthly_reduce(*_args, how="max", **kwargs)
 
 
 def monthly_std(
-    dataarray: xr.Dataset | xr.DataArray,
     *_args,
     **kwargs,
 ):
@@ -857,11 +848,10 @@ def monthly_std(
     xr.DataArray | xr.Dataset
         A dataarray reduced to monthly standard deviation values
     """
-    return monthly_reduce(dataarray, *_args, how="std", **kwargs)
+    return monthly_reduce(*_args, how="std", **kwargs)
 
 
 def monthly_sum(
-    dataarray: xr.Dataset | xr.DataArray,
     *_args,
     **kwargs,
 ):
@@ -890,10 +880,11 @@ def monthly_sum(
     xr.DataArray | xr.Dataset
         A dataarray reduced to monthly sum values
     """
-    return monthly_reduce(dataarray, *_args, how="sum", **kwargs)
+    return monthly_reduce(*_args, how="sum", **kwargs)
 
 
-@tools.time_dim_decorator
+@_tools.transform_inputs_decorator()
+@_tools.time_dim_decorator
 def rolling_reduce(
     dataarray: xr.Dataset | xr.DataArray,
     window_length: int | None = None,

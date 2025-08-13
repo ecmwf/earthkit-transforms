@@ -10,10 +10,10 @@
 from typing import Any, Callable, Optional, Union
 
 import xarray as xr
-from earthkit.transforms.aggregate.general import reduce as _reduce
-from earthkit.transforms.tools import get_dim_key
+from earthkit.transforms._aggregate import reduce as _reduce
+from earthkit.transforms import _tools
 
-
+@_tools.transform_inputs_decorator()
 def reduce(
     dataarray: xr.DataArray | xr.Dataset,
     how: Union[str, Callable] = "mean",
@@ -37,11 +37,11 @@ def reduce(
         ensemble dimension from the input object.
     """
     if dim is None:
-        dim = get_dim_key(dataarray, "realization", raise_error=True)
+        dim = _tools.get_dim_key(dataarray, "realization", raise_error=True)
     return _reduce(dataarray, how=how, dim=dim)
 
 
-def mean(dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
+def mean(*args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
     """Calculate the ensemble mean.
 
     Parameters
@@ -56,12 +56,10 @@ def mean(dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any) -> xr.
         Additional arguments and keyword arguments to pass to the underlying reduce function.
     """
     kwargs["how"] = "mean"
-    return reduce(dataarray, *args, **kwargs)
+    return reduce(*args, **kwargs)
 
 
-def standard_deviation(
-    dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any
-) -> xr.Dataset | xr.DataArray:
+def std(*args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
     """Calculate the ensemble standard deviation.
 
     Parameters
@@ -76,10 +74,10 @@ def standard_deviation(
         Additional arguments and keyword arguments to pass to the underlying reduce function.
     """
     kwargs["how"] = "std"
-    return reduce(dataarray, *args, **kwargs)
+    return reduce(*args, **kwargs)
 
 
-def min(dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
+def min(*args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
     """Calculate the ensemble minimum.
 
     Parameters
@@ -94,10 +92,10 @@ def min(dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any) -> xr.D
         Additional arguments and keyword arguments to pass to the underlying reduce function.
     """
     kwargs["how"] = "min"
-    return reduce(dataarray, *args, **kwargs)
+    return reduce(*args, **kwargs)
 
 
-def max(dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
+def max(*args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
     """Calculate the ensemble maximum.
 
     Parameters
@@ -112,10 +110,10 @@ def max(dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any) -> xr.D
         Additional arguments and keyword arguments to pass to the underlying reduce function.
     """
     kwargs["how"] = "max"
-    return reduce(dataarray, *args, **kwargs)
+    return reduce(*args, **kwargs)
 
 
-def sum(dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
+def sum(*args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
     """Calculate the ensemble sum.
 
     Parameters
@@ -130,4 +128,4 @@ def sum(dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any) -> xr.D
         Additional arguments and keyword arguments to pass to the underlying reduce function.
     """
     kwargs["how"] = "sum"
-    return reduce(dataarray, *args, **kwargs)
+    return reduce(*args, **kwargs)
