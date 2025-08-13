@@ -59,9 +59,7 @@ def mean(dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any) -> xr.
     return reduce(dataarray, *args, **kwargs)
 
 
-def std(
-    dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any
-) -> xr.Dataset | xr.DataArray:
+def std(dataarray: xr.DataArray | xr.Dataset, *args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
     """Calculate the ensemble standard deviation.
 
     Parameters

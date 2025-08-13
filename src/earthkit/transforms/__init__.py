@@ -23,7 +23,10 @@ except ImportError:  # pragma: no cover
 from earthkit.transforms import (
     _tools,
     aggregate,  # TODO: Remove deprecated sub-modules in future version
+    climatology,
+    ensemble,
     spatial,
+    temporal,
 )
 
-__all__ = ["__version__", "aggregate", "_tools", "spatial"]
+__all__ = ["__version__", "aggregate", "_tools", "spatial", "temporal", "climatology", "ensemble"]
