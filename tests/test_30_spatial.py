@@ -186,10 +186,10 @@ def test_mask_kwargs():
     nuts_gpd = nuts_data.to_geopandas()
     nuts_DK = nuts_gpd[nuts_gpd["CNTR_CODE"] == "DK"]
 
-    masked_data = spatial.masks(era5_xr, nuts_DK, all_touched=True)
+    masked_data = spatial.mask(era5_xr, nuts_DK, all_touched=True)
     assert len(np.where(~np.isnan(masked_data["2t"].values.flat))[0]) == 3432
 
-    masked_data = spatial.masks(era5_xr, nuts_DK, all_touched=False)
+    masked_data = spatial.mask(era5_xr, nuts_DK, all_touched=False)
     assert len(np.where(~np.isnan(masked_data["2t"].values.flat))[0]) == 2448
 
     reduced_data = spatial.reduce(era5_xr, nuts_DK, all_touched=True)
