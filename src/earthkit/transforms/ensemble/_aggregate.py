@@ -11,9 +11,9 @@ from typing import Any, Callable, Optional, Union
 
 import xarray as xr
 from earthkit.transforms._aggregate import reduce as _reduce
-from earthkit.transforms._tools import get_dim_key
+from earthkit.transforms import _tools
 
-
+@_tools.transform_inputs_decorator()
 def reduce(
     dataarray: xr.DataArray | xr.Dataset,
     how: Union[str, Callable] = "mean",
@@ -37,7 +37,7 @@ def reduce(
         ensemble dimension from the input object.
     """
     if dim is None:
-        dim = get_dim_key(dataarray, "realization", raise_error=True)
+        dim = _tools.get_dim_key(dataarray, "realization", raise_error=True)
     return _reduce(dataarray, how=how, dim=dim)
 
 
