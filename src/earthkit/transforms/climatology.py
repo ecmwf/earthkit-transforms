@@ -3,8 +3,30 @@
 Typically this is done with an xarray representation of data.
 """
 
+from earthkit.transforms._aggregate.climatology import (
+    anomalazy,
+    anomaly,
+    daily_max,
+    daily_mean,
+    daily_median,
+    daily_min,
+    daily_std,
+    max,
+    mean,
+    median,
+    min,
+    monthly_max,
+    monthly_mean,
+    monthly_median,
+    monthly_min,
+    monthly_std,
+    percentiles,
+    quantiles,
+    relative_anomaly,
+    std,
+)
 
-all = [
+__all__ = [
     "mean",
     "max",
     "min",
@@ -17,13 +39,12 @@ all = [
     "daily_median",
     "daily_min",
     "daily_std",
-    "daily_sum",
     "monthly_max",
     "monthly_mean",
     "monthly_median",
     "monthly_min",
     "monthly_std",
-    "monthly_sum",
     "anomalazy",
     "anomaly",
+    "relative_anomaly",
 ]

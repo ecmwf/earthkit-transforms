@@ -1,11 +1,10 @@
 import numpy as np
 import pytest
 import xarray as xr
+from earthkit.transforms import reduce, rolling_reduce
 from earthkit.transforms._aggregate.general import (
     _reduce_dataarray,
     _rolling_reduce_dataarray,
-    reduce,
-    rolling_reduce,
 )
 from earthkit.transforms._tools import nanaverage
 

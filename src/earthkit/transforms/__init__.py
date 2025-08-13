@@ -28,5 +28,35 @@ from earthkit.transforms import (
     spatial,
     temporal,
 )
+from earthkit.transforms._aggregate import reduce, resample, rolling_reduce
 
-__all__ = ["__version__", "aggregate", "_tools", "spatial", "temporal", "climatology", "ensemble"]
+try:
+    from earthkit.data.utils.module_inputs_wrapper import (
+        transform_function_inputs,
+        transform_module_inputs,
+    )
+except ImportError:
+    pass
+else:
+    aggregate = transform_module_inputs(aggregate)
+    temporal = transform_module_inputs(temporal)
+    climatology = transform_module_inputs(climatology)
+    ensemble = transform_module_inputs(ensemble)
+    spatial = transform_module_inputs(spatial)
+    reduce = transform_function_inputs(reduce)
+    rolling_reduce = transform_function_inputs(rolling_reduce)
+    resample = transform_function_inputs(resample)
+
+
+__all__ = [
+    "__version__",
+    "aggregate",
+    "_tools",
+    "spatial",
+    "temporal",
+    "climatology",
+    "ensemble",
+    "reduce",
+    "rolling_reduce",
+    "resample",
+]

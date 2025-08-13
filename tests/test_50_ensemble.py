@@ -10,12 +10,12 @@
 import numpy as np
 import pytest
 import xarray as xr
-from earthkit.transforms._aggregate.ensemble import (
+from earthkit.transforms.ensemble import (
     max,
     mean,
     min,
     reduce,
-    standard_deviation,
+    std,
 )
 
 
@@ -44,7 +44,7 @@ def test_mean_actual_reduction(sample_data):
 
 
 def test_standard_deviation_actual(sample_data):
-    result = standard_deviation(sample_data, dim="ensemble_member")
+    result = std(sample_data, dim="ensemble_member")
     expected = sample_data.std(dim="ensemble_member")
     assert np.allclose(result, expected)
 

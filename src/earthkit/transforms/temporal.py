@@ -22,6 +22,7 @@ from earthkit.transforms._aggregate.temporal import (
     monthly_min,
     monthly_reduce,
     monthly_std,
+    monthly_sum,
     reduce,
     rolling_reduce,
     standardise_time,
@@ -51,5 +52,6 @@ __all__ = [
     "monthly_min",
     "monthly_reduce",
     "monthly_std",
+    "monthly_sum",
     "standardise_time",
 ]
