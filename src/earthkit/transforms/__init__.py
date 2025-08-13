@@ -22,31 +22,13 @@ except ImportError:  # pragma: no cover
 
 from earthkit.transforms import (
     _tools,
-    aggregate,  # TODO: Remove deprecated sub-modules in future version
+    aggregate,  # TODO: Remove deprecated sub-modules in future version,
     climatology,
     ensemble,
     spatial,
     temporal,
 )
 from earthkit.transforms._aggregate import reduce, resample, rolling_reduce
-
-try:
-    from earthkit.data.utils.module_inputs_wrapper import (
-        transform_function_inputs,
-        transform_module_inputs,
-    )
-except ImportError:
-    pass
-else:
-    aggregate = transform_module_inputs(aggregate)
-    temporal = transform_module_inputs(temporal)
-    climatology = transform_module_inputs(climatology)
-    ensemble = transform_module_inputs(ensemble)
-    spatial = transform_module_inputs(spatial)
-    reduce = transform_function_inputs(reduce)
-    rolling_reduce = transform_function_inputs(rolling_reduce)
-    resample = transform_function_inputs(resample)
-
 
 __all__ = [
     "__version__",

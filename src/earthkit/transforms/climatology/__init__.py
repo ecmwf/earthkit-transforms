@@ -3,7 +3,7 @@
 Typically this is done with an xarray representation of data.
 """
 
-from earthkit.transforms._aggregate.climatology import (
+from earthkit.transforms.climatology._aggregate import (
     anomalazy,
     anomaly,
     daily_max,

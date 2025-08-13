@@ -10,7 +10,7 @@
 from typing import Any, Callable, Optional, Union
 
 import xarray as xr
-from earthkit.transforms._aggregate.general import reduce as _reduce
+from earthkit.transforms._aggregate import reduce as _reduce
 from earthkit.transforms._tools import get_dim_key
 
 

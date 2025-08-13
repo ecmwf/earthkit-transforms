@@ -5,15 +5,14 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from earthkit.transforms import _tools
-from earthkit.transforms._aggregate.general import how_label_rename, resample
-from earthkit.transforms._aggregate.general import reduce as _reduce
-from earthkit.transforms._aggregate.general import rolling_reduce as _rolling_reduce
-from earthkit.transforms._tools import groupby_time
+from earthkit.transforms._aggregate import how_label_rename, resample
+from earthkit.transforms._aggregate import reduce as _reduce
+from earthkit.transforms._aggregate import rolling_reduce as _rolling_reduce
 
 logger = logging.getLogger(__name__)
 
-
 @_tools.time_dim_decorator
+@_tools.transform_inputs_decorator()
 def standardise_time(
     dataarray: xr.Dataset | xr.DataArray,
     target_format: str = "%Y-%m-%d %H:%M:%S",
@@ -72,6 +71,7 @@ def standardise_time(
     return dataarray
 
 
+@_tools.transform_inputs_decorator()
 @_tools.time_dim_decorator
 def reduce(
     dataarray: xr.Dataset | xr.DataArray,
@@ -361,6 +361,7 @@ def sum(
     return reduce(dataarray, *_args, **kwargs)
 
 
+@_tools.transform_inputs_decorator()
 @_tools.time_dim_decorator
 def daily_reduce(
     dataarray: xr.Dataset | xr.DataArray,
@@ -417,7 +418,7 @@ def daily_reduce(
         else:
             raise TypeError(f"Invalid type for time dimension ({time_dim}): {dataarray[time_dim].dtype}")
 
-        grouped_data = groupby_time(dataarray, time_dim=time_dim, frequency=group_key)
+        grouped_data = _tools.groupby_time(dataarray, time_dim=time_dim, frequency=group_key)
         # If how is string and inbuilt method of grouped_data, we apply
         if isinstance(how, str) and how in dir(grouped_data):
             red_array = grouped_data.__getattribute__(how)(**kwargs)
@@ -612,6 +613,7 @@ def daily_sum(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs):
     return daily_reduce(dataarray, *_args, how="sum", **kwargs)
 
 
+@_tools.transform_inputs_decorator()
 @_tools.time_dim_decorator
 def monthly_reduce(
     dataarray: xr.Dataset | xr.DataArray,
@@ -893,6 +895,7 @@ def monthly_sum(
     return monthly_reduce(dataarray, *_args, how="sum", **kwargs)
 
 
+@_tools.transform_inputs_decorator()
 @_tools.time_dim_decorator
 def rolling_reduce(
     dataarray: xr.Dataset | xr.DataArray,

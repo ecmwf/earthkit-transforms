@@ -2,8 +2,8 @@ import typing as T
 
 import xarray as xr
 from earthkit.transforms import _tools
-from earthkit.transforms._aggregate.general import reduce as _reduce
-from earthkit.transforms._aggregate.general import resample
+from earthkit.transforms._aggregate import reduce as _reduce
+from earthkit.transforms._aggregate import resample
 from earthkit.transforms._tools import groupby_time
 
 

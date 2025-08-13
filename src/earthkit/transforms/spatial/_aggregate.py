@@ -11,6 +11,7 @@ from earthkit.transforms._tools import (
     get_how_xp,
     get_spatial_info,
     standard_weights,
+    transform_inputs_decorator
 )
 from numpy import ndarray
 
@@ -287,7 +288,6 @@ def get_mask_dim_index(
 
     return mask_dim_index
 
-
 def masks(
     dataarray: xr.Dataset | xr.DataArray,
     geodataframe: gpd.geodataframe.GeoDataFrame,
@@ -301,6 +301,7 @@ def masks(
     return mask(dataarray, geodataframe, *_args, **_kwargs)
 
 
+@transform_inputs_decorator()
 def mask(
     dataarray: xr.Dataset | xr.DataArray,
     geodataframe: gpd.geodataframe.GeoDataFrame,
@@ -385,6 +386,7 @@ def mask(
     return out
 
 
+@transform_inputs_decorator()
 def reduce(
     dataarray: xr.Dataset | xr.DataArray,
     geodataframe: gpd.GeoDataFrame | None = None,

@@ -8,7 +8,7 @@ import xarray as xr
 from earthkit import data as ek_data
 from earthkit.data.testing import earthkit_remote_test_data_file
 from earthkit.transforms import spatial
-from earthkit.transforms._aggregate import spatial as _spatial
+from earthkit.transforms.spatial import _aggregate as _spatial
 from shapely.geometry import Polygon
 
 try:
