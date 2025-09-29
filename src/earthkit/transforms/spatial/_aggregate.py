@@ -289,17 +289,6 @@ def get_mask_dim_index(
     return mask_dim_index
 
 
-def masks(
-    *_args,
-    **_kwargs,
-):
-    logger.warning(
-        "earthkit.transforms.aggregate.spatial.masks is deprecated, "
-        "please use earthkit.transforms.aggregate.spatial.mask instead."
-    )
-    return mask(*_args, **_kwargs)
-
-
 @transform_inputs_decorator()
 def mask(
     dataarray: xr.Dataset | xr.DataArray,
