@@ -1,6 +1,11 @@
 # import warnings
 
 from earthkit.transforms import _aggregate
+from earthkit.transforms._aggregate import (
+    reduce,
+    resample,
+    rolling_reduce,
+)
 
 # warnings.warn(
 #     "The 'earthkit.transforms.aggregate' module is deprecated and will be removed "
@@ -14,3 +19,5 @@ try:
     __all__ = _aggregate.__all__
 except AttributeError:
     __all__ = [name for name in globals()]
+
+__all__.extend([resample, reduce, rolling_reduce])
