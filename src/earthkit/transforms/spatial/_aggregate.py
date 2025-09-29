@@ -11,7 +11,7 @@ from earthkit.transforms._tools import (
     get_how_xp,
     get_spatial_info,
     standard_weights,
-    transform_inputs_decorator
+    transform_inputs_decorator,
 )
 from numpy import ndarray
 
@@ -287,6 +287,7 @@ def get_mask_dim_index(
         raise ValueError("Unrecognised mask_dim format")
 
     return mask_dim_index
+
 
 def masks(
     *_args,

@@ -11,6 +11,7 @@ from earthkit.transforms._aggregate import rolling_reduce as _rolling_reduce
 
 logger = logging.getLogger(__name__)
 
+
 @_tools.time_dim_decorator
 @_tools.transform_inputs_decorator()
 def standardise_time(

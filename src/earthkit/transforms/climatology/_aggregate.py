@@ -6,6 +6,7 @@ from earthkit.transforms._aggregate import reduce as _reduce
 from earthkit.transforms._aggregate import resample
 from earthkit.transforms._tools import groupby_time
 
+
 @_tools.transform_inputs_decorator()
 @_tools.time_dim_decorator
 @_tools.groupby_kwargs_decorator
@@ -86,7 +87,7 @@ def mean(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     return reduce(*_args, **_kwargs)
 
 
-def median(**_kwargs) -> xr.DataArray:
+def median(*_args, **_kwargs) -> xr.DataArray:
     """Calculate the climatological median.
 
     Parameters
@@ -110,7 +111,7 @@ def median(**_kwargs) -> xr.DataArray:
     -------
     xr.DataArray
     """
-    result = quantiles(dataarray, [0.5], **_kwargs)
+    result = quantiles(*_args, q=[0.5], **_kwargs)
     return result.isel(quantile=0)
 
 

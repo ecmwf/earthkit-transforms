@@ -10,8 +10,9 @@
 from typing import Any, Callable, Optional, Union
 
 import xarray as xr
-from earthkit.transforms._aggregate import reduce as _reduce
 from earthkit.transforms import _tools
+from earthkit.transforms._aggregate import reduce as _reduce
+
 
 @_tools.transform_inputs_decorator()
 def reduce(
