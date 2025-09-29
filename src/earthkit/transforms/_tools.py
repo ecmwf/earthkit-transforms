@@ -580,7 +580,7 @@ def groupby_bins(
 
 def transform_inputs_decorator(
     kwarg_types: T.Dict[str, T.Any] = {},
-    convert_types: T.Union[T.Tuple[T.Any], T.Dict[str, T.Tuple[T.Any]]] = (),
+    convert_types: T.Union[None, T.Tuple[T.Any], T.Dict[str, T.Tuple[T.Any]]] = None,
 ) -> T.Callable:
     """Transform the inputs to a function to match the requirements.
 
@@ -596,6 +596,8 @@ def transform_inputs_decorator(
     Callable
         Wrapped function.
     """
+    if convert_types is None:
+        convert_types = {}
 
     def decorator(function: T.Callable) -> T.Callable:
         def _wrapper(_kwarg_types, _convert_types, *args, **kwargs):
