@@ -35,4 +35,3 @@ template-update:
 
 docs-build:
 	cd docs && rm -fr _api && make clean && make html
-

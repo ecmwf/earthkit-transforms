@@ -51,9 +51,9 @@ jobs:
     name: unit-tests
     needs: combine-environments
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.11']
+    # strategy:
+    #   matrix:
+    #     python-version: ['3.11']
 
     steps:
     - uses: actions/checkout@v4
@@ -84,9 +84,6 @@ jobs:
     name: legacy-api-unit-tests
     needs: combine-environments
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.11']
 
     steps:
     - uses: actions/checkout@v4
