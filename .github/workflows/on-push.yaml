@@ -12,6 +12,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# 👇 define global environment variables here
+env:
+  PYTHON_VERSIONS: '["3.11", "3.12", "3.13"]'
+
 defaults:
   run:
     shell: bash -l {0}
@@ -51,9 +55,9 @@ jobs:
     name: unit-tests
     needs: combine-environments
     runs-on: ubuntu-latest
-    # strategy:
-    #   matrix:
-    #     python-version: ['3.11']
+    strategy:
+      matrix:
+        python-version: ${{ fromJSON(env.PYTHON_VERSIONS) }}
 
     steps:
     - uses: actions/checkout@v4
@@ -84,6 +88,9 @@ jobs:
     name: legacy-api-unit-tests
     needs: combine-environments
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ${{ fromJSON(env.PYTHON_VERSIONS) }}
 
     steps:
     - uses: actions/checkout@v4
