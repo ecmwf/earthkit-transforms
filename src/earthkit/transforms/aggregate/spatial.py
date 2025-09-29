@@ -17,4 +17,4 @@ def masks(
     return mask(*_args, **_kwargs)
 
 
-__all__ = [mask, masks, reduce]
+__all__ = [mask, "masks", reduce]
