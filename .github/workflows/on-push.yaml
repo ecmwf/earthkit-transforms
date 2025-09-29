@@ -43,10 +43,19 @@ jobs:
         for SUFFIX in ci integration; do
         conda-merge ci/environment-$SUFFIX.yml environment.yml > ci/combined-environment-$SUFFIX.yml || exit
         done
-    - uses: actions/upload-artifact@v4
+    - name: Get current date
+      id: date
+      run: echo "date=$(date +%Y-%m-%d)" >> "${GITHUB_OUTPUT}"
+
+    - uses: mamba-org/setup-micromamba@v1
       with:
-        name: combined-environments
-        path: ci/combined-environment-*.yml
+        environment-file: ci/combined-environment-ci.yml
+        environment-name: INSTALL-CHECK
+        cache-environment: true
+        cache-environment-key: environment-${{ steps.date.outputs.date }}
+        cache-downloads-key: downloads-${{ steps.date.outputs.date }}
+        create-args: >-
+          python=3.13
     - name: Install package
       run: |
         python -m pip install --no-deps -e .
@@ -55,6 +64,10 @@ jobs:
       run: |
         python -c "import earthkit.transforms; print('✅ Package import OK')"
 
+    - uses: actions/upload-artifact@v4
+      with:
+        name: combined-environments
+        path: ci/combined-environment-*.yml
   unit-tests:
     name: unit-tests
     needs: combine-environments
