@@ -26,7 +26,8 @@ jobs:
         python-version: 3.x
     - uses: pre-commit/action@v3.0.1
 
-  combine-environments-and-check-install:
+  combine-environments:
+    name: Combine environments and verify pacakge installation
     runs-on: ubuntu-latest
 
     steps:
