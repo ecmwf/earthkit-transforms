@@ -8,12 +8,4 @@ from earthkit.transforms.ensemble._aggregate import max, mean, min, reduce, std,
 # Backwards compatibility, necessary?
 standard_deviation = std
 
-__all__ = [
-    "mean",
-    "std",
-    "min",
-    "max",
-    "sum",
-    "reduce",
-    "standard_deviation"
-]
+__all__ = ["mean", "std", "min", "max", "sum", "reduce", "standard_deviation"]

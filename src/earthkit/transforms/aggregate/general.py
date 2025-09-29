@@ -2,12 +2,6 @@
 
 from earthkit.transforms import _aggregate
 
-from earthkit.transforms._aggregate import (
-    resample,
-    reduce,
-    rolling_reduce,
-)
-
 # warnings.warn(
 #     "The 'earthkit.transforms.aggregate' module is deprecated and will be removed "
 #     "in version 2.X of earthkit.transforms. Please import the from earthkit.transforms, e.g.: "
