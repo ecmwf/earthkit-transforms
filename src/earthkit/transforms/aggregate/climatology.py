@@ -1,5 +1,5 @@
 """Module for preservation of the legacy API, it will be removed in version 2.X of earthkit.transforms."""
-from earthkit.transforms.climatology import (
+from earthkit.transforms.climatology._aggregate import (
     anomaly,
     auto_anomaly,
     daily_max,

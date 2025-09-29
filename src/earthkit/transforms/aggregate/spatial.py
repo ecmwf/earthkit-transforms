@@ -1,7 +1,7 @@
 """Module for preservation of the legacy API, it will be removed in version 2.X of earthkit.transforms."""
 import logging
 
-from earthkit.transforms.spatial import mask, reduce
+from earthkit.transforms.spatial._aggregate import mask, reduce
 
 logger = logging.getLogger(__name__)
 
