@@ -8,7 +8,7 @@ qa:
 	pre-commit run --all-files
 
 unit-tests:
-	python -m pytest -vv --cov=. --cov-report=$(COV_REPORT) --doctest-glob="*.md" --doctest-glob="*.rst" --ignore=tests/legacy-api
+	python -m pytest -vv --cov=. --cov-report=$(COV_REPORT) --ignore=tests/legacy-api
 
 legacy-api-unit-tests:
 	python -m pytest -vv \
