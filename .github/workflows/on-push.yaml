@@ -53,7 +53,7 @@ jobs:
 
     - name: Verify package import
       run: |
-        python -c "import earthkit_transforms; print('✅ Package import OK')"
+        python -c "import earthkit.transforms; print('✅ Package import OK')"
 
   unit-tests:
     name: unit-tests
