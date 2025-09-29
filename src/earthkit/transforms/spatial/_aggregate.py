@@ -555,8 +555,8 @@ def _reduce_dataarray_as_xarray(
         if isinstance(how, str):
             how_str = deepcopy(how)
             how = reduce_how = get_how_xp(how, xp=xp)
-        # else:
-        #     reduce_how = how
+        else:
+            reduce_how = how
         assert callable(how), f"how must be a callable: {how}"
         if how_str is None:
             # get label from how method
