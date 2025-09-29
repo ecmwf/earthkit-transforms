@@ -22,7 +22,7 @@ except ImportError:  # pragma: no cover
 
 from earthkit.transforms import (
     _tools,
-    aggregate,  # TODO: Remove deprecated sub-modules in future version,
+    # aggregate,  # TODO: Remove deprecated sub-modules in future version,
     climatology,
     ensemble,
     spatial,
@@ -32,7 +32,7 @@ from earthkit.transforms._aggregate import reduce, resample, rolling_reduce
 
 __all__ = [
     "__version__",
-    "aggregate",
+    # "aggregate",
     "_tools",
     "spatial",
     "temporal",
