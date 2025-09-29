@@ -765,12 +765,12 @@ def _anomaly_dataarray(
 
     anomaly_array = resample(anomaly_array, how="mean", **reduce_kwargs, **groupby_kwargs, dim=time_dim)
 
-    return update_anomaly_array(
+    return _update_anomaly_array(
         anomaly_array, dataarray, var_name, name_tag, update_attrs, how_label=how_label
     )
 
 
-def update_anomaly_array(anomaly_array, original_array, var_name, name_tag, update_attrs, how_label=None):
+def _update_anomaly_array(anomaly_array, original_array, var_name, name_tag, update_attrs, how_label=None):
     if how_label is not None:
         var_name = f"{var_name}_{how_label}"
     anomaly_array = anomaly_array.rename(f"{var_name}")

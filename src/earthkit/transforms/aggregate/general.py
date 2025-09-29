@@ -1,4 +1,4 @@
-# import warnings
+"""Module for preservation of the legacy API, it will be removed in version 2.X of earthkit.transforms."""
 
 from earthkit.transforms import _aggregate
 from earthkit.transforms._aggregate import (
@@ -6,14 +6,6 @@ from earthkit.transforms._aggregate import (
     resample,
     rolling_reduce,
 )
-
-# warnings.warn(
-#     "The 'earthkit.transforms.aggregate' module is deprecated and will be removed "
-#     "in version 2.X of earthkit.transforms. Please import the from earthkit.transforms, e.g.: "
-#     "from earthkit.transforms import spatial",
-#     FutureWarning,
-#     stacklevel=2,
-# )
 
 try:
     __all__ = _aggregate.__all__

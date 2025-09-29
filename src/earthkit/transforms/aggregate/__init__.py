@@ -3,12 +3,8 @@
 import warnings
 
 from earthkit.transforms._aggregate import reduce, resample, rolling_reduce
-from earthkit.transforms.climatology import _aggregate as climatology
-from earthkit.transforms.ensemble import _aggregate as ensemble
-from earthkit.transforms.spatial import _aggregate as spatial
-from earthkit.transforms.temporal import _aggregate as temporal
 
-from . import general
+from . import climatology, ensemble, general, spatial, temporal
 
 warnings.warn(
     "The 'earthkit.transforms.aggregate' module is deprecated and will be removed "
