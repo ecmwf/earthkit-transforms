@@ -23,7 +23,7 @@ dependencies = [
 ]
 description = "Aggregation tools for meteorological and climate data."
 dynamic = ["version"]
-license = {file = "LICENSE"}
+license = "Apache-2.0"
 name = "earthkit-transforms"
 readme = "README.md"
 
