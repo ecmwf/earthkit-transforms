@@ -67,21 +67,23 @@ jobs:
     - name: Upload documentation artifact
       uses: actions/upload-pages-artifact@v3
       with:
+        name: html-docs
         path: docs/_build/html
   docs-preview:
     runs-on: ubuntu-latest
     needs: docs-build
     if: github.event_name == 'workflow_dispatch'
     steps:
-      - name: Download docs artifact
-        uses: actions/download-pages-artifact@v2
-        with:
-          path: docs/_build/html
 
-      - name: Deploy docs preview
-        uses: rossjrw/pr-preview-action@v1
-        with:
-          source-dir: "docs/_build/html"
+    - name: Download docs artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: html-docs
+        path: docs/_build/html
+    - name: Deploy docs preview
+      uses: rossjrw/pr-preview-action@v1
+      with:
+        source-dir: "docs/_build/html"
   docs-deploy:
     if: github.event_name == 'release'
     needs: docs-build
