@@ -6,7 +6,6 @@ requires = ["setuptools>=64", "setuptools_scm>=8"]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: Apache Software License",
   "Operating System :: OS Independent",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
@@ -23,7 +22,7 @@ dependencies = [
 ]
 description = "Aggregation tools for meteorological and climate data."
 dynamic = ["version"]
-license = {file = "LICENSE"}
+license = "Apache-2.0"
 name = "earthkit-transforms"
 readme = "README.md"
 
@@ -80,6 +79,7 @@ include = ["earthkit.transforms"]
 where = ["src/"]
 
 [tool.setuptools_scm]
+local_scheme = "no-local-version"
 write_to = "src/earthkit/transforms/version.py"
 write_to_template = '''
 # Do not change! Do not track in version control!

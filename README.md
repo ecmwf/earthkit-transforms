@@ -39,7 +39,7 @@
 
 **earthkit-transforms** is a library of software tools to support people working with climate and meteorology data.
 
-**earthkit-transforms** is made up of a sub-package, `aggregate`, which contains methods for aggregating data in time and spaces and other abstract dimensions.
+**earthkit-transforms** is made up of sub-modules which contains methods for transforming data in specific domains. For example, the temporal module contains methods for aggregation and statistics analysis accross time dimensions/coordinates.
 
 It has been designed following the philosphy of [earthkit](https://github.com/ecmwf/earthkit), hence the methods should be interoperable with any
 data object understood by earthkit-data.
@@ -53,9 +53,9 @@ pip install earthkit-transforms
 ## Quick Start
 
 ```python
-from earthkit.transforms import aggregate
+import earthkit.transforms as ekt
 
-daily_mean = aggregate.temporal.daily_mean(MY_DATA)
+daily_mean = ekt.temporal.daily_mean(MY_DATA)
 
 ```
 
