@@ -79,9 +79,9 @@ include = ["earthkit.transforms"]
 where = ["src/"]
 
 [tool.setuptools_scm]
+local_scheme = "no-local-version"
 write_to = "src/earthkit/transforms/version.py"
 write_to_template = '''
 # Do not change! Do not track in version control!
 __version__ = "{version}"
 '''
-local_scheme = "no-local-version"
