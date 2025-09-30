@@ -16,9 +16,6 @@ dependencies:
 - pandas-stubs
 - ipykernel
 # Deps required for geometry operations in tests and examples
-# - proj
-# - proj-data
-# - pyproj
 - rasterio
 # Both of these are required for earthkit-data when installing from conda-forge:
 - array-api-compat
