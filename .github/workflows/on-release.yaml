@@ -100,8 +100,11 @@ jobs:
         python -m pip install build twine
     - name: Build distributions
       run: python -m build
-    - name: Check distribution (optional but recommended)
-      run: python -m pip install --force-reinstall dist/*.whl
+    - name: Check distribution
+      run: |
+        python -m pip install --force-reinstall dist/*.whl
+        python -m pip install twine
+        twine check dist/*
 
     # Publish to TestPyPI when run manually
     - name: Publish to TestPyPI
