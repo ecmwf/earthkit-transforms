@@ -16,9 +16,5 @@ dependencies:
 - numpy
 - xarray
 - geopandas
-- proj
-- proj-data
-- pyproj
-- rasterio
 - earthkit-data[all]
 - earthkit-utils
