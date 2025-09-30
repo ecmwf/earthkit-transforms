@@ -39,7 +39,7 @@ jobs:
       run: |
         python -m pip install conda-merge
     - name: Combine environments
-      run: conda-merge ci/environment-$SUFFIX.yml environment.yml > ci/combined-environment.yml
+      run: conda-merge ci/environment-ci.yml environment.yml > ci/combined-environment.yml
     - name: Get current date
       id: date
       run: echo "date=$(date +%Y-%m-%d)" >> "${GITHUB_OUTPUT}"
