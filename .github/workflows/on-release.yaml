@@ -81,9 +81,19 @@ jobs:
         name: html-docs
         path: docs/_build/html
     - name: Deploy docs preview
-      uses: rossjrw/pr-preview-action@v1
+      uses: peaceiris/actions-gh-pages@v4
       with:
-        source-dir: "docs/_build/html"
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs/_build/html
+        publish_branch: gh-pages-preview
+        destination_dir: ${{ github.event.inputs.branch || github.ref_name }}
+        commit_message: "Docs preview: ${{ github.event.inputs.branch || github.ref_name }}"
+    - name: Post preview URL
+      run: |
+        BRANCH="${{ github.event.inputs.branch || github.ref_name }}"
+        PREVIEW_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${BRANCH}/"
+        echo "### 🚀 Docs Preview" >> $GITHUB_STEP_SUMMARY
+        echo "[View preview here](${PREVIEW_URL})" >> $GITHUB_STEP_SUMMARY
   docs-deploy:
     if: github.event_name == 'release'
     needs: docs-build
