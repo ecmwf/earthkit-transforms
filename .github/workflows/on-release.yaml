@@ -81,7 +81,10 @@ jobs:
         with:
           name: html-docs
           path: docs/_build/html
-
+      - name: Extract docs artifact
+        run: |
+          tar -xf docs/_build/html/artifact.tar -C docs/_build/html
+          rm docs/_build/html/artifact.tar
       - name: List downloaded files (debug)
         run: ls -R docs/_build/html
 
