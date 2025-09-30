@@ -39,17 +39,14 @@ jobs:
       run: |
         python -m pip install conda-merge
     - name: Combine environments
-      run: |
-        for SUFFIX in ci integration; do
-        conda-merge ci/environment-$SUFFIX.yml environment.yml > ci/combined-environment-$SUFFIX.yml || exit
-        done
+      run: conda-merge ci/environment-$SUFFIX.yml environment.yml > ci/combined-environment.yml
     - name: Get current date
       id: date
       run: echo "date=$(date +%Y-%m-%d)" >> "${GITHUB_OUTPUT}"
 
     - uses: mamba-org/setup-micromamba@v1
       with:
-        environment-file: ci/combined-environment-ci.yml
+        environment-file: ci/combined-environment.yml
         environment-name: INSTALL-CHECK
         cache-environment: true
         cache-environment-key: environment-${{ steps.date.outputs.date }}
@@ -67,7 +64,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: combined-environments
-        path: ci/combined-environment-*.yml
+        path: ci/combined-environment.yml
   unit-tests:
     name: unit-tests
     needs: combine-environments
@@ -87,7 +84,7 @@ jobs:
       run: echo "date=$(date +%Y-%m-%d)" >> "${GITHUB_OUTPUT}"
     - uses: mamba-org/setup-micromamba@v1
       with:
-        environment-file: ci/combined-environment-ci.yml
+        environment-file: ci/combined-environment.yml
         environment-name: DEVELOP
         cache-environment: true
         cache-environment-key: environment-${{ steps.date.outputs.date }}
@@ -119,7 +116,7 @@ jobs:
       run: echo "date=$(date +%Y-%m-%d)" >> "${GITHUB_OUTPUT}"
     - uses: mamba-org/setup-micromamba@v1
       with:
-        environment-file: ci/combined-environment-ci.yml
+        environment-file: ci/combined-environment.yml
         environment-name: DEVELOP
         cache-environment: true
         cache-environment-key: environment-${{ steps.date.outputs.date }}
@@ -148,7 +145,7 @@ jobs:
       run: echo "date=$(date +%Y-%m-%d)" >> "${GITHUB_OUTPUT}"
     - uses: mamba-org/setup-micromamba@v2
       with:
-        environment-file: ci/combined-environment-ci.yml
+        environment-file: ci/combined-environment.yml
         environment-name: DEVELOP
         cache-environment: true
         cache-environment-key: environment-${{ steps.date.outputs.date }}
@@ -177,7 +174,7 @@ jobs:
       run: echo "date=$(date +%Y-%m-%d)" >> "${GITHUB_OUTPUT}"
     - uses: mamba-org/setup-micromamba@v1
       with:
-        environment-file: ci/combined-environment-ci.yml
+        environment-file: ci/combined-environment.yml
         environment-name: DEVELOP
         cache-environment: true
         cache-environment-key: environment-${{ steps.date.outputs.date }}
