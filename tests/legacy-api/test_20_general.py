@@ -1,13 +1,11 @@
 import numpy as np
 import pytest
 import xarray as xr
+from earthkit.transforms._tools import nanaverage
 from earthkit.transforms.aggregate.general import (
-    _reduce_dataarray,
-    _rolling_reduce_dataarray,
     reduce,
     rolling_reduce,
 )
-from earthkit.transforms.tools import nanaverage
 
 
 # Helper function to create a dummy DataArray
@@ -37,11 +35,6 @@ def create_dataarray(weights=None):
 # Test case for reducing without weights using built-in method
 def test_reduce_dataarray(how, expected_result_method):
     dataarray = create_dataarray()
-    result = _reduce_dataarray(dataarray, how=how)
-    assert isinstance(result, xr.DataArray)
-    assert result.shape == ()  # Ensure reduced to scalar
-    assert result.values == expected_result_method(dataarray.values)
-
     result = reduce(dataarray, how)
     assert isinstance(result, xr.DataArray)
     assert result.shape == ()  # Ensure reduced to scalar
@@ -56,22 +49,6 @@ def test_reduce_dataarray(how, expected_result_method):
     assert isinstance(result, xr.Dataset)
     assert result[f"test_{how}"].shape == ()  # Ensure reduced to scalar
     assert result[f"test_{how}"].values == expected_result_method(dataarray.values)
-
-
-@pytest.mark.parametrize(
-    "how",
-    (
-        "numpy.mean",
-        "numpy.average",
-    ),
-)
-# Test case for reducing with methods that should not ignore nans
-def test_reduce_dataarray_nan(how):
-    dataarray = create_dataarray()
-    result = _reduce_dataarray(dataarray, how=how)
-    assert isinstance(result, xr.DataArray)
-    assert result.shape == ()  # Ensure reduced to scalar
-    assert np.isnan(result.values)
 
 
 @pytest.mark.parametrize(
@@ -90,11 +67,6 @@ def test_reduce_dataarray_with_weights(how, expected_result_method):
     dataarray = create_dataarray()
     weights = xr.DataArray([1, 2], dims="x", name="x")  # Dummy weights
     weighted_dataarray = create_dataarray(weights=weights)
-
-    result = _reduce_dataarray(dataarray, how=how, weights=weights)
-    assert isinstance(result, xr.DataArray)
-    assert result.shape == ()  # Ensure reduced to scalar
-    assert result.values == expected_result_method(weighted_dataarray)
 
     result = reduce(dataarray, how, weights=weights)
     assert isinstance(result, xr.DataArray)
@@ -139,12 +111,6 @@ def create_dataarray_rolling(weights=None):
 # Test case for reducing without weights using built-in method
 def test_rolling_reduce_dataarray(how, expected_result):
     dataarray = create_dataarray_rolling()
-    result = _rolling_reduce_dataarray(
-        dataarray, how_reduce=how, x=2, center=True, chunk=False, how_dropna="any"
-    )
-    assert isinstance(result, xr.DataArray)
-    assert result.shape == (4, 5)
-    assert result.values[0, 0] == expected_result
 
     result = rolling_reduce(dataarray, how_reduce=how, x=2, center=True, chunk=False, how_dropna="any")
     assert isinstance(result, xr.DataArray)

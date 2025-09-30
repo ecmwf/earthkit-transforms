@@ -36,7 +36,7 @@ Import and use
    :caption: Examples
    :maxdepth: 2
 
-   aggregate-examples
+   notebooks/aggregate-examples
 
 .. toctree::
    :maxdepth: 2

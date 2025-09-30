@@ -1,28 +1,25 @@
-from earthkit.transforms.aggregate import climatology, general, spatial, temporal
-from earthkit.transforms.aggregate.general import reduce, resample, rolling_reduce
+"""Temporary deprecated sub-module namespace."""
 
-try:
-    from earthkit.data.utils.module_inputs_wrapper import (
-        transform_function_inputs,
-        transform_module_inputs,
-    )
-except ImportError:
-    pass
-else:
-    general = transform_module_inputs(general)
-    temporal = transform_module_inputs(temporal)
-    climatology = transform_module_inputs(climatology)
-    spatial = transform_module_inputs(spatial)
-    reduce = transform_function_inputs(reduce)
-    rolling_reduce = transform_function_inputs(rolling_reduce)
-    resample = transform_function_inputs(resample)
+import warnings
+
+from earthkit.transforms._aggregate import reduce, resample, rolling_reduce
+
+from . import climatology, ensemble, general, spatial, temporal
+
+warnings.warn(
+    "The 'earthkit.transforms.aggregate' module is deprecated and will be removed "
+    "in version 2.X of earthkit.transforms. Please import the from earthkit.transforms, e.g.: "
+    "from earthkit.transforms import spatial",
+    FutureWarning,
+    stacklevel=2,
+)
 
 __all__ = [
-    "__version__",
-    "general",
-    "temporal",
     "climatology",
+    "ensemble",
+    "general",
     "spatial",
+    "temporal",
     "reduce",
     "resample",
     "rolling_reduce",

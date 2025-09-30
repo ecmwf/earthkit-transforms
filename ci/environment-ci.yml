@@ -7,16 +7,18 @@ dependencies:
 - mypy
 - myst-parser
 - pre-commit
-# - pydata-sphinx-theme
 - sphinx-rtd-theme
 - pytest
 - pytest-cov
 - sphinx
 - sphinx-autoapi
-# DO NOT EDIT ABOVE THIS LINE, ADD DEPENDENCIES BELOW
-# Additional dependencies
 - nbsphinx
 - pandas-stubs
+- ipykernel
+# Deps required for geometry operations in tests and examples
+- rasterio
 # Both of these are required for earthkit-data when installing from conda-forge:
 - array-api-compat
 - multiurl
+# Required for notebook example
+- statsmodels

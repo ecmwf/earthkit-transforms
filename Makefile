@@ -8,7 +8,13 @@ qa:
 	pre-commit run --all-files
 
 unit-tests:
-	python -m pytest -vv --cov=. --cov-report=$(COV_REPORT) --doctest-glob="*.md" --doctest-glob="*.rst"
+	python -m pytest -vv --cov=. --cov-report=$(COV_REPORT) --ignore=tests/legacy-api
+
+legacy-api-unit-tests:
+	python -m pytest -vv \
+		tests/legacy-api \
+		--cov=. \
+		--cov-report=$(COV_REPORT)
 
 type-check:
 	python -m mypy . --no-namespace-packages
@@ -29,5 +35,3 @@ template-update:
 
 docs-build:
 	cd docs && rm -fr _api && make clean && make html
-
-# DO NOT EDIT ABOVE THIS LINE, ADD COMMANDS BELOW

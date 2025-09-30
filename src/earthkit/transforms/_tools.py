@@ -1,12 +1,17 @@
 import functools
 import importlib
+import inspect
 import logging
 import types
 import typing as T
+from functools import wraps
 
 import numpy as np
 import pandas as pd
 import xarray as xr
+from earthkit.data import transform
+from earthkit.data.utils.module_inputs_wrapper import _ensure_iterable, _ensure_tuple, signature_mapping
+from earthkit.data.wrappers import Wrapper
 from earthkit.utils.array import array_namespace
 
 logger = logging.getLogger(__name__)
@@ -571,3 +576,84 @@ def groupby_bins(
             f"a full list of valid frequencies."
         )
     return grouped_data
+
+
+def transform_inputs_decorator(
+    kwarg_types: T.Dict[str, T.Any] = {},
+    convert_types: T.Union[None, T.Tuple[T.Any], T.Dict[str, T.Tuple[T.Any]]] = None,
+) -> T.Callable:
+    """Transform the inputs to a function to match the requirements.
+
+    Parameters
+    ----------
+    kwarg_types : Dict[str, type]
+        Mapping of accepted object types for each arg/kwarg
+    convert_types : Tuple[type] or Dict[str, Tuple[type]]
+        Data types to try to convert. If a dict, applies per-argument.
+
+    Returns
+    -------
+    Callable
+        Wrapped function.
+    """
+    if convert_types is None:
+        convert_types = {}
+
+    def decorator(function: T.Callable) -> T.Callable:
+        def _wrapper(_kwarg_types, _convert_types, *args, **kwargs):
+            _kwarg_types = {**_kwarg_types}
+            signature = inspect.signature(function)
+            mapping = signature_mapping(signature, _kwarg_types)
+
+            # Store positional arg names for extraction later
+            arg_names = []
+            for arg, name in zip(args, signature.parameters):
+                arg_names.append(name)
+                kwargs[name] = arg
+
+            convert_kwargs = [k for k in kwargs if k in mapping]
+
+            # Filter for convert_types
+            if _convert_types:
+                if not isinstance(_convert_types, dict):
+                    _convert_types = {key: _convert_types for key in convert_kwargs}
+
+                convert_kwargs = [
+                    k
+                    for k in convert_kwargs
+                    if isinstance(kwargs[k], _ensure_tuple(_convert_types.get(k, ())))
+                ]
+
+            # Transform args/kwargs
+            for key in convert_kwargs:
+                value = kwargs[key]
+                types_allowed = _ensure_iterable(mapping[key])
+                if type(value) not in types_allowed:
+                    for target_type in types_allowed:
+                        try:
+                            kwargs[key] = transform(value, target_type)
+                        except Exception:
+                            continue
+                        break
+
+            # Expand Wrapper objects
+            for k, v in list(kwargs.items()):
+                if isinstance(v, Wrapper):
+                    try:
+                        kwargs[k] = v.data
+                    except Exception:
+                        pass
+
+            # Extract positional args again
+            args = [kwargs.pop(name) for name in arg_names]
+            return function(*args, **kwargs)
+
+        @wraps(function)
+        def wrapper(*args, _auto_inputs_transform=True, **kwargs):
+            if not _auto_inputs_transform:
+                return function(*args, **kwargs)
+            return _wrapper(kwarg_types, convert_types, *args, **kwargs)
+
+        return wrapper
+
+    return decorator

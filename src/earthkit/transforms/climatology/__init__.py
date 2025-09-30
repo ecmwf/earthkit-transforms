@@ -1,4 +1,8 @@
-"""Module for preservation of the legacy API, it will be removed in version 2.X of earthkit.transforms."""
+"""Climatological transformations for earthkit data objects.
+
+Typically this is done with an xarray representation of data.
+"""
+
 from earthkit.transforms.climatology._aggregate import (
     anomaly,
     auto_anomaly,
