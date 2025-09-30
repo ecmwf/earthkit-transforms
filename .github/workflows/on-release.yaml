@@ -77,7 +77,7 @@ jobs:
       id-token: write
     environment:
       # Use preview env for manual runs, prod for release
-      name: ${{ github.event_name == 'workflow_dispatch' && format('github-pages-preview-{0}', github.event.inputs.branch) || 'github-pages' }}
+      name: ${{ github.event_name == 'workflow_dispatch' && format('preview-{0}', github.event.inputs.branch) || 'github-pages' }}
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
     - name: Deploy to GitHub Pages
