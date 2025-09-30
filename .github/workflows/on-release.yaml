@@ -68,21 +68,47 @@ jobs:
       uses: actions/upload-pages-artifact@v3
       with:
         path: docs/_build/html
+  docs-preview:
+    runs-on: ubuntu-latest
+    needs: distribution
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install docs requirements
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r docs/requirements.txt sphinx
+      - name: Build docs
+        run: |
+          cd docs
+          make html
+      - name: Deploy docs preview
+        uses: peaceiris/actions-gh-pages@v6
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/_build/html
+          publish_branch: gh-pages-preview
+          destination_dir: ${{ github.event.inputs.branch || github.ref_name }}
+          commit_message: "Docs preview: ${{ github.event.inputs.branch || github.ref_name }}"
 
   docs-deploy:
+    if: github.event_name == 'release'
     needs: docs-build
     runs-on: ubuntu-latest
     permissions:
       pages: write
       id-token: write
     environment:
-      # Use preview env for manual runs, prod for release
-      name: ${{ github.event_name == 'workflow_dispatch' && format('preview-{0}', github.event.inputs.branch) || 'github-pages' }}
-      url: ${{ steps.deployment.outputs.page_url }}
+      name: github-pages
     steps:
-    - name: Deploy to GitHub Pages
-      id: deployment
-      uses: actions/deploy-pages@v4
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 
   distribution:
     runs-on: ubuntu-latest
