@@ -73,23 +73,15 @@ jobs:
     needs: docs-build
     if: github.event_name == 'workflow_dispatch'
     steps:
-    - uses: actions/checkout@v4
-      with:
-        ref: ${{ github.event.inputs.branch || github.ref }}
-    - uses: actions/setup-python@v5
-      with:
-        python-version: "3.11"
-    - name: Install docs requirements
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install -r docs/requirements.txt sphinx
-    - name: Build docs
-      run: |
-        cd docs
-        make html
-    - uses: rossjrw/pr-preview-action@v1
-      with:
-        source-dir: "docs/_build/html"
+      - name: Download docs artifact
+        uses: actions/download-pages-artifact@v2
+        with:
+          path: docs/_build/html
+
+      - name: Deploy docs preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: "docs/_build/html"
   docs-deploy:
     if: github.event_name == 'release'
     needs: docs-build
