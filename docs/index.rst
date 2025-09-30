@@ -2,11 +2,18 @@ Welcome to Earthkit-transforms’s documentation!
 ===============================================
 
 **earthkit-transforms** is a library of software tools to support people
-working with climate and meteorology data. It is made of a sub-package
-called **earthkit-transforms.aggregate** which includes methods for aggregating
-data in time and space. **earthkit-transforms** has been designed
+working with climate and meteorology data. It is made of sub-modules desigined
+for  transformations of data in specific domains.
+For example, the temporal module contains methods for aggregation and
+statistics analysis accross time dimensions/coordinates.
+**earthkit-transforms** has been designed
 following the philosophy of earthkit, hence the methods should be
 interoperable with any data object understood by earthkit-data.
+Under the bonnet, **earthkit-transforms** generally uses 
+[xarray](https://xarray.pydata.org/en/stable/) for computations,
+therefore it recommended to prepare your data as xarray objects
+before using the methods. This ensure clarity and consistency of the
+output produced by **earthkit-transforms**.
 
 Getting started
 ---------------
@@ -27,9 +34,9 @@ Import and use
 
 .. code:: python
 
-    from earthkit.transforms import aggregate
+    import earthkit.transforms as ekt
 
-    daily_mean = aggregate.temporal.daily_mean(MY_DATA)
+    daily_mean = ekt.temporal.daily_mean(MY_DATA)
 
 
 .. toctree::

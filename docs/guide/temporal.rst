@@ -1,7 +1,7 @@
-earthkit.transforms.aggregate.temporal
+earthkit.transforms.temporal
 --------------------------------------
 
-The :doc:`../../_api/transforms/aggregate/temporal/index` module includes methods
+The :doc:`../../_api/transforms/temporal/index` module includes methods
 for aggregating data in time. This includes reducing the data in time dimension
 to a single value, daily values or monthly values.
 
@@ -18,14 +18,14 @@ daily or monthly values respectively. The `how` parameter can be used to specify
 method. The default is `mean`.
 
 
-.. autofunction:: earthkit.transforms.aggregate.temporal.daily_reduce
-.. autofunction:: earthkit.transforms.aggregate.temporal.monthly_reduce
+.. autofunction:: earthkit.transforms.temporal.daily_reduce
+.. autofunction:: earthkit.transforms.temporal.monthly_reduce
 
 
 In addition to the `XXX_reduce` functions, the temporal module also includes several methods
 which calculate the desired reduction, without the "how" parameter. These methods are
 wrappers of the `daily_reduce` and `monthly_reduce` methods and are documented
-in the API reference guide: :doc:`../../_api/transforms/aggregate/temporal/index`:
+in the API reference guide: :doc:`../../_api/transforms/temporal/index`:
 
 - `temporal.daily_mean`
 - `temporal.daily_median`
