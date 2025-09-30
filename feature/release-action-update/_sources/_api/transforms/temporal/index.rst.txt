@@ -1,0 +1,14 @@
+transforms.temporal
+===================
+
+.. py:module:: transforms.temporal
+
+.. autoapi-nested-parse::
+
+   Temporal transformations for earthkit data objects.
+
+   Typically this is done with an xarray representation of data. Some pandas methods are used
+   for indexing and selecting data.
+
+
+

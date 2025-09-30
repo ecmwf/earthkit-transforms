@@ -1,0 +1,231 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>earthkit.transforms.spatial &mdash; earthkit-transforms  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="earthkit.transforms.temporal" href="temporal.html" />
+    <link rel="prev" title="User guide" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            earthkit-transforms
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/aggregate-examples.html">Aggregation examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">User guide</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">earthkit.transforms.spatial</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#earthkit.transforms.spatial.mask"><code class="docutils literal notranslate"><span class="pre">mask()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#earthkit.transforms.spatial.reduce"><code class="docutils literal notranslate"><span class="pre">reduce()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="temporal.html">earthkit.transforms.temporal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="climatology.html">earthkit.transforms.climatology</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../_api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../release-notes/index.html">Release notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../licence.html">License</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Projects</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://earthkit.readthedocs.io/en/latest">earthkit</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">earthkit-transforms</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">User guide</a></li>
+      <li class="breadcrumb-item active">earthkit.transforms.spatial</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/guide/spatial.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="earthkit-transforms-spatial">
+<h1>earthkit.transforms.spatial<a class="headerlink" href="#earthkit-transforms-spatial" title="Link to this heading"></a></h1>
+<p>The <a class="reference internal" href="../_api/transforms/spatial/index.html"><span class="doc">transforms.spatial</span></a> module includes methods
+for aggregating data in space. This includes masking and aggregating data with geometries.</p>
+<p>To mask data you can use the <code class="xref py py-func docutils literal notranslate"><span class="pre">mask()</span></code> function. This function takes an xarray
+data object and a geometry object and returns the data object with the values
+outside the geometry masked.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="earthkit.transforms.spatial.mask">
+<span class="sig-prename descclassname"><span class="pre">earthkit.transforms.spatial.</span></span><span class="sig-name descname"><span class="pre">mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geodataframe</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">union_geometries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">mask_kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#earthkit.transforms.spatial.mask" title="Link to this definition"></a></dt>
+<dd><p>Apply multiple shape masks to some gridded data.</p>
+<p>Each feature in shape is treated as an individual mask to apply to
+data. The data provided is returned with an additional dimension equal in
+length to the number of features in the shape object, this can result in very
+large files which will slow down your script. It may be better to loop
+over individual features, or directly apply the mask with the shapes.reduce.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataarray</strong> – Xarray data object (must have geospatial coordinates).</p></li>
+<li><p><strong>geodataframe</strong> – Geopandas Dataframe containing the polygons for aggregations</p></li>
+<li><p><strong>mask_dim</strong> – dimension that will be created to accomodate the masked arrays, default is the index
+of the geodataframe</p></li>
+<li><p><strong>all_touched</strong> – If True, all pixels touched by geometries will be considered in,
+if False, only pixels whose center is within. Default is False.
+Only valid for regular data.</p></li>
+<li><p><strong>lat_key</strong> – key for latitude variable, default behaviour is to detect variable keys.</p></li>
+<li><p><strong>lon_key</strong> – key for longitude variable, default behaviour is to detect variable keys.</p></li>
+<li><p><strong>chunk</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – Boolean to indicate whether to use chunking, default = <cite>True</cite>.
+This is advised as spatial.masks can create large results. If you are working with small
+arrays, or you have implemented you own chunking rules you may wish to disable it.</p></li>
+<li><p><strong>union_geometries</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – Boolean to indicate whether to union all geometries before masking.
+Default is <cite>False</cite>, which will apply each geometry in the geodataframe as a separate mask.</p></li>
+<li><p><strong>mask_kwargs</strong> – Any kwargs to pass into the mask method</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A masked data array with dimensions [feautre_id] + [data.dims].
+Each slice of layer corresponds to a feature in layer.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">xr.Dataset</span> <span class="pre">|</span> <span class="pre">xr.DataArray</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>To calculate an aggregated value for the data within a geometry you can use the
+<code class="xref py py-func docutils literal notranslate"><span class="pre">reduce()</span></code> function. This function takes an xarray data object and a geometry
+object and returns the aggregated value of the data within the geometry. The <cite>how</cite>
+parameter can be used to specify the aggregation method. The default is <cite>mean</cite>.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="earthkit.transforms.spatial.reduce">
+<span class="sig-prename descclassname"><span class="pre">earthkit.transforms.spatial.</span></span><span class="sig-name descname"><span class="pre">reduce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geodataframe</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_arrays</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#earthkit.transforms.spatial.reduce" title="Link to this definition"></a></dt>
+<dd><p>Apply a shape object to an xarray.DataArray object using the specified ‘how’ method.</p>
+<p>Geospatial coordinates are reduced to a dimension representing the list of features in the shape object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataarray</strong> – Xarray data object (must have geospatial coordinates).</p></li>
+<li><p><strong>geodataframe</strong> – Geopandas Dataframe containing the polygons for aggregations</p></li>
+<li><p><strong>mask_arrays</strong> – precomputed mask array[s], if provided this will be used instead of creating a new mask.
+They must be on the same spatial grid as the dataarray.</p></li>
+<li><p><strong>how</strong> – method used to apply mask. Default=’mean’, which calls xp.nanmean</p></li>
+<li><p><strong>weights</strong> – Provide weights for aggregation, also accepts recognised keys for weights, e.g.
+‘latitude’</p></li>
+<li><p><strong>lat_key/lon_key</strong> – key for latitude/longitude variable, default behaviour is to detect variable keys.</p></li>
+<li><p><strong>extra_reduce_dims</strong> – any additional dimensions to aggregate over when reducing over spatial dimensions</p></li>
+<li><p><strong>mask_dim</strong> – dimension that will be created after the reduction of the spatial dimensions, default is the index
+of the dataframe</p></li>
+<li><p><strong>all_touched</strong> – If True, all pixels touched by geometries will be considered in,
+if False, only pixels whose center is within. Default is False.
+Only valid for regular data.</p></li>
+<li><p><strong>mask_kwargs</strong> – Any kwargs to pass into the mask method</p></li>
+<li><p><strong>mask_arrays</strong> – precomputed mask array[s], if provided this will be used instead of creating a new mask.
+They must be on the same spatial grid as the dataarray.</p></li>
+<li><p><strong>return_as</strong> – what format to return the data object, <cite>pandas</cite> or <cite>xarray</cite>. Work In Progress</p></li>
+<li><p><strong>compact</strong> – If True, return a compact pandas.DataFrame with the reduced data as a new column.
+If False, return a fully expanded pandas.DataFrame.
+Only valid if return_as is <cite>pandas</cite></p></li>
+<li><p><strong>how_label</strong> – label to append to variable name in returned object, default is not to append</p></li>
+<li><p><strong>kwargs</strong> – kwargs recognised by the how function</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A data array with dimensions <cite>features</cite> + <cite>data.dims not in ‘lat’,’lon’</cite>.
+Each slice of layer corresponds to a feature in layer.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">xr.Dataset</span> <span class="pre">|</span> <span class="pre">xr.DataArray</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>In addition to the above functions, the spatial module also includes several methods
+for computing the intermedieate steps of the aggregation process. These methods are
+documented in the API reference guide: <a class="reference internal" href="../_api/transforms/spatial/index.html"><span class="doc">transforms.spatial</span></a></p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="User guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="temporal.html" class="btn btn-neutral float-right" title="earthkit.transforms.temporal" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022-2025, European Centre for Medium-Range Weather Forecasts (ECMWF).</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

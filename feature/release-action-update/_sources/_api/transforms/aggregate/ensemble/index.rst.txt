@@ -1,0 +1,24 @@
+transforms.aggregate.ensemble
+=============================
+
+.. py:module:: transforms.aggregate.ensemble
+
+.. autoapi-nested-parse::
+
+   Module for preservation of the legacy API, it will be removed in version 2.X of earthkit.transforms.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   transforms.aggregate.ensemble.standard_deviation
+
+
+Module Contents
+---------------
+
+.. py:data:: standard_deviation
+

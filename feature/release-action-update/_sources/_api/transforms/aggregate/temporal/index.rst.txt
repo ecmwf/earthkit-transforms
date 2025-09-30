@@ -1,0 +1,11 @@
+transforms.aggregate.temporal
+=============================
+
+.. py:module:: transforms.aggregate.temporal
+
+.. autoapi-nested-parse::
+
+   Module for preservation of the legacy API, it will be removed in version 2.X of earthkit.transforms.
+
+
+

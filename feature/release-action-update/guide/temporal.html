@@ -1,0 +1,235 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>earthkit.transforms.temporal &mdash; earthkit-transforms  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="earthkit.transforms.climatology" href="climatology.html" />
+    <link rel="prev" title="earthkit.transforms.spatial" href="spatial.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            earthkit-transforms
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/aggregate-examples.html">Aggregation examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">User guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="spatial.html">earthkit.transforms.spatial</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">earthkit.transforms.temporal</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#earthkit.transforms.temporal.daily_reduce"><code class="docutils literal notranslate"><span class="pre">daily_reduce()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#earthkit.transforms.temporal.monthly_reduce"><code class="docutils literal notranslate"><span class="pre">monthly_reduce()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="climatology.html">earthkit.transforms.climatology</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../_api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../release-notes/index.html">Release notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../licence.html">License</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Projects</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://earthkit.readthedocs.io/en/latest">earthkit</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">earthkit-transforms</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">User guide</a></li>
+      <li class="breadcrumb-item active">earthkit.transforms.temporal</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/guide/temporal.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="earthkit-transforms-temporal">
+<h1>earthkit.transforms.temporal<a class="headerlink" href="#earthkit-transforms-temporal" title="Link to this heading"></a></h1>
+<p>The <a class="reference internal" href="../_api/transforms/temporal/index.html"><span class="doc">transforms.temporal</span></a> module includes methods
+for aggregating data in time. This includes reducing the data in time dimension
+to a single value, daily values or monthly values.</p>
+<p>To reduce the data in time dimension to a single value you can use the <cite>temporal.reduce</cite>,
+<cite>temporal.mean</cite>, <cite>temporal.sum</cite>, <cite>temporal.min</cite>, <cite>temporal.max</cite> functions. These functions
+take an xarray data object and return the aggregated value of the data. The time dimension
+is automatically detected based on the metadata of the data object, to override this you can
+use the <cite>time_dim</cite> parameter.</p>
+<p>To calculate calculate daily/monthly values you can use the <cite>temporal.daily_reduce</cite> or
+<cite>temporal.monthly_reduce</cite> functions. These functions reduce the data in time dimension to
+daily or monthly values respectively. The <cite>how</cite> parameter can be used to specify the aggregation
+method. The default is <cite>mean</cite>.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="earthkit.transforms.temporal.daily_reduce">
+<span class="sig-prename descclassname"><span class="pre">earthkit.transforms.temporal.</span></span><span class="sig-name descname"><span class="pre">daily_reduce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">how</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#earthkit.transforms.temporal.daily_reduce" title="Link to this definition"></a></dt>
+<dd><p>Group data by day and reduce using the given how method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataarray</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">xr.DataArray</span></code>) – DataArray containing a <cite>time</cite> dimension.</p></li>
+<li><p><strong>how</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">callable</span></code>) – Method used to reduce data. Default=’mean’, which will implement the xarray in-built mean.
+If string, it must be an in-built xarray reduce method, a earthkit how method or any numpy method.
+In the case of duplicate names, method selection is first in the order: xarray, earthkit, numpy.
+Otherwise it can be any function which can be called in the form <cite>f(x, axis=axis, **kwargs)</cite>
+to return the result of reducing an array over an integer valued axis</p></li>
+<li><p><strong>time_dim</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Name of the time dimension, or coordinate, in the xarray object,
+default behaviour is to deduce time dimension from
+attributes of coordinates, then fall back to <cite>“time”</cite>.</p></li>
+<li><p><strong>time_shift</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">(optional)</span> <span class="pre">None</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">timedelta</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>) – A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
+It can be provided as any object that can be understood by <cite>pandas.Timedelta</cite>, a dictionary is passed
+as kwargs to <cite>pandas.Timedelta</cite>. Default is None.</p></li>
+<li><p><strong>remove_partial_periods</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – If True and a time_shift has been applied, the first and last time steps are removed to ensure
+equality in sampling periods. Default is False.</p></li>
+<li><p><strong>how_label</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Label to append to the name of the variable in the reduced object, default is _daily_{how}</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments to be passed to <code class="xref py py-func docutils literal notranslate"><span class="pre">reduce()</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dataarray reduced to daily values using the specified method</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">xr.DataArray</span> <span class="pre">|</span> <span class="pre">xr.Dataset</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="earthkit.transforms.temporal.monthly_reduce">
+<span class="sig-prename descclassname"><span class="pre">earthkit.transforms.temporal.</span></span><span class="sig-name descname"><span class="pre">monthly_reduce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">how</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#earthkit.transforms.temporal.monthly_reduce" title="Link to this definition"></a></dt>
+<dd><p>Group data by day and reduce using the given how method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataarray</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">xr.DataArray</span></code>) – DataArray containing a <cite>time</cite> dimension.</p></li>
+<li><p><strong>how</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">callable</span></code>) – Method used to reduce data. Default=’mean’, which will implement the xarray in-built mean.
+If string, it must be an in-built xarray reduce method, a earthkit how method or any numpy method.
+In the case of duplicate names, method selection is first in the order: xarray, earthkit, numpy.
+Otherwise it can be any function which can be called in the form <cite>f(x, axis=axis, **kwargs)</cite>
+to return the result of reducing an array over an integer valued axis</p></li>
+<li><p><strong>time_dim</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
+default behaviour is to deduce time dimension from
+attributes of coordinates, then fall back to <cite>“time”</cite>.</p></li>
+<li><p><strong>time_shift</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">(optional)</span> <span class="pre">None</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">timedelta</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>) – A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
+It can be provided as any object that can be understood by <cite>pandas.Timedelta</cite>, a dictionary is passed
+as kwargs to <cite>pandas.Timedelta</cite>. Default is None.</p></li>
+<li><p><strong>remove_partial_periods</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – If True and a time_shift has been applied, the first and last time steps are removed to ensure
+equality in sampling periods. Default is False.</p></li>
+<li><p><strong>how_label</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Label to append to the name of the variable in the reduced object, default is _monthly_{how}</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments to be passed to <code class="xref py py-func docutils literal notranslate"><span class="pre">reduce()</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dataarray reduced to monthly values using the specified method</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">xr.DataArray</span> <span class="pre">|</span> <span class="pre">xr.Dataset</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>In addition to the <cite>XXX_reduce</cite> functions, the temporal module also includes several methods
+which calculate the desired reduction, without the “how” parameter. These methods are
+wrappers of the <cite>daily_reduce</cite> and <cite>monthly_reduce</cite> methods and are documented
+in the API reference guide: <a class="reference internal" href="../_api/transforms/temporal/index.html"><span class="doc">transforms.temporal</span></a>:</p>
+<ul class="simple">
+<li><p><cite>temporal.daily_mean</cite></p></li>
+<li><p><cite>temporal.daily_median</cite></p></li>
+<li><p><cite>temporal.daily_min</cite></p></li>
+<li><p><cite>temporal.daily_max</cite></p></li>
+<li><p><cite>temporal.daily_sum</cite></p></li>
+<li><p><cite>temporal.daily_std</cite></p></li>
+<li><p><cite>temporal.monthly_mean</cite></p></li>
+<li><p><cite>temporal.monthly_median</cite></p></li>
+<li><p><cite>temporal.monthly_min</cite></p></li>
+<li><p><cite>temporal.monthly_max</cite></p></li>
+<li><p><cite>temporal.monthly_sum</cite></p></li>
+<li><p><cite>temporal.monthly_std</cite></p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="spatial.html" class="btn btn-neutral float-left" title="earthkit.transforms.spatial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="climatology.html" class="btn btn-neutral float-right" title="earthkit.transforms.climatology" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022-2025, European Centre for Medium-Range Weather Forecasts (ECMWF).</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

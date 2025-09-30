@@ -1,0 +1,24 @@
+transforms.aggregate
+====================
+
+.. py:module:: transforms.aggregate
+
+.. autoapi-nested-parse::
+
+   Temporary deprecated sub-module namespace.
+
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /_api/transforms/aggregate/climatology/index
+   /_api/transforms/aggregate/ensemble/index
+   /_api/transforms/aggregate/general/index
+   /_api/transforms/aggregate/spatial/index
+   /_api/transforms/aggregate/temporal/index
+
+

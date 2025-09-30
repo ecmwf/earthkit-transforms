@@ -1,0 +1,13 @@
+transforms.climatology
+======================
+
+.. py:module:: transforms.climatology
+
+.. autoapi-nested-parse::
+
+   Climatological transformations for earthkit data objects.
+
+   Typically this is done with an xarray representation of data.
+
+
+

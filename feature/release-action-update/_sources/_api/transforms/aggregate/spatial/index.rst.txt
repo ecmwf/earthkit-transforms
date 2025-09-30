@@ -1,0 +1,24 @@
+transforms.aggregate.spatial
+============================
+
+.. py:module:: transforms.aggregate.spatial
+
+.. autoapi-nested-parse::
+
+   Module for preservation of the legacy API, it will be removed in version 2.X of earthkit.transforms.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   transforms.aggregate.spatial.masks
+
+
+Module Contents
+---------------
+
+.. py:function:: masks(*_args, **_kwargs)
+

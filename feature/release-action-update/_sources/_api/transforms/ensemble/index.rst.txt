@@ -1,0 +1,26 @@
+transforms.ensemble
+===================
+
+.. py:module:: transforms.ensemble
+
+.. autoapi-nested-parse::
+
+   Ensemble transformations for earthkit data objects.
+
+   Typically this is done with an xarray representation of data.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   transforms.ensemble.standard_deviation
+
+
+Package Contents
+----------------
+
+.. py:data:: standard_deviation
+

@@ -1,0 +1,13 @@
+transforms.spatial
+==================
+
+.. py:module:: transforms.spatial
+
+.. autoapi-nested-parse::
+
+   Spatial transformations for earthkit data objects.
+
+   Typically this is done with an xarray representation of data and a geopandas representation of geometries.
+
+
+
