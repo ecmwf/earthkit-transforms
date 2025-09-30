@@ -1,9 +1,14 @@
 name: on-release
 
 on:
-  push:
-    tags:
-    - "*"
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to deploy from"
+        required: true
+        default: "main"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -16,31 +21,29 @@ defaults:
 jobs:
   combine-environments:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.branch || github.ref }}
     - uses: actions/setup-python@v5
       with:
         python-version: 3.x
     - name: Install conda-merge
-      run: |
-        python -m pip install conda-merge
+      run: python -m pip install conda-merge
     - name: Combine environments
-      run: |
-        for SUFFIX in ci integration; do
-        conda-merge ci/environment-$SUFFIX.yml environment.yml > ci/combined-environment-$SUFFIX.yml || exit
-        done
+      run: conda-merge ci/environment-ci.yml environment.yml > ci/combined-environment.yml
     - uses: actions/upload-artifact@v4
       with:
         name: combined-environments
-        path: ci/combined-environment-*.yml
+        path: ci/combined-environment.yml
 
   docs-build:
     needs: [combine-environments]
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.branch || github.ref }}
     - uses: actions/download-artifact@v4
       with:
         name: combined-environments
@@ -50,7 +53,7 @@ jobs:
       run: echo "date=$(date +%Y-%m-%d)" >> "${GITHUB_OUTPUT}"
     - uses: mamba-org/setup-micromamba@v1
       with:
-        environment-file: ci/combined-environment-ci.yml
+        environment-file: ci/combined-environment.yml
         environment-name: DEVELOP
         cache-environment: true
         cache-environment-key: environment-${{ steps.date.outputs.date }}
@@ -58,26 +61,60 @@ jobs:
         create-args: >-
           python=3.11
     - name: Install package
-      run: |
-        python -m pip install --no-deps -e .
+      run: python -m pip install --no-deps -e .
     - name: Build documentation
-      run: |
-        make docs-build
+      run: make docs-build
+    - name: Upload documentation artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: docs/_build/html
 
+  docs-deploy:
+    needs: docs-build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      # Use preview env for manual runs, prod for release
+      name: ${{ github.event_name == 'workflow_dispatch' && format('github-pages-preview-{0}', github.event.inputs.branch) || 'github-pages' }}
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
 
   distribution:
     runs-on: ubuntu-latest
     needs: [combine-environments]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
-        ref: ${{ github.event.pull_request.head.sha || github.ref }}
-    - name: Build distributions
+        ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.branch || github.ref }}
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+    - name: Install build tools
       run: |
-        $CONDA/bin/python -m pip install build
-        $CONDA/bin/python -m build
-    - name: Publish a Python distribution to PyPI
-      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+        python -m pip install --upgrade pip
+        python -m pip install build twine
+    - name: Build distributions
+      run: python -m build
+    - name: Check distribution (optional but recommended)
+      run: python -m pip install --force-reinstall dist/*.whl
+
+    # Publish to TestPyPI when run manually
+    - name: Publish to TestPyPI
+      if: github.event_name == 'workflow_dispatch'
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: __token__
+        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        repository-url: https://test.pypi.org/legacy/
+
+    # Publish to PyPI on release
+    - name: Publish to PyPI
+      if: github.event_name == 'release'
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         user: __token__
