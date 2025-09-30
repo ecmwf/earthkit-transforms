@@ -99,7 +99,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install build twine
     - name: Build distributions
-      run: python -m build
+      run: SETUPTOOLS_SCM_LOCAL_SCHEME=no-local-version python -m build
     - name: Check distribution
       run: |
         python -m pip install --force-reinstall dist/*.whl
