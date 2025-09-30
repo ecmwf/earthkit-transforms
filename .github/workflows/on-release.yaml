@@ -90,6 +90,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
+        fetch-depth: 0   # fetch full history so setuptools-scm can find tags
         ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.branch || github.ref }}
     - uses: actions/setup-python@v5
       with:
