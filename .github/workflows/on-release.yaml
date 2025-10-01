@@ -18,13 +18,16 @@ defaults:
   run:
     shell: bash -l {0}
 
+env:
+  REF: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.branch || github.ref_name }}
+
 jobs:
   combine-environments:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
       with:
-        ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.branch || github.ref }}
+        ref: ${{ env.REF }}
     - uses: actions/setup-python@v5
       with:
         python-version: 3.x
@@ -43,7 +46,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.branch || github.ref }}
+        ref: ${{ env.REF }}
     - uses: actions/download-artifact@v4
       with:
         name: combined-environments
@@ -92,7 +95,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0   # fetch full history so setuptools-scm can find tags
-        ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.branch || github.ref }}
+        ref: ${{ env.REF }}
     - uses: actions/setup-python@v5
       with:
         python-version: "3.13"
