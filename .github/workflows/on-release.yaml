@@ -69,40 +69,6 @@ jobs:
       with:
         name: html-docs
         path: docs/_build/html
-  docs-preview:
-    runs-on: ubuntu-latest
-    needs: docs-build
-    if: github.event_name == 'workflow_dispatch'
-    permissions:
-      contents: write
-    steps:
-    - name: Download docs artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: html-docs
-        path: docs/_build/html
-    - name: Extract docs artifact
-      run: |
-        tar -xf docs/_build/html/artifact.tar -C docs/_build/html
-        rm docs/_build/html/artifact.tar
-    - name: List downloaded files (debug)
-      run: ls -R docs/_build/html
-
-    - name: Deploy docs preview
-      uses: peaceiris/actions-gh-pages@v4
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs/_build/html
-        publish_branch: gh-pages-preview
-        destination_dir: ${{ github.event.inputs.branch || github.ref_name }}
-        commit_message: "Docs preview: ${{ github.event.inputs.branch || github.ref_name }}"
-
-    - name: Add preview URL to summary
-      run: |
-        BRANCH="${{ github.event.inputs.branch || github.ref_name }}"
-        PREVIEW_URL="https://ecmwf.github.io/earthkit-transforms/${BRANCH}/"
-        echo "### 🚀 Docs Preview" >> $GITHUB_STEP_SUMMARY
-        echo "[View preview here](${PREVIEW_URL})" >> $GITHUB_STEP_SUMMARY
   docs-deploy:
     if: github.event_name == 'release'
     needs: docs-build
