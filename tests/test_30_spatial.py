@@ -43,13 +43,13 @@ class dummy_class:
 
 
 def get_grid_data():
-    remote_era5_file = earthkit_remote_test_data_file("test-data", "era5_temperature_europe_20150101.grib")
+    remote_era5_file = earthkit_remote_test_data_file("era5_temperature_europe_20150101.grib")
     return ek_data.from_source("url", remote_era5_file)
 
 
 def get_shape_data():
     if rasterio_available:
-        remote_nuts_url = earthkit_remote_test_data_file("test-data", "NUTS_RG_60M_2021_4326_LEVL_0.geojson")
+        remote_nuts_url = earthkit_remote_test_data_file("NUTS_RG_60M_2021_4326_LEVL_0.geojson")
         return ek_data.from_source("url", remote_nuts_url)
     return dummy_class()
 
