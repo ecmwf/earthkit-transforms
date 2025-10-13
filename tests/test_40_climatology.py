@@ -11,9 +11,7 @@ ek_data.settings.set("cache-policy", "user")
 
 
 def get_data():
-    remote_era5_file = earthkit_remote_test_data_file(
-        "era5_temperature_france_2015_2016_2017_3deg.grib"
-    )
+    remote_era5_file = earthkit_remote_test_data_file("era5_temperature_france_2015_2016_2017_3deg.grib")
     return ek_data.from_source("url", remote_era5_file)
 
 
