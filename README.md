@@ -39,7 +39,8 @@
 
 **earthkit-transforms** is a library of software tools to support people working with climate and meteorology data.
 
-**earthkit-transforms** is made up of sub-modules which contains methods for transforming data in specific domains. For example, the temporal module contains methods for aggregation and statistics analysis accross time dimensions/coordinates.
+**earthkit-transforms** is made up of sub-modules which contains methods for transforming data in specific domains.
+For example, the temporal module contains methods for aggregation and statistics analysis accross time dimensions/coordinates.
 
 It has been designed following the philosphy of [earthkit](https://github.com/ecmwf/earthkit), hence the methods should be interoperable with any
 data object understood by earthkit-data.
