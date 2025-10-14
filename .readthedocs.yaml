@@ -8,7 +8,7 @@ build:
     python: "mambaforge-latest"
   jobs:
     pre_create_environment:
-    - micromamba install -y -c conda-forge conda-merge
+    - conda install -y -c conda-forge conda-merge
     - conda-merge ci/environment-ci.yml environment.yml > ci/combined-environment.yml
     - echo "Merged environment ready at ci/combined-environment.yml"
       
