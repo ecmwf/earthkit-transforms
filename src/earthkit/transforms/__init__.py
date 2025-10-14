@@ -29,9 +29,13 @@ from earthkit.transforms import (
 )
 from earthkit.transforms._aggregate import reduce, resample, rolling_reduce
 
+# For backwards compatibility
+tools = _tools
+
 __all__ = [
     "__version__",
     "_tools",
+    "tools",
     "spatial",
     "temporal",
     "climatology",
