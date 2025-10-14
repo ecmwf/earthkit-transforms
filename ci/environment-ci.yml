@@ -13,7 +13,7 @@ dependencies:
 - sphinx
 - sphinx-autoapi
 - nbsphinx
-- nbsphinx
+- nbclient
 - nbconvert
 - jupyter_client
 - jupyter_core

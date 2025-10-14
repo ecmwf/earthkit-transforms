@@ -41,6 +41,9 @@ extensions = [
     "sphinx.ext.napoleon",
 ]
 
+# Increase notebook execution timeout to 300s (5 minutes)
+nbsphinx_timeout = 300
+
 # autodoc configuration
 autodoc_typehints = "none"
 
