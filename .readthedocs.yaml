@@ -6,9 +6,9 @@ build:
   os: ubuntu-22.04
   tools:
     python: "mambaforge-latest"
-  jobs:
-    pre_build:
-    - conda env update -f environment.yml      
+  # jobs:
+  #   pre_build:
+  #   - mamba env update -f environment.yml      
 
 # Use the merged Conda environment
 conda:

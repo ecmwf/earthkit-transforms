@@ -22,3 +22,6 @@ dependencies:
 - multiurl
 # Required for notebook example
 - statsmodels
+- pip
+- pip:
+  - earthkit
