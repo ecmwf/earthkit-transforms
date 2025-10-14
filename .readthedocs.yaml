@@ -7,7 +7,7 @@ build:
   tools:
     python: "mambaforge-latest"
   jobs:
-    pre_create_environment:
+    create_environment:
     - conda install -y -c conda-forge conda-merge
     - conda-merge ci/environment-ci.yml environment.yml > ci/combined-environment.yml
     - echo "Merged environment ready at ci/combined-environment.yml"
