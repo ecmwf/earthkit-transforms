@@ -40,6 +40,14 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
 ]
+on_rtd = os.environ.get("READTHEDOCS") == "True"
+
+# Never execute notebooks on RTD
+if on_rtd:
+    nbsphinx_execute = "never"
+    nbsphinx_allow_errors = True  # optional, prevents build failures
+else:
+    nbsphinx_execute = "auto"  # execute locally if needed
 
 # Increase notebook execution timeout to 300s (5 minutes)
 nbsphinx_timeout = 300
