@@ -7,25 +7,22 @@ build:
   tools:
     python: "mambaforge-latest"
   jobs:
-    create_environment:
-    - conda install -y -c conda-forge conda-merge
-    - conda-merge ci/environment-ci.yml environment.yml > ci/combined-environment.yml
-    - echo "Merged environment ready at ci/combined-environment.yml"
-      
+    pre_build:
+    - conda env update -f environment.yml      
 
 # Use the merged Conda environment
 conda:
-  environment: ci/combined-environment.yml
+  environment: ci/environment-ci.yml
 
 # Sphinx configuration
 sphinx:
   configuration: docs/conf.py
 
 # Optional: install extra Python packages via pip
-# python:
-#   install:
-#     - method: pip
-#       path: .
+python:
+  install:
+    - method: pip
+      path: .
 #       extra_requirements:
 #         - docs
 
