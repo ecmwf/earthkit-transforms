@@ -13,6 +13,10 @@ dependencies:
 - sphinx
 - sphinx-autoapi
 - nbsphinx
+- nbsphinx
+- nbconvert
+- jupyter_client
+- jupyter_core
 - pandas-stubs
 - ipykernel
 # Deps required for geometry operations in tests and examples
