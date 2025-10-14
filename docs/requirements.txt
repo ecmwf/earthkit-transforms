@@ -13,3 +13,4 @@ xarray
 filelock
 myst-parser
 earthkit
+statsmodels
