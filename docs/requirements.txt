@@ -12,3 +12,4 @@ tqdm
 xarray
 filelock
 myst-parser
+earthkit
