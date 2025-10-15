@@ -3,7 +3,12 @@ import logging
 
 from earthkit.transforms.spatial._aggregate import mask, reduce
 
+from ._deprecate import _deprecated
+
 logger = logging.getLogger(__name__)
+
+mask = _deprecated(mask, old_name="mask", new_module="earthkit.transforms.spatial")
+reduce = _deprecated(reduce, old_name="reduce", new_module="earthkit.transforms.spatial")
 
 
 def masks(
