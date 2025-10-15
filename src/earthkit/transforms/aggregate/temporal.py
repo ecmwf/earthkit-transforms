@@ -30,9 +30,4 @@ _all_names = [
 ]
 
 # Dynamically wrap and export each function
-globals().update(
-    {
-        name: _deprecated(getattr(_src, name), old_name=name, new_module="earthkit.transforms.temporal")
-        for name in _all_names
-    }
-)
+__all__ = [_deprecated(getattr(_src, name), new_module="earthkit.transforms.temporal") for name in _all_names]

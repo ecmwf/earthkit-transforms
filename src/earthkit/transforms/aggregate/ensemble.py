@@ -6,11 +6,4 @@ from ._deprecate import _deprecated
 _all_names = ["mean", "std", "min", "max", "reduce"]
 
 # Dynamically wrap and export each function
-globals().update(
-    {
-        name: _deprecated(getattr(_src, name), old_name=name, new_module="earthkit.transforms.climatology")
-        for name in _all_names
-    }
-)
-
-globals()["standard_deviation"] = globals()["std"]
+__all__ = [_deprecated(getattr(_src, name), new_module="earthkit.transforms.temporal") for name in _all_names]

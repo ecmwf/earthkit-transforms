@@ -31,10 +31,8 @@ _all_names = [
     "auto_anomaly",
 ]
 
+
 # Dynamically wrap and export each function
-globals().update(
-    {
-        name: _deprecated(getattr(_src, name), old_name=name, new_module="earthkit.transforms.climatology")
-        for name in _all_names
-    }
-)
+__all__ = [
+    _deprecated(getattr(_src, name), new_module="earthkit.transforms.climatology") for name in _all_names
+]
