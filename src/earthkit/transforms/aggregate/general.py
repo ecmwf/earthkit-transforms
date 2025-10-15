@@ -4,12 +4,11 @@ from earthkit.transforms import _aggregate as _src
 
 from ._deprecate import _deprecated
 
-_all_names = [
-    "how_label_rename",
-    "reduce",
-    "rolling_reduce",
-    "resample",
-]
+# Explicitly wrap each function with a deprecation warning
+how_label_rename = _deprecated(_src.how_label_rename, new_module="earthkit.transforms")
+reduce = _deprecated(_src.reduce, new_module="earthkit.transforms")
+rolling_reduce = _deprecated(_src.rolling_reduce, new_module="earthkit.transforms")
+resample = _deprecated(_src.resample, new_module="earthkit.transforms")
 
-# Dynamically wrap and export each function
-__all__ = [_deprecated(getattr(_src, name), new_module="earthkit.transforms") for name in _all_names]
+# Explicitly declare __all__ for clean exports
+__all__ = ["how_label_rename", "reduce", "rolling_reduce", "resample"]
