@@ -3,7 +3,7 @@ import warnings
 from functools import wraps
 
 
-def _deprecated(func, old_name=None, new_module="earthkit.transforms.climatology"):
+def _deprecated(func, old_name=None, new_module="earthkit.transforms"):
     """Return a wrapper that emits a deprecation warning on first call."""
     old_name = old_name or func.__name__
     msg = (
