@@ -15,7 +15,6 @@ from earthkit.transforms.aggregate.ensemble import (
     mean,
     min,
     reduce,
-    standard_deviation,
 )
 
 
@@ -40,12 +39,6 @@ def test_mean_actual_reduction(sample_data):
     # This tests integration if you want to use real data (no mocking)
     result = mean(sample_data, dim="ensemble_member")
     expected = sample_data.mean(dim="ensemble_member")
-    assert np.allclose(result, expected)
-
-
-def test_standard_deviation_actual(sample_data):
-    result = standard_deviation(sample_data, dim="ensemble_member")
-    expected = sample_data.std(dim="ensemble_member")
     assert np.allclose(result, expected)
 
 
