@@ -47,10 +47,7 @@ extensions = [
 autoapi_dirs = [
     "../src/earthkit/transforms",
 ]
-autoapi_ignore = [
-    "*/version.py",
-    "*/earthkit/transforms/aggregate"
-]
+autoapi_ignore = ["*/version.py", "*/earthkit/transforms/aggregate"]
 autoapi_options = [
     "members",
     "undoc-members",
