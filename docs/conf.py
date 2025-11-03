@@ -36,7 +36,7 @@ copyright = "%s, European Centre for Medium-Range Weather Forecasts (ECMWF)" % (
 extensions = [
     "autoapi.extension",
     "myst_parser",
-    # "nbsphinx",
+    "nbsphinx",
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
 ]
