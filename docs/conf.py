@@ -42,20 +42,27 @@ extensions = [
 ]
 
 # autodoc configuration
-autodoc_typehints = "none"
+# autodoc_typehints = "none"
 
-# autoapi configuration
-autoapi_dirs = ["../src/earthkit/transforms"]
-autoapi_ignore = ["*/version.py", "earthkit/transforms/aggregate/"]
+autoapi_dirs = [
+    "../src/earthkit/transforms/temporal",
+    "../src/earthkit/transforms/spatial",
+    "../src/earthkit/transforms/climatology",
+    "../src/earthkit/transforms/ensemble",
+]
+autoapi_ignore = ["*/version.py"]  # Remove _aggregate.py from here
 autoapi_options = [
     "members",
-    "inherited-members",
     "undoc-members",
     "show-inheritance",
     "show-module-summary",
-    "imported-members",
+    "imported-members",  # This should pull them into __init__
 ]
 autoapi_root = "_api"
+autoapi_python_use_implicit_namespaces = True
+autoapi_imported_members = True
+autoapi_add_toctree_entry = True
+
 
 # napoleon configuration
 napoleon_google_docstring = False
