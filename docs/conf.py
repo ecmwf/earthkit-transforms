@@ -36,7 +36,7 @@ copyright = "%s, European Centre for Medium-Range Weather Forecasts (ECMWF)" % (
 extensions = [
     "autoapi.extension",
     "myst_parser",
-    "nbsphinx",
+    # "nbsphinx",
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
 ]
@@ -45,12 +45,12 @@ extensions = [
 # autodoc_typehints = "none"
 
 autoapi_dirs = [
-    "../src/earthkit/transforms/temporal",
-    "../src/earthkit/transforms/spatial",
-    "../src/earthkit/transforms/climatology",
-    "../src/earthkit/transforms/ensemble",
+    "../src/earthkit/transforms",
 ]
-autoapi_ignore = ["*/version.py"]  # Remove _aggregate.py from here
+autoapi_ignore = [
+    "*/version.py",
+    "*/earthkit/transforms/aggregate"
+]
 autoapi_options = [
     "members",
     "undoc-members",

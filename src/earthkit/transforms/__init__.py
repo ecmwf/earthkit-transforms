@@ -28,7 +28,7 @@ from earthkit.transforms import (
     spatial,
     temporal,
 )
-from earthkit.transforms._aggregate import reduce, resample, rolling_reduce
+from ._aggregate import reduce, resample, rolling_reduce
 
 # For backwards compatibility
 tools = _tools

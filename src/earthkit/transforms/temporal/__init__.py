@@ -4,7 +4,7 @@ Typically this is done with an xarray representation of data. Some pandas method
 for indexing and selecting data.
 """
 
-from earthkit.transforms.temporal._aggregate import (
+from ._aggregate import (
     daily_max,
     daily_mean,
     daily_median,
