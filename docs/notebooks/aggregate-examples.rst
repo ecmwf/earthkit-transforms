@@ -1,7 +1,7 @@
 Aggregation examples
 ====================
 
-Examples of how to use the earthkit-transforms.aggregate modules
+Examples of how to use the aggregation tools in the earthkit.transforms sub-modules
 
 
 .. toctree::

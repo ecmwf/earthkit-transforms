@@ -22,3 +22,4 @@ parameter can be used to specify the aggregation method. The default is `mean`.
 In addition to the above functions, the spatial module also includes several methods
 for computing the intermedieate steps of the aggregation process. These methods are
 documented in the API reference guide: :doc:`../../_api/transforms/spatial/index`
+
