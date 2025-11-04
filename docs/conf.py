@@ -42,18 +42,17 @@ extensions = [
 ]
 
 # autodoc configuration
-# autodoc_typehints = "none"
+autodoc_typehints = "none"
 
-autoapi_dirs = [
-    "../src/earthkit/transforms",
-]
+autoapi_dirs = ["../src/earthkit/transforms"]
 autoapi_ignore = ["*/version.py", "*/earthkit/transforms/aggregate"]
 autoapi_options = [
     "members",
+    "inherited-members",
     "undoc-members",
     "show-inheritance",
     "show-module-summary",
-    "imported-members",  # This should pull them into __init__
+    "imported-members",
 ]
 autoapi_root = "_api"
 autoapi_python_use_implicit_namespaces = True
