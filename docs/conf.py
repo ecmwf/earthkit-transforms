@@ -40,24 +40,12 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
 ]
-on_rtd = os.environ.get("READTHEDOCS") == "True"
-
-# Never execute notebooks on RTD
-if on_rtd:
-    nbsphinx_execute = "never"
-    nbsphinx_allow_errors = True  # optional, prevents build failures
-else:
-    nbsphinx_execute = "auto"  # execute locally if needed
-
-# Increase notebook execution timeout to 300s (5 minutes)
-nbsphinx_timeout = 300
 
 # autodoc configuration
 autodoc_typehints = "none"
 
-# autoapi configuration
 autoapi_dirs = ["../src/earthkit/transforms"]
-autoapi_ignore = ["*/version.py", "earthkit/transforms/aggregate/"]
+autoapi_ignore = ["*/version.py", "*/earthkit/transforms/aggregate"]
 autoapi_options = [
     "members",
     "inherited-members",
@@ -67,6 +55,10 @@ autoapi_options = [
     "imported-members",
 ]
 autoapi_root = "_api"
+autoapi_python_use_implicit_namespaces = True
+autoapi_imported_members = True
+autoapi_add_toctree_entry = True
+
 
 # napoleon configuration
 napoleon_google_docstring = False

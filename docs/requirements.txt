@@ -1,0 +1,17 @@
+ipykernel
+docutils
+Pygments>=2.6.1
+Sphinx
+sphinx-rtd-theme
+nbsphinx
+setuptools
+sphinx-autoapi
+entrypoints
+pandas
+tqdm
+xarray
+filelock
+myst-parser
+earthkit
+statsmodels
+rasterio

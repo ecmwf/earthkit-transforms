@@ -13,10 +13,6 @@ dependencies:
 - sphinx
 - sphinx-autoapi
 - nbsphinx
-- nbclient
-- nbconvert
-- jupyter_client
-- jupyter_core
 - pandas-stubs
 - ipykernel
 # Deps required for geometry operations in tests and examples
@@ -26,6 +22,3 @@ dependencies:
 - multiurl
 # Required for notebook example
 - statsmodels
-- pip
-- pip:
-  - earthkit
