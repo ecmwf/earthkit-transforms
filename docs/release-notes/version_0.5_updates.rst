@@ -14,8 +14,8 @@ However, you are advised to remove sooner as tests will not necessary cover the 
 
 Other updates include:
 
-- Array api updates for gpu by @EddyCMWF in #51
-- simplify spatial.py by @Oisin-M in #55
+- Array API updates for GPU compatibility by @EddyCMWF in #51
+- Simplify spatial.py by @Oisin-M in #55
 - Add ensemble aggregation methods by @JamesVarndell in #52
 - Release action update by @EddyCMWF in #64, #66, #67
 
