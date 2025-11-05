@@ -9,7 +9,7 @@ best experience.
 The dimension/coordinate detection is performed as a first match of the following checks:
 
 1. `axis` attribute on the data variable or coordinate, e.g. `axis = 'T'` for time. `This is a CF convention <https://cfconventions.org/Data/cf-conventions/cf-conventions-1.12/cf-conventions.html#coordinate-types>`_.
-2. `standard_name` attribute on the coordinate, e.g. `standard_name = 'time'` for time. `This is a CF convention <https://cfconventions.org/Data/cf-conventions/cf-conventions-1.12/cf-conventions.html#coordinate-types.`_.
+2. `standard_name` attribute on the coordinate, e.g. `standard_name = 'time'` for time. `This is a CF convention <https://cfconventions.org/Data/cf-conventions/cf-conventions-1.12/cf-conventions.html#coordinate-types>`_.
 3. Common variable names for coordinates, e.g. `time`, `latitude`, `longitude`, `lat`, `lon`
 
 The following table summarises the identifiers used for dimension/coordinate detection:
