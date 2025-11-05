@@ -44,9 +44,8 @@ extensions = [
 # autodoc configuration
 autodoc_typehints = "none"
 
-# autoapi configuration
 autoapi_dirs = ["../src/earthkit/transforms"]
-autoapi_ignore = ["*/version.py", "earthkit/transforms/aggregate/"]
+autoapi_ignore = ["*/version.py", "*/earthkit/transforms/aggregate"]
 autoapi_options = [
     "members",
     "inherited-members",
@@ -56,6 +55,10 @@ autoapi_options = [
     "imported-members",
 ]
 autoapi_root = "_api"
+autoapi_python_use_implicit_namespaces = True
+autoapi_imported_members = True
+autoapi_add_toctree_entry = True
+
 
 # napoleon configuration
 napoleon_google_docstring = False
