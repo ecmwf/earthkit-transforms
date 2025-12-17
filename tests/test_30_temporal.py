@@ -12,8 +12,8 @@ from earthkit.transforms import temporal
 ek_data.settings.set("cache-policy", "user")
 
 
-def get_data():
-    remote_era5_file = earthkit_remote_test_data_file("era5_temperature_europe_2015.grib")
+def get_data(srcfile: str = "era5_temperature_europe_2015.grib"):
+    remote_era5_file = earthkit_remote_test_data_file(srcfile)
     return ek_data.from_source("url", remote_era5_file)
 
 
@@ -201,3 +201,17 @@ def test_temporal_daily_monthly_methods(method, in_data, expected_return_type):
         assert "2t" == reduced_data.name
     else:
         assert "2t" in reduced_data
+
+
+def test_accumulation_to_rate():
+    # data = get_data("seas5_precipitation_europe_2025.grib").to_xarray()
+    # Check with DataArray
+    data = ek_data.from_source(
+        "file",
+        "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/docs/notebooks/test_data/seas5-precip-3deg-202401.grib",
+    ).to_xarray(time_dim_mode="valid_time")["tp"]
+    original_units = data.attrs.get("units", "")
+
+    rate_data = temporal.accumulation_to_rate(data)
+    assert "tp_rate" == rate_data.name
+    assert original_units + "/s" == rate_data.attrs.get("units", "")
