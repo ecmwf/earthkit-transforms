@@ -203,15 +203,41 @@ def test_temporal_daily_monthly_methods(method, in_data, expected_return_type):
         assert "2t" in reduced_data
 
 
-def test_accumulation_to_rate():
+def test_accumulation_to_rate_base():
     # data = get_data("seas5_precipitation_europe_2025.grib").to_xarray()
     # Check with DataArray
     data = ek_data.from_source(
         "file",
         "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/docs/notebooks/test_data/seas5-precip-3deg-202401.grib",
     ).to_xarray(time_dim_mode="valid_time")["tp"]
-    original_units = data.attrs.get("units", "")
+    original_units = data.attrs["units"]
 
     rate_data = temporal.accumulation_to_rate(data)
     assert "tp_rate" == rate_data.name
-    assert original_units + "/s" == rate_data.attrs.get("units", "")
+    assert original_units + "s^-1" == rate_data.attrs["units"]
+    assert "standard_name" not in rate_data.attrs
+
+@pytest.mark.parametrize(
+    "rate_units, expected_units",
+    [
+        ("minutes", "min^-1"),
+        ("hours", "hours^-1"),
+        ("3 hours", "(3 hours)^-1"),
+        ("step_length", ""),
+    ],
+)
+def test_accumulation_to_rate_base(rate_units, expected_units):
+    # data = get_data("seas5_precipitation_europe_2025.grib").to_xarray()
+    # Check with DataArray
+    data = ek_data.from_source(
+        "file",
+        "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/docs/notebooks/test_data/seas5-precip-3deg-202401.grib",
+    ).to_xarray(time_dim_mode="valid_time")["tp"]
+    original_units = data.attrs["units"]
+    
+    rate_data = temporal.accumulation_to_rate(data, rate_units=rate_units)
+    assert "tp_rate" == rate_data.name
+    assert original_units + expected_units == rate_data.attrs["units"]
+    assert rate_data.attrs["long_name"].endswith(" rate")
+    assert "standard_name" not in rate_data.attrs
+

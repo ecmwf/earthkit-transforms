@@ -21,7 +21,7 @@ from earthkit.transforms import _tools
 @_tools.time_dim_decorator
 @_tools.transform_inputs_decorator()
 def accumulation_to_rate(
-    dataarray: xr.Dataset | xr.DataArray,
+    dataarray: xr.DataArray,
     step: None | float | int = None,
     step_units: str = "hours",
     rate_units: str = "seconds",
@@ -55,7 +55,10 @@ def accumulation_to_rate(
     step_units : str, optional
         Units of the `step` parameter (if provided), default is 'hours'.
     rate_units : str, optional
-        Units for the output rate, default is 'seconds'.
+        Units for the output rate, it can be any valid pandas time frequency string
+        (e.g., '15min', '3H', 'D') or simple units like 'seconds', 'minutes', 'hours', 'days',
+        or if set to 'step_length', the rate will be accumulation per time step.
+        The default is 'seconds'.
     time_dim : str, optional
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
         default behaviour is to deduce time dimension from
@@ -96,7 +99,22 @@ def accumulation_to_rate(
         step_obj = pd.to_timedelta(_step, step_units)
         step_float = float(step_obj)
 
-    rate_scale_factor = step_obj / pd.to_timedelta(1, rate_units)
+    if rate_units == "step_length":
+        rate_scale_factor = 1.
+        rate_units_str = ""  # Do not append anything to units attribute
+    else:
+        try:
+            # Handle cases like '15min', '3H', etc.
+            rate_obj = pd.to_timedelta(rate_units)
+            rate_units_str = f"({rate_units})^-1"
+        except ValueError:
+            # Handle simple units like 'seconds', 'minutes', 'hours', 'days'
+            rate_obj = pd.to_timedelta(1, rate_units)
+            rate_units_str = f"{rate_units}^-1"
+        rate_scale_factor = step_obj / rate_obj
+
+    # Tidy up the rate_units_str for common abbreviations
+    rate_units_str = rate_units_str.replace("seconds", "s").replace("minutes", "min")
 
     match accumulation_type:
         case "start_of_step":
@@ -137,7 +155,6 @@ def accumulation_to_rate(
                 time_diff.astype("float64"), step_float
             )
 
-
             # Calculate the rate for values, excluding the first step of each day
             output = xr.where(mask & ~first_step_of_day_mask, diff_data / rate_scale_factor, xp.nan)
 
@@ -153,12 +170,12 @@ def accumulation_to_rate(
 
     output.name = dataarray.name + '_rate'
     if 'units' in dataarray.attrs:
-        output.attrs.update({'units': dataarray.attrs['units'] + '/s'})
+        output.attrs.update({'units': dataarray.attrs['units'] + rate_units_str})
     if 'long_name' in dataarray.attrs:
         output.attrs['long_name'] = dataarray.attrs['long_name'] + ' rate'
     if provenance or "history" in dataarray.attrs:
         output.attrs["history"] = dataarray.attrs.get("history", "") + (
-            f"\nConverted from accumulation to rate using earthkit.transforms.temporal.accumulation_to_rate"
+            f"\nConverted from accumulation to rate using earthkit.transforms.temporal.accumulation_to_rate."
         )
 
     return output
