@@ -241,3 +241,17 @@ def test_accumulation_to_rate_base(rate_units, expected_units):
     assert rate_data.attrs["long_name"].endswith(" rate")
     assert "standard_name" not in rate_data.attrs
 
+
+def test_accumulation_to_rate_accumulation_type_forecast():
+    # data = get_data("seas5_precipitation_europe_2025.grib").to_xarray()
+    # Check with DataArray
+    data = ek_data.from_source(
+        "file",
+        "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/docs/notebooks/test_data/seas5-precip-3deg-202401.grib",
+    ).to_xarray(time_dim_mode="valid_time")["tp"]
+    original_units = data.attrs["units"]
+
+    rate_data = temporal.accumulation_to_rate(data, accumulation_type="start_of_forecast")
+    assert "tp_rate" == rate_data.name
+    assert original_units + "s^-1" == rate_data.attrs["units"]
+    assert "standard_name" not in rate_data.attrs

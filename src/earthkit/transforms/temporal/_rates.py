@@ -97,7 +97,7 @@ def accumulation_to_rate(
     else:
         _step = float(step)
         step_obj = pd.to_timedelta(_step, step_units)
-        step_float = float(step_obj)
+    step_float = float(step_obj)
 
     if rate_units == "step_length":
         rate_scale_factor = 1.
@@ -125,8 +125,11 @@ def accumulation_to_rate(
             # Compute forward differences
             diff_data = dataarray.diff(time_dim, label="upper")
             time_diff = time_dim_array.diff(time_dim, label="upper")
-            mask = xp.isclose(
-                time_diff.astype("float64"), step_float
+            mask = xr.apply_ufunc(
+                xp.isclose,
+                time_diff.astype("float64"),
+                step_float,
+                dask="allowed",
             )
             output = xr.where(
                 mask, diff_data / rate_scale_factor, xp.nan
@@ -151,8 +154,11 @@ def accumulation_to_rate(
             # Compute forward differences
             diff_data = dataarray.diff(time_dim, label="upper")
             time_diff = time_dim_array.diff(time_dim, label="upper")
-            mask = xp.isclose(
-                time_diff.astype("float64"), step_float
+            mask = xr.apply_ufunc(
+                xp.isclose,
+                time_diff.astype("float64"),
+                step_float,
+                dask="allowed",
             )
 
             # Calculate the rate for values, excluding the first step of each day
