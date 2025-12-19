@@ -203,13 +203,19 @@ def test_temporal_daily_monthly_methods(method, in_data, expected_return_type):
         assert "2t" in reduced_data
 
 
-def test_accumulation_to_rate_base():
-    # data = get_data("seas5_precipitation_europe_2025.grib").to_xarray()
+@pytest.mark.parametrize(
+    "time_dim_mode",
+    ("forecast", "valid_time"),
+)
+def test_accumulation_to_rate_base(time_dim_mode):
+    test_file = "era5-sfc-precip-3deg-202401.grib"
+    # data = get_data(test_file).to_xarray()
     # Check with DataArray
     data = ek_data.from_source(
         "file",
-        "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/docs/notebooks/test_data/seas5-precip-3deg-202401.grib",
-    ).to_xarray(time_dim_mode="valid_time")["tp"]
+        "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/docs/notebooks/test_data/"
+        + test_file,
+    ).to_xarray(time_dim_mode=time_dim_mode)["tp"]
     original_units = data.attrs["units"]
 
     rate_data = temporal.accumulation_to_rate(data)
@@ -217,41 +223,187 @@ def test_accumulation_to_rate_base():
     assert original_units + "s^-1" == rate_data.attrs["units"]
     assert "standard_name" not in rate_data.attrs
 
+    numeric_test_sample = rate_data.isel(latitude=5, longitude=5, valid_time=slice(0, 5))
+    expected_sample = (data.isel(latitude=5, longitude=5, valid_time=slice(0, 5)).values) / (
+        3600.0
+    )  # seconds in an hour
+    np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
+
+
 @pytest.mark.parametrize(
-    "rate_units, expected_units",
+    "time_dim_mode",
+    ("forecast_time", "valid_time"),
+)
+@pytest.mark.parametrize(
+    "rate_units, expected_units, sample_sf",
     [
-        ("minutes", "min^-1"),
-        ("hours", "hours^-1"),
-        ("3 hours", "(3 hours)^-1"),
-        ("step_length", ""),
+        ("seconds", "s^-1", 3600.0),
+        ("minutes", "min^-1", 60.0),
+        ("hours", "hours^-1", 1.0),
+        ("3 hours", "(3 hours)^-1", 1.0 / 3.0),
+        ("step_length", "", 1.0),
     ],
 )
-def test_accumulation_to_rate_base(rate_units, expected_units):
-    # data = get_data("seas5_precipitation_europe_2025.grib").to_xarray()
-    # Check with DataArray
+def test_accumulation_to_rate_start_of_step_rate_units(time_dim_mode, rate_units, expected_units, sample_sf):
+    test_file = "era5-sfc-precip-3deg-202401.grib"
+    # accumulation_type = "start_of_step"  # default value
     data = ek_data.from_source(
         "file",
-        "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/docs/notebooks/test_data/seas5-precip-3deg-202401.grib",
-    ).to_xarray(time_dim_mode="valid_time")["tp"]
+        "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/docs/notebooks/test_data/"
+        + test_file,
+    ).to_xarray(time_dim_mode=time_dim_mode)["tp"]
     original_units = data.attrs["units"]
-    
+
     rate_data = temporal.accumulation_to_rate(data, rate_units=rate_units)
     assert "tp_rate" == rate_data.name
     assert original_units + expected_units == rate_data.attrs["units"]
     assert rate_data.attrs["long_name"].endswith(" rate")
     assert "standard_name" not in rate_data.attrs
 
+    numeric_test_sample = rate_data.isel(latitude=5, longitude=5, valid_time=slice(0, 5))
+    expected_sample = (data.isel(latitude=5, longitude=5, valid_time=slice(0, 5)).values) / (sample_sf)
+    np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
 
-def test_accumulation_to_rate_accumulation_type_forecast():
+
+@pytest.mark.parametrize(
+    "time_dim_mode",
+    ("forecast_time", "valid_time"),
+)
+def test_accumulation_to_rate_start_of_forecast(time_dim_mode):
+    test_file = "seas5-precip-3deg-202401.grib"
+    accumulation_type = "start_of_forecast"
     # data = get_data("seas5_precipitation_europe_2025.grib").to_xarray()
     # Check with DataArray
     data = ek_data.from_source(
         "file",
-        "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/docs/notebooks/test_data/seas5-precip-3deg-202401.grib",
-    ).to_xarray(time_dim_mode="valid_time")["tp"]
+        "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/docs/notebooks/test_data/"
+        + test_file,
+    ).to_xarray(time_dim_mode=time_dim_mode)["tp"]
     original_units = data.attrs["units"]
 
-    rate_data = temporal.accumulation_to_rate(data, accumulation_type="start_of_forecast")
+    rate_data = temporal.accumulation_to_rate(data, accumulation_type=accumulation_type)
     assert "tp_rate" == rate_data.name
     assert original_units + "s^-1" == rate_data.attrs["units"]
     assert "standard_name" not in rate_data.attrs
+    assert rate_data.valid_time[0].values == data.valid_time[0].values
+    isel_kwargs = {k: 0 for k in data.dims if k not in ("valid_time", "latitude", "longitude")}
+    numeric_test_sample = rate_data.isel(latitude=10, longitude=17, valid_time=slice(1, 5), **isel_kwargs)
+    expected_sample = (
+        data.isel(latitude=10, longitude=17, valid_time=slice(1, 5), **isel_kwargs).values
+        - data.isel(latitude=10, longitude=17, valid_time=slice(0, 4), **isel_kwargs).values
+    ) / (3600.0 * 24)  # 24 hours in seconds
+    np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
+
+    rate_data = temporal.accumulation_to_rate(
+        data, accumulation_type="start_of_forecast", from_first_step=False
+    )
+    assert "tp_rate" == rate_data.name
+    assert original_units + "s^-1" == rate_data.attrs["units"]
+    assert "standard_name" not in rate_data.attrs
+    assert rate_data.valid_time[0].values == data.valid_time[1].values
+
+
+@pytest.mark.parametrize(
+    "rate_units, expected_units, sample_sf",
+    [
+        ("minutes", "min^-1", 60.0 * 24),
+        ("hours", "hours^-1", 24.0),
+        ("3 hours", "(3 hours)^-1", 8.0),
+        ("step_length", "", 1.0),
+    ],
+)
+def test_accumulation_to_rate_start_of_forecast_rate_units(rate_units, expected_units, sample_sf):
+    test_file = "seas5-precip-3deg-202401.grib"
+    accumulation_type = "start_of_forecast"
+    # data = get_data("seas5_precipitation_europe_2025.grib").to_xarray()
+    # Check with DataArray
+    data = ek_data.from_source(
+        "file",
+        "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/docs/notebooks/test_data/"
+        + test_file,
+    ).to_xarray(time_dim_mode="valid_time")["tp"]
+    original_units = data.attrs["units"]
+
+    rate_data = temporal.accumulation_to_rate(
+        data, accumulation_type=accumulation_type, rate_units=rate_units
+    )
+    assert "tp_rate" == rate_data.name
+    assert original_units + expected_units == rate_data.attrs["units"]
+    assert rate_data.attrs["long_name"].endswith(" rate")
+    assert "standard_name" not in rate_data.attrs
+
+    isel_kwargs = {k: 0 for k in data.dims if k not in ("valid_time", "latitude", "longitude")}
+    numeric_test_sample = rate_data.isel(latitude=10, longitude=17, valid_time=slice(1, 5), **isel_kwargs)
+    expected_sample = (
+        data.isel(latitude=10, longitude=17, valid_time=slice(1, 5), **isel_kwargs).values
+        - data.isel(latitude=10, longitude=17, valid_time=slice(0, 4), **isel_kwargs).values
+    ) / sample_sf
+    np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
+
+
+def test_accumulation_to_rate_start_of_day():
+    test_file = "era5-land-precip-3deg-202401.grib"
+    accumulation_type = "start_of_day"
+    data = ek_data.from_source(
+        "file",
+        "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/docs/notebooks/test_data/"
+        + test_file,
+    ).to_xarray(time_dim_mode="valid_time")["tp"]
+    original_units = data.attrs["units"]
+    rate_data = temporal.accumulation_to_rate(data, accumulation_type=accumulation_type)
+    assert "tp_rate" == rate_data.name
+    assert original_units + "s^-1" == rate_data.attrs["units"]
+    assert "standard_name" not in rate_data.attrs
+    assert rate_data.valid_time[0].values == data.valid_time[0].values
+
+    isel_kwargs = {k: 0 for k in data.dims if k not in ("valid_time", "latitude", "longitude")}
+    numeric_test_sample = rate_data.isel(latitude=5, longitude=5, valid_time=slice(26, 31), **isel_kwargs)
+    expected_sample = (
+        data.isel(latitude=5, longitude=5, valid_time=slice(26, 31), **isel_kwargs).values
+        - data.isel(latitude=5, longitude=5, valid_time=slice(25, 30), **isel_kwargs).values
+    ) / (3600.0 * 24)  # 24 hours in seconds
+    np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
+
+    # Check a value for the first timestep of a day, in this example at 01:00
+    assert data.valid_time[25].values.astype("datetime64[h]").item().hour == 1
+    # the rate can be computed
+    numeric_test_sample = rate_data.isel(latitude=5, longitude=5, valid_time=25, **isel_kwargs)
+    expected_sample = (data.isel(latitude=5, longitude=5, valid_time=25, **isel_kwargs).values) / (
+        3600.0 * 24
+    )
+    np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
+
+
+@pytest.mark.parametrize(
+    "rate_units, expected_units, sample_sf",
+    [
+        ("minutes", "min^-1", 60.0 * 24),
+        ("hours", "hours^-1", 24.0),
+        ("3 hours", "(3 hours)^-1", 8.0),
+        ("step_length", "", 1.0),
+    ],
+)
+def test_accumulation_to_rate_start_of_day_rate_units(rate_units, expected_units, sample_sf):
+    test_file = "era5-land-precip-3deg-202401.grib"
+    accumulation_type = "start_of_day"
+    data = ek_data.from_source(
+        "file",
+        "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/docs/notebooks/test_data/"
+        + test_file,
+    ).to_xarray(time_dim_mode="valid_time")["tp"]
+    original_units = data.attrs["units"]
+    rate_data = temporal.accumulation_to_rate(
+        data, accumulation_type=accumulation_type, rate_units=rate_units
+    )
+    assert "tp_rate" == rate_data.name
+    assert original_units + expected_units == rate_data.attrs["units"]
+    assert rate_data.attrs["long_name"].endswith(" rate")
+    assert "standard_name" not in rate_data.attrs
+    assert rate_data.valid_time[0].values == data.valid_time[1].values
+    isel_kwargs = {k: 0 for k in data.dims if k not in ("valid_time", "latitude", "longitude")}
+    numeric_test_sample = rate_data.isel(latitude=5, longitude=5, valid_time=slice(26, 31), **isel_kwargs)
+    expected_sample = (
+        data.isel(latitude=5, longitude=5, valid_time=slice(26, 31), **isel_kwargs).values
+        - data.isel(latitude=5, longitude=5, valid_time=slice(25, 30), **isel_kwargs).values
+    ) / sample_sf
+    np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
