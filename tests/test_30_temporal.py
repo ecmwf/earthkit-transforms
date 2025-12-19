@@ -213,7 +213,7 @@ def test_accumulation_to_rate_base(time_dim_mode="valid_time"):
     # Check with DataArray
     data = ek_data.from_source(
         "file",
-        "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/docs/notebooks/test_data/"
+        "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/dev/test_data/"
         + test_file,
     ).to_xarray(time_dim_mode=time_dim_mode)["tp"]
     original_units = data.attrs["units"]
@@ -250,7 +250,7 @@ def test_accumulation_to_rate_start_of_step_rate_units(rate_units, expected_unit
     # accumulation_type = "start_of_step"  # default value
     data = ek_data.from_source(
         "file",
-        "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/docs/notebooks/test_data/"
+        "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/dev/test_data/"
         + test_file,
     ).to_xarray(time_dim_mode=time_dim_mode)["tp"]
     original_units = data.attrs["units"]
@@ -277,7 +277,7 @@ def test_accumulation_to_rate_start_of_forecast(time_dim_mode):
     # Check with DataArray
     data = ek_data.from_source(
         "file",
-        "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/docs/notebooks/test_data/"
+        "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/dev/test_data/"
         + test_file,
     ).to_xarray(time_dim_mode=time_dim_mode, allow_holes=True, ensure_dims=["forecast_reference_time"])["tp"]
     original_units = data.attrs["units"]
@@ -320,7 +320,7 @@ def test_accumulation_to_rate_start_of_forecast_rate_units(rate_units, expected_
     # Check with DataArray
     data = ek_data.from_source(
         "file",
-        "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/docs/notebooks/test_data/"
+        "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/dev/test_data/"
         + test_file,
     ).to_xarray(time_dim_mode="valid_time")["tp"]
     original_units = data.attrs["units"]
@@ -347,7 +347,7 @@ def test_accumulation_to_rate_start_of_day():
     accumulation_type = "start_of_day"
     data = ek_data.from_source(
         "file",
-        "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/docs/notebooks/test_data/"
+        "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/dev/test_data/"
         + test_file,
     ).to_xarray(time_dim_mode="valid_time")["tp"]
     original_units = data.attrs["units"]
@@ -389,7 +389,7 @@ def test_accumulation_to_rate_start_of_day_rate_units(rate_units, expected_units
     accumulation_type = "start_of_day"
     data = ek_data.from_source(
         "file",
-        "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/docs/notebooks/test_data/"
+        "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/dev/test_data/"
         + test_file,
     ).to_xarray(time_dim_mode="valid_time")["tp"]
     original_units = data.attrs["units"]
