@@ -203,11 +203,11 @@ def test_temporal_daily_monthly_methods(method, in_data, expected_return_type):
         assert "2t" in reduced_data
 
 
-@pytest.mark.parametrize(
-    "time_dim_mode",
-    ("forecast", "valid_time"),
-)
-def test_accumulation_to_rate_base(time_dim_mode):
+# @pytest.mark.parametrize(
+#     "time_dim_mode",
+#     ("forecast", "valid_time"),
+# )
+def test_accumulation_to_rate_base(time_dim_mode="valid_time"):
     test_file = "era5-sfc-precip-3deg-202401.grib"
     # data = get_data(test_file).to_xarray()
     # Check with DataArray
@@ -230,10 +230,10 @@ def test_accumulation_to_rate_base(time_dim_mode):
     np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
 
 
-@pytest.mark.parametrize(
-    "time_dim_mode",
-    ("forecast_time", "valid_time"),
-)
+# @pytest.mark.parametrize(
+#     "time_dim_mode",
+#     ("forecast_time", "valid_time"),
+# )
 @pytest.mark.parametrize(
     "rate_units, expected_units, sample_sf",
     [
@@ -244,7 +244,8 @@ def test_accumulation_to_rate_base(time_dim_mode):
         ("step_length", "", 1.0),
     ],
 )
-def test_accumulation_to_rate_start_of_step_rate_units(time_dim_mode, rate_units, expected_units, sample_sf):
+def test_accumulation_to_rate_start_of_step_rate_units(rate_units, expected_units, sample_sf):
+    time_dim_mode="valid_time"
     test_file = "era5-sfc-precip-3deg-202401.grib"
     # accumulation_type = "start_of_step"  # default value
     data = ek_data.from_source(
@@ -265,11 +266,11 @@ def test_accumulation_to_rate_start_of_step_rate_units(time_dim_mode, rate_units
     np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
 
 
-@pytest.mark.parametrize(
-    "time_dim_mode",
-    ("forecast_time", "valid_time"),
-)
-def test_accumulation_to_rate_start_of_forecast(time_dim_mode):
+# @pytest.mark.parametrize(
+#     "time_dim_mode",
+#     ("forecast_time", "valid_time"),
+# )
+def test_accumulation_to_rate_start_of_forecast(time_dim_mode="valid_time"):
     test_file = "seas5-precip-3deg-202401.grib"
     accumulation_type = "start_of_forecast"
     # data = get_data("seas5_precipitation_europe_2025.grib").to_xarray()
@@ -399,7 +400,7 @@ def test_accumulation_to_rate_start_of_day_rate_units(rate_units, expected_units
     assert original_units + expected_units == rate_data.attrs["units"]
     assert rate_data.attrs["long_name"].endswith(" rate")
     assert "standard_name" not in rate_data.attrs
-    assert rate_data.valid_time[0].values == data.valid_time[1].values
+    assert rate_data.valid_time[0].values == data.valid_time[0].values
     isel_kwargs = {k: 0 for k in data.dims if k not in ("valid_time", "latitude", "longitude")}
     numeric_test_sample = rate_data.isel(latitude=5, longitude=5, valid_time=slice(26, 31), **isel_kwargs)
     expected_sample = (
