@@ -350,17 +350,24 @@ def _accumulation_to_rate_dataarray_take3(
                     break
 
     # decide whether to use period_dim_array or time_dim_array for step calculation
-    if period_dim_array is not None and len(period_dim_array) > 1:
-        # If period_dim_array has length greater than 1, then compute step_obj from it
+    if period_dim_array is not None:
         step_dim_array = period_dim_array
     else:
         step_dim_array = time_dim_array
 
+    step_dim = step_dim_array.name
+
     if step is None:
         if len(step_dim_array) < 2:
-            raise ValueError("Cannot infer step from time dimension with less than two entries.")
-        step_obj = step_dim_array.diff(time_dim, label="upper")
-        step_dim = step_obj.name
+            if period_dim_array is not None:
+                # This means that there is only one forecast period per forecast reference time
+                # So we can treat the period_dim_array as the step_obj directly
+                step_obj = step_dim_array
+            else:
+                raise ValueError("Cannot infer step from time dimension with less than two entries.")
+        else:
+            # step_obj is an array of time differences
+            step_obj = step_dim_array.diff(step_dim, label="upper")
 
         if from_first_step:
             # Prepend the first step assuming it's the same as the second step
