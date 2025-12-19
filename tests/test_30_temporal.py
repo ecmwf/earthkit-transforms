@@ -245,7 +245,7 @@ def test_accumulation_to_rate_base(time_dim_mode="valid_time"):
     ],
 )
 def test_accumulation_to_rate_start_of_step_rate_units(rate_units, expected_units, sample_sf):
-    time_dim_mode="valid_time"
+    time_dim_mode = "valid_time"
     test_file = "era5-sfc-precip-3deg-202401.grib"
     # accumulation_type = "start_of_step"  # default value
     data = ek_data.from_source(
@@ -266,11 +266,11 @@ def test_accumulation_to_rate_start_of_step_rate_units(rate_units, expected_unit
     np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
 
 
-# @pytest.mark.parametrize(
-#     "time_dim_mode",
-#     ("forecast_time", "valid_time"),
-# )
-def test_accumulation_to_rate_start_of_forecast(time_dim_mode="valid_time"):
+@pytest.mark.parametrize(
+    "time_dim_mode",
+    ("forecast", "valid_time"),
+)
+def test_accumulation_to_rate_start_of_forecast(time_dim_mode):
     test_file = "seas5-precip-3deg-202401.grib"
     accumulation_type = "start_of_forecast"
     # data = get_data("seas5_precipitation_europe_2025.grib").to_xarray()
@@ -279,7 +279,7 @@ def test_accumulation_to_rate_start_of_forecast(time_dim_mode="valid_time"):
         "file",
         "/Users/edwardcomyn-platt/Work/Git_Repositories/EARTHKIT/earthkit-transforms/docs/notebooks/test_data/"
         + test_file,
-    ).to_xarray(time_dim_mode=time_dim_mode)["tp"]
+    ).to_xarray(time_dim_mode=time_dim_mode, allow_holes=True, ensure_dims=["forecast_reference_time"])["tp"]
     original_units = data.attrs["units"]
 
     rate_data = temporal.accumulation_to_rate(data, accumulation_type=accumulation_type)

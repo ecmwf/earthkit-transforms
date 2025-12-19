@@ -82,7 +82,7 @@ def accumulation_to_rate(
     """
     if isinstance(dataarray, xr.Dataset):
         data_vars = {
-            var_name: _accumulation_to_rate_dataarray(
+            var_name: _accumulation_to_rate_dataarray_take3(
                 dataarray[var_name],
                 *_args,
                 **_kwargs,
@@ -91,7 +91,7 @@ def accumulation_to_rate(
         }
         return xr.Dataset(data_vars, attrs=dataarray.attrs)
 
-    return _accumulation_to_rate_dataarray(dataarray, *_args, **_kwargs)
+    return _accumulation_to_rate_dataarray_take3(dataarray, *_args, **_kwargs)
 
 
 def _accumulation_to_rate_dataarray(
@@ -173,9 +173,9 @@ def _accumulation_to_rate_dataarray(
         if from_first_step:
             # Prepend the first step assuming it's the same as the second step
             first_step = step_obj.isel(**{time_dim: 0}).expand_dims(time_dim)
-            first_step = first_step.assign_coords({
-                time_dim: time_dim_array.isel(**{time_dim: 0}).expand_dims(time_dim)
-            })
+            first_step = first_step.assign_coords(
+                {time_dim: time_dim_array.isel(**{time_dim: 0}).expand_dims(time_dim)}
+            )
             step_obj = xr.concat([first_step, step_obj], dim=time_dim)
     else:
         _step = float(step)
@@ -216,7 +216,7 @@ def _accumulation_to_rate_dataarray(
 
         case "start_of_day":
             # Mask for midnight steps of the day (True = midnight)
-            midnight_mask = time_dim_array.dt.floor("H").dt.hour == 0
+            midnight_mask = time_dim_array.dt.floor("h").dt.hour == 0
             # Shift the mask forward one step for first step of day.
             # Leave the first element as NaN as not possible to know if it was the first step of the day,
             # this eventuality is handled explicitly by the "from_first_step" logic below
@@ -260,7 +260,6 @@ def _accumulation_to_rate_dataarray(
         )
 
     return output
-
 
 
 def _accumulation_to_rate_dataarray_take3(
@@ -334,35 +333,46 @@ def _accumulation_to_rate_dataarray_take3(
 
     time_dim_array = dataarray[time_dim]
     # If the time_dim_array is a "forecast_reference_time", then we see if there is a "forecast_period"
+    period_dim_array = None
     if (
         time_dim_array.attrs.get("standard_name") == "forecast_reference_time"
         or time_dim_array.name == "forecast_reference_time"
     ):
         # Check for forecast_period as standard_name or name in coords
         for coord in dataarray.coords.values():
-            if (
-                coord.attrs.get("standard_name") == "forecast_period"
-                or coord.name == "forecast_period"
-            ):
-                step_dim_array = coord
+            if coord.attrs.get("standard_name") == "forecast_period" or coord.name == "forecast_period":
+                period_dim_array = coord
                 break
         else:
             for name in ["step", "leadtime", "forecast_period"]:
                 if name in dataarray.coords:
-                    step_dim_array = dataarray[name]
+                    period_dim_array = dataarray[name]
                     break
-            else:
-                step_dim_array = None
+
+    # decide whether to use period_dim_array or time_dim_array for step calculation
+    if period_dim_array is not None and len(period_dim_array) > 1:
+        # If period_dim_array has length greater than 1, then compute step_obj from it
+        step_dim_array = period_dim_array
+    else:
+        step_dim_array = time_dim_array
 
     if step is None:
-        if len(time_dim_array) < 2:
+        if len(step_dim_array) < 2:
             raise ValueError("Cannot infer step from time dimension with less than two entries.")
-        # assume uniform step based on first time steps
-        step_obj = time_dim_array[1] - time_dim_array[0]
+        step_obj = step_dim_array.diff(time_dim, label="upper")
+        step_dim = step_obj.name
+
+        if from_first_step:
+            # Prepend the first step assuming it's the same as the second step
+            first_step = step_obj.isel(**{step_dim: 0}).expand_dims(step_dim)
+            first_step = first_step.assign_coords(
+                {step_dim: step_dim_array.isel(**{step_dim: 0}).expand_dims(step_dim)}
+            )
+            step_obj = xr.concat([first_step, step_obj], dim=step_dim)
     else:
         _step = float(step)
         step_obj = pd.to_timedelta(_step, step_units)
-    step_float = float(step_obj)
+    # step_float = float(step_obj)
 
     if rate_units == "step_length":
         rate_scale_factor = 1.0
@@ -388,60 +398,58 @@ def _accumulation_to_rate_dataarray_take3(
 
         case "start_of_forecast":
             # Compute forward differences
-            diff_data = dataarray.diff(time_dim, label="upper")
-            time_diff = time_dim_array.diff(time_dim, label="upper")
-            mask = xr.apply_ufunc(
-                xp.isclose,
-                time_diff.astype("float64"),
-                step_float,
-                dask="allowed",
-            )
-            output = xr.where(mask, diff_data / rate_scale_factor, xp.nan)
-            # The first time step corresponds to the first accumulation value divided by the step
+            diff_data = dataarray.diff(step_dim, label="upper")
             if from_first_step:
-                first_value = dataarray.isel({time_dim: 0}) / rate_scale_factor
-                output = xr.concat([first_value.expand_dims(time_dim), output], dim=time_dim)
+                # Prepend diff with first value being the same as the first dataarray value
+                first_diff = dataarray.isel({step_dim: 0}).expand_dims(step_dim)
+                diff_data = xr.concat([first_diff, diff_data], dim=step_dim)
+
+            output = diff_data / rate_scale_factor
 
         case "start_of_day":
-            # Mask for midnight steps of the day (True = midnight)
-            midnight_mask = time_dim_array.dt.floor("H").dt.hour == 0
-            # To make a first_step_of_day_mask that corresponds to the diffed array below,
-            # shift the mask back one step and then remove the first element in array,
-            first_step_of_day_mask = midnight_mask.shift(**{time_dim: 1}).isel({time_dim: slice(1, None)})
+            if period_dim_array is not None:
+                # This sceanario should be treated as "start_of_forecast"
+                #  where the start of forecast is at the start of each day
+                # Compute forward differences
+                diff_data = dataarray.diff(step_dim, label="upper")
+                if from_first_step:
+                    # Prepend diff with first value being the same as the first dataarray value
+                    first_diff = dataarray.isel({step_dim: 0}).expand_dims(step_dim)
+                    diff_data = xr.concat([first_diff, diff_data], dim=step_dim)
 
-            # If first step is midnight, we set to NaN as no prior data
-            if midnight_mask.data[0]:
-                dataarray[0] = xp.nan
+                output = diff_data / rate_scale_factor
 
-            # Compute forward differences
-            diff_data = dataarray.diff(time_dim, label="upper")
+            else:
+                # Mask for midnight steps of the day (True = midnight)
+                midnight_mask = step_dim_array.dt.floor("h").dt.hour == 0
+                # Shift the mask forward one step for first step of day.
+                # Leave the first element as NaN as not possible to know if it was the first step of the day,
+                # this eventuality is handled explicitly by the "from_first_step" logic below
+                first_step_of_day_mask = midnight_mask.shift(**{step_dim: 1})
 
-            time_diff = time_dim_array.diff(time_dim, label="upper")
-            mask = xr.apply_ufunc(
-                xp.isclose,
-                time_diff.astype("float64"),
-                step_float,
-                dask="allowed",
-            )
-
-            # Calculate the rate for values, excluding the first step of each day
-            output = xr.where(mask & ~first_step_of_day_mask, diff_data / rate_scale_factor, xp.nan)
-
-            # Now calculate the rate for the first step of each day using the original dataarray
-            output = xr.where(
-                first_step_of_day_mask,
-                dataarray.sel(**{time_dim: time_diff[time_dim]}) / rate_scale_factor,
-                output,
-            )
-
-            if from_first_step:
+                # If first step is midnight, we set to NaN as no prior data
                 if midnight_mask.data[0]:
-                    # If first step is midnight, so set to NaN as no prior data
-                    first_value = xp.nan
+                    dataarray[0] = xp.nan
+
+                # Compute forward differences
+                diff_data = dataarray.diff(step_dim, label="upper")
+                if from_first_step:
+                    # Prepend diff with first value being the same as the first dataarray value
+                    first_diff = dataarray.isel({step_dim: 0}).expand_dims(step_dim)
+                    diff_data = xr.concat([first_diff, diff_data], dim=step_dim)
                 else:
-                    # If first step is not midnight assume the first step is from zero accumulation
-                    first_value = dataarray.isel({time_dim: 0}) / rate_scale_factor
-                output = xr.concat([first_value.expand_dims(time_dim), output], dim=time_dim)
+                    # We must drop the first element of the first_step_of_day_mask to match the diffed array
+                    first_step_of_day_mask = first_step_of_day_mask.isel({step_dim: slice(1, None)})
+
+                # Calculate the rate for values, excluding the first step of each day
+                output = diff_data / rate_scale_factor
+
+                # Now calculate the rate for the first step of each day using the original dataarray
+                output = xr.where(
+                    first_step_of_day_mask,
+                    dataarray.sel(**{step_dim: output[step_dim]}) / rate_scale_factor,
+                    output,
+                )
 
         case _:
             raise ValueError(f"Unknown accumulation_type: {accumulation_type}")
@@ -457,4 +465,3 @@ def _accumulation_to_rate_dataarray_take3(
         )
 
     return output
-
