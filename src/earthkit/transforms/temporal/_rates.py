@@ -294,6 +294,8 @@ def _accumulation_to_rate_dataarray(
             raise ValueError(f"Unknown accumulation_type: {accumulation_type}")
 
     output = output.rename(f"{dataarray.name}_rate" if dataarray.name is not None else "rate")
+    # Clear any existing attributes and set new ones
+    output.attrs = {}
     if "units" in dataarray.attrs:
         output.attrs.update({"units": dataarray.attrs["units"] + rate_units_str})
     if "long_name" in dataarray.attrs:
