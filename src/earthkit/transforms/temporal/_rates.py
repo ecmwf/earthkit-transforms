@@ -82,7 +82,7 @@ def accumulation_to_rate(
     """
     if isinstance(dataarray, xr.Dataset):
         data_vars = {
-            var_name: _accumulation_to_rate_dataarray_take3(
+            var_name: _accumulation_to_rate_dataarray(
                 dataarray[var_name],
                 *_args,
                 **_kwargs,
@@ -91,178 +91,10 @@ def accumulation_to_rate(
         }
         return xr.Dataset(data_vars, attrs=dataarray.attrs)
 
-    return _accumulation_to_rate_dataarray_take3(dataarray, *_args, **_kwargs)
+    return _accumulation_to_rate_dataarray(dataarray, *_args, **_kwargs)
 
 
 def _accumulation_to_rate_dataarray(
-    dataarray: xr.DataArray,
-    step: None | float | int = None,
-    step_units: str = "hours",
-    rate_units: str = "seconds",
-    xp: T.Any = None,
-    time_dim: str | None = None,
-    accumulation_type: str = "start_of_step",
-    from_first_step: bool = True,
-    provenance: bool = True,
-) -> xr.DataArray:
-    """Convert a variable accumulated from the beginning of the forecast to a rate.
-
-    The rate is computed by considering first-order discrete differences in data
-    along the time (or leadtime, if time is not a dimension)
-    axis, divided by the number of seconds in the step.
-
-    # Check it does this
-    If time[k] - time[k-1] != step, then the corresponding output values will be NaN.
-
-    Example:
-        Compute snowfall rate in m/s based on accumulated snowfall, using a time step of 24 hours.
-
-        >>> snow_fall_rate = accumulation_to_rate(snow_fall, step=24)
-
-    Parameters
-    ----------
-    dataarray : xr.DataArray
-        Data accumulated along time to be converted into rate (per second).
-    step : float | int, optional
-        Interval between consecutive time steps in hours. If not provided, the function
-        will infer the step from the first two time steps in the data.
-    step_units : str, optional
-        Units of the `step` parameter (if provided), default is 'hours'.
-    rate_units : str, optional
-        Units for the output rate, it can be any valid pandas time frequency string
-        (e.g., '15min', '3H', 'D') or simple units like 'seconds', 'minutes', 'hours', 'days',
-        or if set to 'step_length', the rate will be accumulation per time step.
-        The default is 'seconds'.
-    xp : T.Any
-        The array namespace to use for the reduction. If None, it will be inferred from the dataarray.
-    time_dim : str, optional
-        Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
-        default behaviour is to deduce time dimension from
-        attributes of coordinates, then fall back to `"time"`.
-        If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
-    accumulation_type : str, optional
-        Type of accumulation used in the input data. Options are:
-        - "start_of_step": accumulation restarts at the beginning of each time step.
-        - "start_of_forecast": accumulation starts at the beginning of the forecast and continues
-          throughout the forecast period.
-        - "start_of_day": accumulation restarts at the beginning of each day (00:00 UTC).
-        Default is "start_of_step".
-    from_first_step : bool, optional
-        Only used if `accumulation_type` is "start_of_forecast". If True, the first time step's rate is
-        calculated by dividing the first accumulation value by the step duration. Default is True.
-    provenance : bool, optional
-        If True, appends a history entry to the output dataarray's attributes indicating
-        that the transformation was applied. Default is True.
-
-    Returns
-    -------
-    xr.DataArray
-        Data object with rate calculated based on the accumulation data.
-
-    """
-    if xp is None:
-        xp = _tools.array_namespace_from_object(dataarray)
-
-    time_dim_array = dataarray[time_dim]
-
-    if step is None:
-        if len(time_dim_array) < 2:
-            raise ValueError("Cannot infer step from time dimension with less than two entries.")
-        # step_obj is an array of time differences
-        step_obj = time_dim_array.diff(time_dim, label="upper")
-        if from_first_step:
-            # Prepend the first step assuming it's the same as the second step
-            first_step = step_obj.isel(**{time_dim: 0}).expand_dims(time_dim)
-            first_step = first_step.assign_coords(
-                {time_dim: time_dim_array.isel(**{time_dim: 0}).expand_dims(time_dim)}
-            )
-            step_obj = xr.concat([first_step, step_obj], dim=time_dim)
-    else:
-        _step = float(step)
-        step_obj = pd.to_timedelta(_step, step_units)
-    # step_float = float(step_obj)
-
-    if rate_units == "step_length":
-        rate_scale_factor = 1.0
-        rate_units_str = ""  # Do not append anything to units attribute
-    else:
-        try:
-            # Handle cases like '15min', '3H', etc.
-            rate_obj = pd.to_timedelta(rate_units)
-            rate_units_str = f"({rate_units})^-1"
-        except ValueError:
-            # Handle simple units like 'seconds', 'minutes', 'hours', 'days'
-            rate_obj = pd.to_timedelta(1, rate_units)
-            rate_units_str = f"{rate_units}^-1"
-        rate_scale_factor = step_obj / rate_obj
-
-    # Tidy up the rate_units_str for common abbreviations
-    rate_units_str = rate_units_str.replace("seconds", "s").replace("minutes", "min")
-
-    match accumulation_type:
-        case "start_of_step":
-            # Simple case: rate = accumulation / step
-            output = dataarray / rate_scale_factor
-
-        case "start_of_forecast":
-            # Compute forward differences
-            diff_data = dataarray.diff(time_dim, label="upper")
-            if from_first_step:
-                # Prepend diff with first value being the same as the first dataarray value
-                first_diff = dataarray.isel({time_dim: 0}).expand_dims(time_dim)
-                diff_data = xr.concat([first_diff, diff_data], dim=time_dim)
-
-            output = diff_data / rate_scale_factor
-
-        case "start_of_day":
-            # Mask for midnight steps of the day (True = midnight)
-            midnight_mask = time_dim_array.dt.floor("h").dt.hour == 0
-            # Shift the mask forward one step for first step of day.
-            # Leave the first element as NaN as not possible to know if it was the first step of the day,
-            # this eventuality is handled explicitly by the "from_first_step" logic below
-            first_step_of_day_mask = midnight_mask.shift(**{time_dim: 1})
-
-            # If first step is midnight, we set to NaN as no prior data
-            if midnight_mask.data[0]:
-                dataarray[0] = xp.nan
-
-            # Compute forward differences
-            diff_data = dataarray.diff(time_dim, label="upper")
-            if from_first_step:
-                # Prepend diff with first value being the same as the first dataarray value
-                first_diff = dataarray.isel({time_dim: 0}).expand_dims(time_dim)
-                diff_data = xr.concat([first_diff, diff_data], dim=time_dim)
-            else:
-                # We must drop the first element of the first_step_of_day_mask to match the diffed array
-                first_step_of_day_mask = first_step_of_day_mask.isel({time_dim: slice(1, None)})
-
-            # Calculate the rate for values, excluding the first step of each day
-            output = diff_data / rate_scale_factor
-
-            # Now calculate the rate for the first step of each day using the original dataarray
-            output = xr.where(
-                first_step_of_day_mask,
-                dataarray.sel(**{time_dim: output[time_dim]}) / rate_scale_factor,
-                output,
-            )
-
-        case _:
-            raise ValueError(f"Unknown accumulation_type: {accumulation_type}")
-
-    output.name = dataarray.name + "_rate"
-    if "units" in dataarray.attrs:
-        output.attrs.update({"units": dataarray.attrs["units"] + rate_units_str})
-    if "long_name" in dataarray.attrs:
-        output.attrs["long_name"] = dataarray.attrs["long_name"] + " rate"
-    if provenance or "history" in dataarray.attrs:
-        output.attrs["history"] = dataarray.attrs.get("history", "") + (
-            "\nConverted from accumulation to rate using earthkit.transforms.temporal.accumulation_to_rate."
-        )
-
-    return output
-
-
-def _accumulation_to_rate_dataarray_take3(
     dataarray: xr.DataArray,
     step: None | float | int = None,
     step_units: str = "hours",
@@ -378,7 +210,7 @@ def _accumulation_to_rate_dataarray_take3(
             step_obj = xr.concat([first_step, step_obj], dim=step_dim)
     else:
         _step = float(step)
-        step_obj = pd.to_timedelta(_step, step_units)
+        step_obj = pd.to_timedelta(f"{_step} {step_units}")
     # step_float = float(step_obj)
 
     if rate_units == "step_length":
@@ -391,7 +223,7 @@ def _accumulation_to_rate_dataarray_take3(
             rate_units_str = f"({rate_units})^-1"
         except ValueError:
             # Handle simple units like 'seconds', 'minutes', 'hours', 'days'
-            rate_obj = pd.to_timedelta(1, rate_units)
+            rate_obj = pd.to_timedelta(f"1 {rate_units}")
             rate_units_str = f"{rate_units}^-1"
         rate_scale_factor = step_obj / rate_obj
 
@@ -452,16 +284,17 @@ def _accumulation_to_rate_dataarray_take3(
                 output = diff_data / rate_scale_factor
 
                 # Now calculate the rate for the first step of each day using the original dataarray
+                _indexer: dict[str, xr.DataArray] = {step_dim: output[step_dim]}
                 output = xr.where(
                     first_step_of_day_mask,
-                    dataarray.sel(**{step_dim: output[step_dim]}) / rate_scale_factor,
+                    dataarray.sel(_indexer) / rate_scale_factor,
                     output,
                 )
 
         case _:
             raise ValueError(f"Unknown accumulation_type: {accumulation_type}")
 
-    output.name = dataarray.name + "_rate"
+    output = output.rename(f"{dataarray.name}_rate" if dataarray.name is not None else "rate")
     if "units" in dataarray.attrs:
         output.attrs.update({"units": dataarray.attrs["units"] + rate_units_str})
     if "long_name" in dataarray.attrs:
