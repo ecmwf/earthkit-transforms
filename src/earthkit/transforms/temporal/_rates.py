@@ -137,9 +137,8 @@ def _accumulation_to_rate_dataarray(
         The array namespace to use for the reduction. If None, it will be inferred from the dataarray.
     time_dim : str, optional
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
-        default behaviour is to deduce time dimension from
-        attributes of coordinates, then fall back to `"time"`.
-        If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
+        default behaviour is to deduce time dimension from attributes of coordinates,
+        then fall back to `"time"`.
     accumulation_type : str, optional
         Type of accumulation used in the input data. Options are:
         - "start_of_step": accumulation restarts at the beginning of each time step.
