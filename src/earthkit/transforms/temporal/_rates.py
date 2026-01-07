@@ -59,7 +59,6 @@ def accumulation_to_rate(
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-        If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     accumulation_type : str, optional
         Type of accumulation used in the input data. Options are:
         - "start_of_step": accumulation restarts at the beginning of each time step.
@@ -89,7 +88,7 @@ def accumulation_to_rate(
             )
             for var_name in dataarray.data_vars
         }
-        return xr.Dataset(data_vars, attrs=dataarray.attrs)
+        return xr.Dataset(data_vars)
 
     return _accumulation_to_rate_dataarray(dataarray, *_args, **_kwargs)
 
@@ -123,6 +122,13 @@ def _accumulation_to_rate_dataarray(
     ----------
     dataarray : xr.DataArray
         Data accumulated along time to be converted into rate (per second).
+    accumulation_type : str, optional
+        Type of accumulation used in the input data. Options are:
+        - "start_of_step": accumulation restarts at the beginning of each time step.
+        - "start_of_forecast": accumulation starts at the beginning of the forecast and continues
+          throughout the forecast period.
+        - "start_of_day": accumulation restarts at the beginning of each day (00:00 UTC).
+        Default is "start_of_step".
     step : float | int, optional
         Interval between consecutive time steps in hours. If not provided, the function
         will infer the step from the first two time steps in the data.
@@ -139,13 +145,6 @@ def _accumulation_to_rate_dataarray(
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
         default behaviour is to deduce time dimension from attributes of coordinates,
         then fall back to `"time"`.
-    accumulation_type : str, optional
-        Type of accumulation used in the input data. Options are:
-        - "start_of_step": accumulation restarts at the beginning of each time step.
-        - "start_of_forecast": accumulation starts at the beginning of the forecast and continues
-          throughout the forecast period.
-        - "start_of_day": accumulation restarts at the beginning of each day (00:00 UTC).
-        Default is "start_of_step".
     from_first_step : bool, optional
         Only used if `accumulation_type` is "start_of_forecast". If True, the first time step's rate is
         calculated by dividing the first accumulation value by the step duration. Default is True.
@@ -210,7 +209,6 @@ def _accumulation_to_rate_dataarray(
     else:
         _step = float(step)
         step_obj = pd.to_timedelta(f"{_step} {step_units}")
-    # step_float = float(step_obj)
 
     if rate_units == "step_length":
         rate_scale_factor = 1.0
@@ -219,11 +217,11 @@ def _accumulation_to_rate_dataarray(
         try:
             # Handle cases like '15min', '3H', etc.
             rate_obj = pd.to_timedelta(rate_units)
-            rate_units_str = f"({rate_units})^-1"
+            rate_units_str = f" ({rate_units})^-1"
         except ValueError:
             # Handle simple units like 'seconds', 'minutes', 'hours', 'days'
             rate_obj = pd.to_timedelta(f"1 {rate_units}")
-            rate_units_str = f"{rate_units}^-1"
+            rate_units_str = f" {rate_units}^-1"
         rate_scale_factor = step_obj / rate_obj
 
     # Tidy up the rate_units_str for common abbreviations

@@ -225,11 +225,13 @@ def test_accumulation_to_rate_base(time_dim_mode):
 
     rate_data = temporal.accumulation_to_rate(data)
     assert "tp_rate" == rate_data.name
-    assert original_units + "s^-1" == rate_data.attrs["units"]
+    assert original_units + " s^-1" == rate_data.attrs["units"]
     assert "standard_name" not in rate_data.attrs
 
     accum_time_dim = ACCUM_TIME_DIM.get(time_dim_mode, time_dim_mode)
     numeric_test_sample = rate_data.isel(latitude=5, longitude=5, **{accum_time_dim: slice(0, 5)})
+    assert not np.all(np.isnan(numeric_test_sample.values)), "Sample array contains only NaN values"
+    assert not np.all(numeric_test_sample.values == 0), "Sample array contains only zero values"
     expected_sample = (data.isel(latitude=5, longitude=5, **{accum_time_dim: slice(0, 5)}).values) / (
         3600.0
     )  # seconds in an hour
@@ -243,10 +245,10 @@ def test_accumulation_to_rate_base(time_dim_mode):
 @pytest.mark.parametrize(
     "rate_units, expected_units, sample_sf",
     [
-        ("seconds", "s^-1", 3600.0),
-        ("minutes", "min^-1", 60.0),
-        ("hours", "hours^-1", 1.0),
-        ("3 hours", "(3 hours)^-1", 1.0 / 3.0),
+        ("seconds", " s^-1", 3600.0),
+        ("minutes", " min^-1", 60.0),
+        ("hours", " hours^-1", 1.0),
+        ("3 hours", " (3 hours)^-1", 1.0 / 3.0),
         ("step_length", "", 1.0),
     ],
 )
@@ -263,10 +265,13 @@ def test_accumulation_to_rate_start_of_step_rate_units(rate_units, expected_unit
 
     accum_time_dim = ACCUM_TIME_DIM.get(time_dim_mode, time_dim_mode)
     numeric_test_sample = rate_data.isel(latitude=5, longitude=5, **{accum_time_dim: slice(0, 5)})
+    assert not np.all(np.isnan(numeric_test_sample.values)), "Sample array contains only NaN values"
+    assert not np.all(numeric_test_sample.values == 0), "Sample array contains only zero values"
     expected_sample = (data.isel(latitude=5, longitude=5, **{accum_time_dim: slice(0, 5)}).values) / (
         sample_sf
     )
     np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
+    assert not np.all(np.isnan(numeric_test_sample.values)), "Array contains only NaN values"
 
 
 @pytest.mark.parametrize(
@@ -282,13 +287,15 @@ def test_accumulation_to_rate_start_of_forecast(time_dim_mode):
 
     rate_data = temporal.accumulation_to_rate(data, accumulation_type=accumulation_type)
     assert "tp_rate" == rate_data.name
-    assert original_units + "s^-1" == rate_data.attrs["units"]
+    assert original_units + " s^-1" == rate_data.attrs["units"]
     assert "standard_name" not in rate_data.attrs
     assert rate_data[accum_time_dim][0].values == data[accum_time_dim][0].values
     isel_kwargs = {k: 0 for k in data.dims if k not in (accum_time_dim, "latitude", "longitude")}
     numeric_test_sample = rate_data.isel(
         latitude=10, longitude=17, **{accum_time_dim: slice(1, 5)}, **isel_kwargs
     )
+    assert not np.all(np.isnan(numeric_test_sample.values)), "Sample array contains only NaN values"
+    assert not np.all(numeric_test_sample.values == 0), "Sample array contains only zero values"
     expected_sample = (
         data.isel(latitude=10, longitude=17, **{accum_time_dim: slice(1, 5)}, **isel_kwargs).values
         - data.isel(latitude=10, longitude=17, **{accum_time_dim: slice(0, 4)}, **isel_kwargs).values
@@ -300,9 +307,10 @@ def test_accumulation_to_rate_start_of_forecast(time_dim_mode):
         data, accumulation_type="start_of_forecast", from_first_step=False
     )
     assert "tp_rate" == rate_data.name
-    assert original_units + "s^-1" == rate_data.attrs["units"]
+    assert original_units + " s^-1" == rate_data.attrs["units"]
     assert "standard_name" not in rate_data.attrs
     assert rate_data[accum_time_dim][0].values == data[accum_time_dim][1].values
+    assert not np.all(np.isnan(numeric_test_sample.values)), "Array contains only NaN values"
 
 
 @pytest.mark.parametrize(
@@ -312,9 +320,9 @@ def test_accumulation_to_rate_start_of_forecast(time_dim_mode):
 @pytest.mark.parametrize(
     "rate_units, expected_units, sample_sf",
     [
-        ("minutes", "min^-1", 60.0 * 24),
-        ("hours", "hours^-1", 24.0),
-        ("3 hours", "(3 hours)^-1", 8.0),
+        ("minutes", " min^-1", 60.0 * 24),
+        ("hours", " hours^-1", 24.0),
+        ("3 hours", " (3 hours)^-1", 8.0),
         ("step_length", "", 1.0),
     ],
 )
@@ -339,6 +347,8 @@ def test_accumulation_to_rate_start_of_forecast_rate_units(
     numeric_test_sample = rate_data.isel(
         latitude=10, longitude=17, **{accum_time_dim: slice(1, 5)}, **isel_kwargs
     )
+    assert not np.all(np.isnan(numeric_test_sample.values)), "Sample array contains only NaN values"
+    assert not np.all(numeric_test_sample.values == 0), "Sample array contains only zero values"
     expected_sample = (
         data.isel(latitude=10, longitude=17, **{accum_time_dim: slice(1, 5)}, **isel_kwargs).values
         - data.isel(latitude=10, longitude=17, **{accum_time_dim: slice(0, 4)}, **isel_kwargs).values
@@ -346,6 +356,7 @@ def test_accumulation_to_rate_start_of_forecast_rate_units(
     np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
 
 
+ERA5_LAND_TEST_POINT: dict[str, int] = {"latitude": 10, "longitude": 18}
 @pytest.mark.parametrize(
     "time_dim_mode",
     ("forecast", "valid_time"),
@@ -359,18 +370,20 @@ def test_accumulation_to_rate_start_of_day(time_dim_mode):
     original_units = data.attrs["units"]
     rate_data = temporal.accumulation_to_rate(data, accumulation_type=accumulation_type)
     assert "tp_rate" == rate_data.name
-    assert original_units + "s^-1" == rate_data.attrs["units"]
+    assert original_units + " s^-1" == rate_data.attrs["units"]
     assert "standard_name" not in rate_data.attrs
     assert rate_data[accum_time_dim][0].values == data[accum_time_dim][0].values
 
-    isel_kwargs = {k: 0 for k in data.dims if k not in (accum_time_dim, "latitude", "longitude")}
+    isel_kwargs = {k: 1 for k in data.dims if k not in (accum_time_dim, "latitude", "longitude")}
     numeric_test_sample = rate_data.isel(
-        latitude=5, longitude=5, **{accum_time_dim: slice(26, 31)}, **isel_kwargs
+        **ERA5_LAND_TEST_POINT, **{accum_time_dim: slice(2, 22)}, **isel_kwargs
     )
+    assert not np.all(np.isnan(numeric_test_sample.values)), "Sample array contains only NaN values"
+    assert not np.all(numeric_test_sample.values == 0), "Sample array contains only zero values"
     expected_sample = (
-        data.isel(latitude=5, longitude=5, **{accum_time_dim: slice(26, 31)}, **isel_kwargs).values
-        - data.isel(latitude=5, longitude=5, **{accum_time_dim: slice(25, 30)}, **isel_kwargs).values
-    ) / (3600.0 * 24)  # 24 hours in seconds
+        data.isel(**ERA5_LAND_TEST_POINT, **{accum_time_dim: slice(2, 22)}, **isel_kwargs).values
+        - data.isel(**ERA5_LAND_TEST_POINT, **{accum_time_dim: slice(1, 21)}, **isel_kwargs).values
+    ) / 3600.0  # hours to seconds
     np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
 
     if time_dim_mode == "valid_time":
@@ -378,11 +391,25 @@ def test_accumulation_to_rate_start_of_day(time_dim_mode):
         assert data.valid_time[25].values.astype("datetime64[h]").item().hour == 1
         # the rate can be computed
         numeric_test_sample = rate_data.isel(
-            latitude=5, longitude=5, **{accum_time_dim: slice(26, 31)}, **isel_kwargs
+            **ERA5_LAND_TEST_POINT, **{accum_time_dim: 25}, **isel_kwargs
         )
+        assert not np.all(np.isnan(numeric_test_sample.values)), "Sample array contains only NaN values"
+        assert not np.all(numeric_test_sample.values == 0), "Sample array contains only zero values"
         expected_sample = (
-            data.isel(latitude=5, longitude=5, **{accum_time_dim: 25}, **isel_kwargs).values
-        ) / (3600.0 * 24)
+            data.isel(**ERA5_LAND_TEST_POINT, **{accum_time_dim: 25}, **isel_kwargs).values
+        ) / 3600.0
+        np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
+
+        # Check a period that is not the first day
+        numeric_test_sample = rate_data.isel(
+            **ERA5_LAND_TEST_POINT, **{accum_time_dim: slice(26, 31)}, **isel_kwargs
+        )
+        assert not np.all(np.isnan(numeric_test_sample.values)), "Sample array contains only NaN values"
+        assert not np.all(numeric_test_sample.values == 0), "Sample array contains only zero values"
+        expected_sample = (
+            data.isel(**ERA5_LAND_TEST_POINT, **{accum_time_dim: slice(26, 31)}, **isel_kwargs).values
+            - data.isel(**ERA5_LAND_TEST_POINT, **{accum_time_dim: slice(25, 30)}, **isel_kwargs).values
+        ) / 3600.0  # hours in seconds
         np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
 
 
@@ -393,9 +420,10 @@ def test_accumulation_to_rate_start_of_day(time_dim_mode):
 @pytest.mark.parametrize(
     "rate_units, expected_units, sample_sf",
     [
-        ("minutes", "min^-1", 60.0 * 24),
-        ("hours", "hours^-1", 24.0),
-        ("3 hours", "(3 hours)^-1", 8.0),
+        ("seconds", " s^-1", 3600.0),
+        ("minutes", " min^-1", 60.0),
+        ("hours", " hours^-1", 1.0),
+        ("3 hours", " (3 hours)^-1", 1.0 / 3.0),
         ("step_length", "", 1.0),
     ],
 )
@@ -414,12 +442,14 @@ def test_accumulation_to_rate_start_of_day_rate_units(time_dim_mode, rate_units,
     assert rate_data.attrs["long_name"].endswith(" rate")
     assert "standard_name" not in rate_data.attrs
     assert rate_data[accum_time_dim][0].values == data[accum_time_dim][0].values
-    isel_kwargs = {k: 0 for k in data.dims if k not in (accum_time_dim, "latitude", "longitude")}
+    isel_kwargs = {k: 1 for k in data.dims if k not in (accum_time_dim, "latitude", "longitude")}
     numeric_test_sample = rate_data.isel(
-        latitude=5, longitude=5, **{accum_time_dim: slice(26, 31)}, **isel_kwargs
+        **ERA5_LAND_TEST_POINT, **{accum_time_dim: slice(6, 11)}, **isel_kwargs
     )
+    assert not np.all(np.isnan(numeric_test_sample.values)), "Sample array contains only NaN values"
+    assert not np.all(numeric_test_sample.values == 0), "Sample array contains only zero values"
     expected_sample = (
-        data.isel(latitude=5, longitude=5, **{accum_time_dim: slice(26, 31)}, **isel_kwargs).values
-        - data.isel(latitude=5, longitude=5, **{accum_time_dim: slice(25, 30)}, **isel_kwargs).values
+        data.isel(**ERA5_LAND_TEST_POINT, **{accum_time_dim: slice(6, 11)}, **isel_kwargs).values
+        - data.isel(**ERA5_LAND_TEST_POINT, **{accum_time_dim: slice(5, 10)}, **isel_kwargs).values
     ) / sample_sf
     np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
