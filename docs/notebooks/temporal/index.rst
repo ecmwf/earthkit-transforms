@@ -8,3 +8,4 @@ Temporal examples
    02-era5-daily-monthly-statistics.ipynb
    03-seas5-daily-statistics.ipynb
    04-era5-bespoke-how-function.ipynb
+   05-accumulation-to-rate-examples.ipynb
