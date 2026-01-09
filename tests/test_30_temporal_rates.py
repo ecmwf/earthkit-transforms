@@ -107,9 +107,7 @@ def test_accumulation_to_rate_start_of_forecast(time_dim_mode):
     assert "standard_name" not in rate_data.attrs
     assert rate_data[accum_time_dim][0].values == data[accum_time_dim][0].values
     isel_kwargs = {k: 0 for k in data.dims if k not in (accum_time_dim, "latitude", "longitude")}
-    numeric_test_sample = rate_data.isel(
-        **SEAS5_TEST_POINT, **{accum_time_dim: slice(1, 5)}, **isel_kwargs
-    )
+    numeric_test_sample = rate_data.isel(**SEAS5_TEST_POINT, **{accum_time_dim: slice(1, 5)}, **isel_kwargs)
     assert not np.all(np.isnan(numeric_test_sample.values)), "Sample array contains only NaN values"
     assert not np.all(numeric_test_sample.values == 0), "Sample array contains only zero values"
     expected_sample = (
@@ -160,9 +158,7 @@ def test_accumulation_to_rate_start_of_forecast_rate_units(
     assert "standard_name" not in rate_data.attrs
 
     isel_kwargs = {k: 0 for k in data.dims if k not in (accum_time_dim, "latitude", "longitude")}
-    numeric_test_sample = rate_data.isel(
-        **SEAS5_TEST_POINT, **{accum_time_dim: slice(1, 5)}, **isel_kwargs
-    )
+    numeric_test_sample = rate_data.isel(**SEAS5_TEST_POINT, **{accum_time_dim: slice(1, 5)}, **isel_kwargs)
     assert not np.all(np.isnan(numeric_test_sample.values)), "Sample array contains only NaN values"
     assert not np.all(numeric_test_sample.values == 0), "Sample array contains only zero values"
     expected_sample = (
@@ -288,8 +284,7 @@ def test_deaccumulate(time_dim_mode):
 
     # Check first timestep is unchanged
     np.testing.assert_allclose(
-        deaccum_data.isel(**{accum_time_dim: 0}).values,
-        data.isel(**{accum_time_dim: 0}).values
+        deaccum_data.isel(**{accum_time_dim: 0}).values, data.isel(**{accum_time_dim: 0}).values
     )
 
     numeric_test_sample = deaccum_data.isel(
@@ -302,4 +297,3 @@ def test_deaccumulate(time_dim_mode):
         - data.isel(**{accum_time_dim: slice(0, 4)}, **SEAS5_TEST_POINT, **isel_kwargs).values
     )
     np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
-
