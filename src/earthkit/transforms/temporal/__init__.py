@@ -29,7 +29,7 @@ from ._aggregate import (
     std,
     sum,
 )
-from ._rates import accumulation_to_rate
+from ._rates import accumulation_to_rate, deaccumulate
 
 __all__ = [
     "max",
@@ -56,4 +56,5 @@ __all__ = [
     "monthly_sum",
     "standardise_time",
     "accumulation_to_rate",
+    "deaccumulate",
 ]

@@ -357,6 +357,8 @@ def test_accumulation_to_rate_start_of_forecast_rate_units(
 
 
 ERA5_LAND_TEST_POINT: dict[str, int] = {"latitude": 10, "longitude": 18}
+
+
 @pytest.mark.parametrize(
     "time_dim_mode",
     ("forecast", "valid_time"),
@@ -390,9 +392,7 @@ def test_accumulation_to_rate_start_of_day(time_dim_mode):
         # Check a value for the first timestep of a day, in this example at 01:00
         assert data.valid_time[25].values.astype("datetime64[h]").item().hour == 1
         # the rate can be computed
-        numeric_test_sample = rate_data.isel(
-            **ERA5_LAND_TEST_POINT, **{accum_time_dim: 25}, **isel_kwargs
-        )
+        numeric_test_sample = rate_data.isel(**ERA5_LAND_TEST_POINT, **{accum_time_dim: 25}, **isel_kwargs)
         assert not np.all(np.isnan(numeric_test_sample.values)), "Sample array contains only NaN values"
         assert not np.all(numeric_test_sample.values == 0), "Sample array contains only zero values"
         expected_sample = (

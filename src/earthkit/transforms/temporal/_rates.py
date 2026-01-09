@@ -11,11 +11,69 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
 import typing as T
 
 import pandas as pd
 import xarray as xr
 from earthkit.transforms import _tools
+
+logger = logging.getLogger(__name__)
+
+
+def deaccumulate(
+    dataarray: xr.Dataset | xr.DataArray,
+    *_args,
+    **_kwargs,
+) -> xr.Dataset | xr.DataArray:
+    """Alias for `accumulation_to_rate` function with rate_units set to 'step_length'.
+
+    The returned object will preserve the units and long_name attributes of the input dataarray.
+
+    Parameters
+    ----------
+    dataarray : xr.DataArray | xr.Dataset
+        Data accumulated along time to be converted into rate (per time step).
+    step : float | int, optional
+        Interval between consecutive time steps in hours. If not provided, the function
+        will infer the step from the first two time steps in the data.
+    step_units : str, optional
+        Units of the `step` parameter (if provided), default is 'hours'.
+    rate_units : str, optional
+        Units for the output rate, it can be any valid pandas time frequency string
+        (e.g., '15min', '3H', 'D') or simple units like 'seconds', 'minutes', 'hours', 'days',
+        or if set to 'step_length', the rate will be accumulation per time step.
+        The default is 'seconds'.
+    xp : T.Any
+        The array namespace to use for the reduction. If None, it will be inferred from the dataarray.
+    time_dim : str, optional
+        Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
+        default behaviour is to deduce time dimension from
+        attributes of coordinates, then fall back to `"time"`.
+    accumulation_type : str, optional
+        Type of accumulation used in the input data. Options are:
+        - "start_of_step": accumulation restarts at the beginning of each time step.
+        - "start_of_forecast": accumulation starts at the beginning of the forecast and continues
+          throughout the forecast period.
+        - "start_of_day": accumulation restarts at the beginning of each day (00:00 UTC).
+        Default is "start_of_step".
+    from_first_step : bool, optional
+        Only used if `accumulation_type` is "start_of_forecast". If True, the first time step's rate is
+        calculated by dividing the first accumulation value by the step duration. Default is True.
+    provenance : bool, optional
+        If True, appends a history entry to the output dataarray's attributes indicating
+        that the transformation was applied. Default is True.
+
+    Returns
+    -------
+    xr.DataArray | xr.Dataset
+        Data object with deaccumulation data.
+    """
+    if "rate_units" in _kwargs:
+        logger.warning("The 'rate_units' parameter is not applicable for `deaccumulate` and will be ignored.")
+
+    _kwargs["rate_units"] = "step_length"
+    return accumulation_to_rate(dataarray, *_args, **_kwargs)
 
 
 @_tools.time_dim_decorator
@@ -28,16 +86,9 @@ def accumulation_to_rate(
     """Convert a variable accumulated from the beginning of the forecast to a rate.
 
     The rate is computed by considering first-order discrete differences in data
-    along the time (or leadtime, if time is not a dimension)
-    axis, divided by the number of seconds in the step.
-
-    # Check it does this
-    If time[k] - time[k-1] != step, then the corresponding output values will be NaN.
-
-    Example:
-        Compute snowfall rate in m/s based on accumulated snowfall, using a time step of 24 hours.
-
-        >>> snow_fall_rate = accumulation_to_rate(snow_fall, step=24)
+    along the inferred, or specified, time dimension.
+    The difference are converted to a rate by dividing by the time step duration, unless
+    specified otherwise.
 
     Parameters
     ----------
@@ -300,7 +351,7 @@ def _accumulation_to_rate_dataarray(
         output.attrs["long_name"] = dataarray.attrs["long_name"] + " rate"
     if provenance or "history" in dataarray.attrs:
         output.attrs["history"] = dataarray.attrs.get("history", "") + (
-            "\nConverted from accumulation to rate using earthkit.transforms.temporal.accumulation_to_rate."
+            "Converted from accumulation to rate using earthkit.transforms.temporal.accumulation_to_rate.\n"
         )
 
     return output
