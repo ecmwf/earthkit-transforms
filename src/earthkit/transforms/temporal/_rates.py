@@ -51,7 +51,7 @@ def deaccumulate(
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
     accumulation_type : str, optional
-        Type of accumulation used in the input data. Options are:
+        Type of accumulation used in the input data. Default is "start_of_forecast". Options are:
         - "start_of_step": accumulation restarts at the beginning of each time step.
         - "start_of_forecast": accumulation starts at the beginning of the forecast and continues
           throughout the forecast period.
@@ -68,11 +68,12 @@ def deaccumulate(
     -------
     xr.DataArray | xr.Dataset
         Data object with deaccumulation data.
+
     """
     if "rate_units" in _kwargs:
         logger.warning("The 'rate_units' parameter is not applicable for `deaccumulate` and will be ignored.")
-
     _kwargs["rate_units"] = "step_length"
+    _kwargs.setdefault("accumulation_type", "start_of_forecast")
     return accumulation_to_rate(dataarray, *_args, **_kwargs)
 
 
@@ -111,7 +112,7 @@ def accumulation_to_rate(
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
     accumulation_type : str, optional
-        Type of accumulation used in the input data. Options are:
+        Type of accumulation used in the input data. Default is "start_of_step". Options are:
         - "start_of_step": accumulation restarts at the beginning of each time step.
         - "start_of_forecast": accumulation starts at the beginning of the forecast and continues
           throughout the forecast period.
@@ -264,6 +265,7 @@ def _accumulation_to_rate_dataarray(
     if rate_units == "step_length":
         rate_scale_factor = 1.0
         rate_units_str = ""  # Do not append anything to units attribute
+        rate_name_suffix = "_per_step"
     else:
         try:
             # Handle cases like '15min', '3H', etc.
@@ -274,6 +276,7 @@ def _accumulation_to_rate_dataarray(
             rate_obj = pd.to_timedelta(f"1 {rate_units}")
             rate_units_str = f" {rate_units}^-1"
         rate_scale_factor = step_obj / rate_obj
+        rate_name_suffix = "_rate"
 
     # Tidy up the rate_units_str for common abbreviations
     rate_units_str = rate_units_str.replace("seconds", "s").replace("minutes", "min")
@@ -342,13 +345,15 @@ def _accumulation_to_rate_dataarray(
         case _:
             raise ValueError(f"Unknown accumulation_type: {accumulation_type}")
 
-    output = output.rename(f"{dataarray.name}_rate" if dataarray.name is not None else "rate")
+    output = output.rename(
+        f"{dataarray.name}{rate_name_suffix}" if dataarray.name is not None else rate_name_suffix.lstrip("_")
+    )
     # Clear any existing attributes and set new ones
     output.attrs = {}
     if "units" in dataarray.attrs:
         output.attrs.update({"units": dataarray.attrs["units"] + rate_units_str})
     if "long_name" in dataarray.attrs:
-        output.attrs["long_name"] = dataarray.attrs["long_name"] + " rate"
+        output.attrs["long_name"] = dataarray.attrs["long_name"] + rate_name_suffix.replace("_", " ")
     if provenance or "history" in dataarray.attrs:
         output.attrs["history"] = dataarray.attrs.get("history", "") + (
             "Converted from accumulation to rate using earthkit.transforms.temporal.accumulation_to_rate.\n"
