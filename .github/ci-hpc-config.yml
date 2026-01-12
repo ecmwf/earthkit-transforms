@@ -1,6 +1,6 @@
 build:
   modules:
-    - ninja
+  - ninja
   dependencies:
-    - ecmwf/earthkit-data@develop
+  - ecmwf/earthkit-data@develop
   parallel: 64
