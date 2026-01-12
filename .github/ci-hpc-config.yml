@@ -1,8 +1,6 @@
 build:
-  modules:
-    - ninja
-  dependencies:
-    - ecmwf/ecbuild@develop
-    - ecmwf/eccodes@develop
-    - ecmwf/eckit@develop
-  parallel: 64
+  python: 3.10
+  parallel: 1
+  python_dependencies:
+  - ecmwf/earthkit-utils@develop
+  - ecmwf/earthkit-data@develop
