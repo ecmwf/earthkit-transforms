@@ -26,6 +26,7 @@ jobs:
     uses: ecmwf/downstream-ci/.github/workflows/downstream-ci.yml@add-repo-earthkit-transforms
     with:
       earthkit-transforms: ecmwf/earthkit-transforms@${{ github.event.pull_request.head.sha || github.sha }}
+    #   codecov_upload: true
     secrets: inherit
 
   # Build downstream packages on HPC
