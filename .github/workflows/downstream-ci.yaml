@@ -7,6 +7,11 @@ on:
     - 'main'
     tags-ignore:
     - '**'
+
+  # Trigger the workflow on pull request
+  pull_request:
+
+  # Trigger the workflow manually
   workflow_dispatch:
     inputs:
       branch:
@@ -14,11 +19,6 @@ on:
         required: true
         default: "main"
 
-  # Trigger the workflow on pull request
-  pull_request:
-
-  # Trigger the workflow manually
-  workflow_dispatch:
 
   # Trigger after public PR approved for CI
   pull_request_target:
