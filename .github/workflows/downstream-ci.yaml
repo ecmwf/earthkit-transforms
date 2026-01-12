@@ -1,6 +1,5 @@
 name: downstream-ci
 
-
 on:
   # Trigger the workflow on push to main, excluding tags
   push:
