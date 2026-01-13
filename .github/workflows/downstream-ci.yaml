@@ -16,12 +16,6 @@ on:
 
   # Trigger the workflow manually
   workflow_dispatch:
-    inputs:
-      branch:
-        description: "Branch to deploy from"
-        required: true
-        default: "main"
-
 
   # Trigger after public PR approved for CI
   pull_request_target:
