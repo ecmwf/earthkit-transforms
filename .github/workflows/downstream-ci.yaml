@@ -12,6 +12,7 @@ on:
     - "README.md"
     - "LICENCE"
     - ".gitignore"
+    - ".readthedocs.yaml"
 
   # Trigger the workflow on pull request
   pull_request:
