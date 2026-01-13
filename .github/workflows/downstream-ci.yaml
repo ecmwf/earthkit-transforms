@@ -10,6 +10,8 @@ on:
     paths-ignore:
     - "docs/**"
     - "README.md"
+    - "LICENCE"
+    - ".gitignore"
 
   # Trigger the workflow on pull request
   pull_request:
