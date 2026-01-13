@@ -6,6 +6,9 @@ dependencies: |
   ecmwf/odc
   ecmwf/metkit
   ecmwf/fdb
+python_dependencies: |
+  ecmwf/earthkit-utils@develop
+  ecmwf/earthkit-data@develop
 dependency_branch: develop
 parallelism_factor: 8
 self_build: false
