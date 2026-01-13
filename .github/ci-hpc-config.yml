@@ -11,6 +11,8 @@ build:
   - ecmwf/fdb@develop
   python_dependencies:
   - ecmwf/eccodes-python@develop
+  - ecmwf/earthkit-utils@develop
+  - ecmwf/earthkit-data@develop
   - ecmwf/cfgrib@master
   - ecmwf/pdbufr@master
   - ecmwf/pyodc@develop
