@@ -35,7 +35,7 @@ def deaccumulate(
     dataarray : xr.DataArray | xr.Dataset
         Data accumulated along time to be converted into rate (per time step).
     step : float | int, optional
-        Interval between consecutive time steps in hours. If not provided, the function
+        Interval between consecutive time steps (in hours, unless 'step_units' is specified). If not provided, the function
         will infer the step from the first two time steps in the data.
     step_units : str, optional
         Units of the `step` parameter (if provided), default is 'hours'.
