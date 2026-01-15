@@ -44,5 +44,3 @@ jobs:
     with:
       earthkit-transforms: ecmwf/earthkit-transforms@${{ github.event.pull_request.head.sha || github.sha }}
     secrets: inherit
-
-    
