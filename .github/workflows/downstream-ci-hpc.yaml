@@ -1,4 +1,4 @@
-name: downstream-ci
+name: Downstream CI HPC
 
 on:
 
