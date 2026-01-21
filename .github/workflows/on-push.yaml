@@ -1,4 +1,4 @@
-name: Master CI
+name: Master CI Orchestration
 
 on:
   push:
