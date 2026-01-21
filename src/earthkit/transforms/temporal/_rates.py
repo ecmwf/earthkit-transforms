@@ -62,7 +62,7 @@ def deaccumulate(
         Default is "start_of_step".
     from_first_step : bool, optional
         Only used if `accumulation_type` is "start_of_forecast". If True, the first time step's rate is
-        calculated by dividing the first accumulation value by the step duration. Default is True.
+        calculated by dividing the first accumulation value by the step duration. Default is False.
     provenance : bool, optional
         If True, appends a history entry to the output dataarray's attributes indicating
         that the transformation was applied. Default is True.
@@ -126,7 +126,7 @@ def accumulation_to_rate(
         Default is "start_of_step".
     from_first_step : bool, optional
         Only used if `accumulation_type` is "start_of_forecast". If True, the first time step's rate is
-        calculated by dividing the first accumulation value by the step duration. Default is True.
+        calculated by dividing the first accumulation value by the step duration. Default is False.
     provenance : bool, optional
         If True, appends a history entry to the output dataarray's attributes indicating
         that the transformation was applied. Default is True.
@@ -154,7 +154,7 @@ def _accumulation_to_rate_dataarray(
     xp: T.Any = None,
     time_dim: str | None = None,
     accumulation_type: str = "start_of_step",
-    from_first_step: bool = True,
+    from_first_step: bool = False,
     provenance: bool = True,
     rate_label: str | None = None,
 ) -> xr.DataArray:
@@ -203,8 +203,9 @@ def _accumulation_to_rate_dataarray(
         default behaviour is to deduce time dimension from attributes of coordinates,
         then fall back to `"time"`.
     from_first_step : bool, optional
-        Only used if `accumulation_type` is "start_of_forecast". If True, the first time step's rate is
-        calculated by dividing the first accumulation value by the step duration. Default is True.
+        Only used if `accumulation_type` is "start_of_forecast" or "start_of_day" and the first step is not
+        midnight. If True, the first time step's rate is calculated by dividing the first accumulation
+        value by the step duration. Default is False.
     provenance : bool, optional
         If True, appends a history entry to the output dataarray's attributes indicating
         that the transformation was applied. Default is True.
@@ -256,7 +257,7 @@ def _accumulation_to_rate_dataarray(
             # step_obj is an array of time differences
             step_obj = step_dim_array.diff(step_dim, label="upper")
 
-        if from_first_step:
+        if from_first_step or accumulation_type in ["start_of_step"]:
             # Prepend the first step assuming it's the same as the second step
             first_step = step_obj.isel(**{step_dim: 0}).expand_dims(step_dim)
             first_step = first_step.assign_coords(
@@ -356,19 +357,28 @@ def _accumulation_to_rate_dataarray(
         case _:
             raise ValueError(f"Unknown accumulation_type: {accumulation_type}")
 
-    new_name = '_'.join(filter(None, [dataarray.name, rate_label]))
+    new_name = "_".join(filter(None, [dataarray.name, rate_label]))
     output = output.rename(new_name)
     # Clear any existing attributes and set new ones
     output.attrs = {}
     if "units" in dataarray.attrs:
         output.attrs.update({"units": dataarray.attrs["units"] + rate_units_str})
     if "long_name" in dataarray.attrs:
-        output.attrs["long_name"] = " ".join(filter(
-            None, [dataarray.attrs["long_name"], rate_label.replace('_', ' ')]
-        ))
+        output.attrs["long_name"] = " ".join(
+            filter(None, [dataarray.attrs["long_name"], rate_label.replace("_", " ")])
+        )
     if provenance or "history" in dataarray.attrs:
-        output.attrs["history"] = "\n".join(filter(None, [dataarray.attrs.get("history", ""), (
-            "Converted from accumulation to rate using earthkit.transforms.temporal.accumulation_to_rate."
-        )]))
+        output.attrs["history"] = "\n".join(
+            filter(
+                None,
+                [
+                    dataarray.attrs.get("history", ""),
+                    (
+                        "Converted from accumulation to rate using "
+                        "earthkit.transforms.temporal.accumulation_to_rate."
+                    ),
+                ],
+            )
+        )
 
     return output
