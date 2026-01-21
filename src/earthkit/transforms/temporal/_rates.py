@@ -40,8 +40,9 @@ def deaccumulate(
         If not provided, the will be inferred from the data.
     rate_units : timedelta | str, optional
         Units for the output rate. If a string, it must be a valid pandas time frequency string
-        (e.g., '15min', '3h', '1 day') or simple units like 'seconds', 'minutes', 'hours', 'days',
-        or if set to 'step_length', the rate will be accumulation per time step.
+        (e.g., '15min', '3h', '1 day') or simple units like 'seconds', 'minutes', 'hours', 'days'.
+        If set to 'step_length', the rate will be accumulation per time step and the returned object will
+        preserve the units and long_name attributes of the input dataarray.
         The default is 'seconds'.
     xp : T.Any
         The array namespace to use for the reduction. If None, it will be inferred from the dataarray.
@@ -100,8 +101,9 @@ def accumulation_to_rate(
         If not provided, the will be inferred from the data.
     rate_units : timedelta | str, optional
         Units for the output rate. If a string, it must be a valid pandas time frequency string
-        (e.g., '15min', '3h', '1 day') or simple units like 'seconds', 'minutes', 'hours', 'days',
-        or if set to 'step_length', the rate will be accumulation per time step.
+        (e.g., '15min', '3h', '1 day') or simple units like 'seconds', 'minutes', 'hours', 'days'.
+        If set to 'step_length', the rate will be accumulation per time step and the returned object will
+        preserve the units and long_name attributes of the input dataarray.
         The default is 'seconds'.
     xp : T.Any
         The array namespace to use for the reduction. If None, it will be inferred from the dataarray.
@@ -184,8 +186,9 @@ def _accumulation_to_rate_dataarray(
         If not provided, the will be inferred from the data.
     rate_units : timedelta | str, optional
         Units for the output rate. If a string, it must be a valid pandas time frequency string
-        (e.g., '15min', '3h', '1 day') or simple units like 'seconds', 'minutes', 'hours', 'days',
-        or if set to 'step_length', the rate will be accumulation per time step.
+        (e.g., '15min', '3h', '1 day') or simple units like 'seconds', 'minutes', 'hours', 'days'.
+        If set to 'step_length', the rate will be accumulation per time step and the returned object will
+        preserve the units and long_name attributes of the input dataarray.
         The default is 'seconds'.
     xp : T.Any
         The array namespace to use for the reduction. If None, it will be inferred from the dataarray.
