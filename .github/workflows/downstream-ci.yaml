@@ -1,18 +1,6 @@
 name: downstream-ci
 
 on:
-  # Trigger the workflow on push to main, excluding tags
-  # push:
-  #   branches:
-  #   - 'main'
-  #   tags-ignore:
-  #   - '**'
-  #   paths-ignore:
-  #   - "docs/**"
-  #   - "README.md"
-  #   - "LICENCE"
-  #   - ".gitignore"
-  #   - ".readthedocs.yaml"
 
   # Trigger the workflow manually
   workflow_dispatch:

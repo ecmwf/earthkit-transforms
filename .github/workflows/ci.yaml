@@ -20,7 +20,7 @@ defaults:
 
 jobs:
   combine-environments:
-    name: Combine environments and verify package installation
+    name: Run internal CI (Combine environments and verify package installation)
     runs-on: ubuntu-latest
 
     steps:
