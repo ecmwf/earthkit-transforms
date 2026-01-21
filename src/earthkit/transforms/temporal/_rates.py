@@ -322,6 +322,11 @@ def _accumulation_to_rate_dataarray(
                 output = diff_data / rate_scale_factor
 
             else:
+                # TODO: think of a more robust check to include here instead of a blanket warning
+                logger.warning(
+                    "Please be aware that using accumulation_type='start_of_day' with a 'valid_time' "
+                    "representation assumes that the data is contiguous."
+                )
                 # Mask for midnight steps of the day (True = midnight)
                 midnight_mask = step_dim_array.dt.floor("h").dt.hour == 0
                 # Shift the mask forward one step for first step of day.
