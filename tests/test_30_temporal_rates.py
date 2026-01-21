@@ -44,7 +44,7 @@ def test_accumulation_to_rate_base(time_dim_mode):
 
     rate_dataset = temporal.accumulation_to_rate(dataset)
     assert isinstance(rate_dataset, xr.Dataset)
-    assert "tp_rate" == rate_dataset["tp_rate"].name
+    assert "tp_rate" in rate_dataset
     assert original_units + " s^-1" == rate_dataset["tp_rate"].attrs["units"]
     assert "standard_name" not in rate_dataset["tp_rate"].attrs
 
@@ -86,7 +86,7 @@ def test_accumulation_to_rate_base_step(time_dim_mode, step, result_scale_factor
 
     rate_dataset = temporal.accumulation_to_rate(dataset, step=step)
     assert isinstance(rate_dataset, xr.Dataset)
-    assert "tp_rate" == rate_dataset["tp_rate"].name
+    assert "tp_rate" in rate_dataset
     assert original_units + " s^-1" == rate_dataset["tp_rate"].attrs["units"]
     assert "standard_name" not in rate_dataset["tp_rate"].attrs
 
@@ -350,3 +350,20 @@ def test_deaccumulate(time_dim_mode):
         - data.isel(**{accum_time_dim: slice(0, 4)}, **SEAS5_TEST_POINT, **isel_kwargs).values
     )
     np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
+
+
+@pytest.mark.parametrize(
+    "time_dim_mode",
+    ("forecast", "valid_time"),
+)
+def test_accumulation_to_rate_label(time_dim_mode):
+    test_file = "era5-sfc-precip-3deg-202401.grib"
+    rate_label = "custom"
+    dataset = get_data(test_file).to_xarray(**TO_XARRAY_KWARGS[time_dim_mode])
+    dataarray = dataset["tp"]
+
+    rate_dataset = temporal.accumulation_to_rate(dataset, rate_label=rate_label)
+    assert f"tp_{rate_label}" in rate_dataset
+
+    rate_data = temporal.accumulation_to_rate(dataarray, rate_label=rate_label)
+    assert f"tp_{rate_label}" == rate_data.name

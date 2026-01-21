@@ -44,6 +44,9 @@ def deaccumulate(
         If set to 'step_length', the rate will be accumulation per time step ("deaccumulated") and the
         returned object will preserve the units and long_name attributes of the input dataarray.
         The default is 'seconds'.
+    rate_label: str | None = None, optional
+        Suffix to append to the name of the output dataarray. If None, defaults to
+        'rate' or 'per_step' depending on the rate_units.
     xp : T.Any
         The array namespace to use for the reduction. If None, it will be inferred from the dataarray.
     time_dim : str, optional
@@ -105,6 +108,9 @@ def accumulation_to_rate(
         If set to 'step_length', the rate will be accumulation per time step ("deaccumulated") and the
         returned object will preserve the units and long_name attributes of the input dataarray.
         The default is 'seconds'.
+    rate_label: str | None = None, optional
+        Suffix to append to the name of the output dataarray. If None, defaults to
+        'rate' or 'per_step' depending on the rate_units.
     xp : T.Any
         The array namespace to use for the reduction. If None, it will be inferred from the dataarray.
     time_dim : str, optional
@@ -150,6 +156,7 @@ def _accumulation_to_rate_dataarray(
     accumulation_type: str = "start_of_step",
     from_first_step: bool = True,
     provenance: bool = True,
+    rate_label: str | None = None,
 ) -> xr.DataArray:
     """Convert a variable accumulated from the beginning of the forecast to a rate.
 
@@ -186,6 +193,9 @@ def _accumulation_to_rate_dataarray(
         If set to 'step_length', the rate will be accumulation per time step ("deaccumulated") and the
         returned object will preserve the units and long_name attributes of the input dataarray.
         The default is 'seconds'.
+    rate_label: str | None = None, optional
+        Suffix to append to the name of the output dataarray name, as _{rate_label}.
+        If None, defaults to 'rate' or 'per_step' depending on the rate_units.
     xp : T.Any
         The array namespace to use for the reduction. If None, it will be inferred from the dataarray.
     time_dim : str, optional
@@ -260,7 +270,8 @@ def _accumulation_to_rate_dataarray(
     if rate_units == "step_length":
         rate_scale_factor = 1.0
         rate_units_str = ""  # Do not append anything to units attribute
-        rate_name_suffix = "_per_step"
+        if rate_label is None:
+            rate_label = "per_step"
     else:
         if isinstance(rate_units, str) and not rate_units[0].isnumeric():
             rate_units = "1 " + rate_units
@@ -268,7 +279,8 @@ def _accumulation_to_rate_dataarray(
         rate_obj = pd.to_timedelta(rate_units)
         rate_units_str = f" {_tools.timedelta_to_largest_unit(rate_obj)}^-1"
         rate_scale_factor = step_obj / rate_obj
-        rate_name_suffix = "_rate"
+        if rate_label is None:
+            rate_label = "rate"
 
     # Tidy up the rate_units_str for common abbreviations
     rate_units_str = rate_units_str.replace("seconds", "s").replace("minutes", "min")
@@ -337,18 +349,19 @@ def _accumulation_to_rate_dataarray(
         case _:
             raise ValueError(f"Unknown accumulation_type: {accumulation_type}")
 
-    output = output.rename(
-        f"{dataarray.name}{rate_name_suffix}" if dataarray.name is not None else rate_name_suffix.lstrip("_")
-    )
+    new_name = '_'.join(filter(None, [dataarray.name, rate_label]))
+    output = output.rename(new_name)
     # Clear any existing attributes and set new ones
     output.attrs = {}
     if "units" in dataarray.attrs:
         output.attrs.update({"units": dataarray.attrs["units"] + rate_units_str})
     if "long_name" in dataarray.attrs:
-        output.attrs["long_name"] = dataarray.attrs["long_name"] + rate_name_suffix.replace("_", " ")
+        output.attrs["long_name"] = " ".join(filter(
+            None, [dataarray.attrs["long_name"], rate_label.replace('_', ' ')]
+        ))
     if provenance or "history" in dataarray.attrs:
-        output.attrs["history"] = dataarray.attrs.get("history", "") + (
-            "Converted from accumulation to rate using earthkit.transforms.temporal.accumulation_to_rate.\n"
-        )
+        output.attrs["history"] = "\n".join(filter(None, [dataarray.attrs.get("history", ""), (
+            "Converted from accumulation to rate using earthkit.transforms.temporal.accumulation_to_rate."
+        )]))
 
     return output
