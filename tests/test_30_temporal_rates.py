@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import pytest
 
 # from earthkit.data.core.temporary import temp_directory
@@ -59,6 +60,40 @@ def test_accumulation_to_rate_base(time_dim_mode):
     ("forecast", "valid_time"),
 )
 @pytest.mark.parametrize(
+    "step,result_scale_factor",
+    (
+        ("1 hour", 1),
+        ("1h", 1),
+        (pd.to_timedelta("1 hour"), 1),
+        ("30 minutes", 0.5),
+        ("2 hours", 2),
+    ),
+)
+def test_accumulation_to_rate_base_step(time_dim_mode, step, result_scale_factor):
+    test_file = "era5-sfc-precip-3deg-202401.grib"
+    data = get_data(test_file).to_xarray(**TO_XARRAY_KWARGS[time_dim_mode])["tp"]
+    original_units = data.attrs["units"]
+
+    rate_data = temporal.accumulation_to_rate(data, step=step)
+    assert "tp_rate" == rate_data.name
+    assert original_units + " s^-1" == rate_data.attrs["units"]
+    assert "standard_name" not in rate_data.attrs
+
+    accum_time_dim = ACCUM_TIME_DIM.get(time_dim_mode, time_dim_mode)
+    numeric_test_sample = rate_data.isel(latitude=5, longitude=5, **{accum_time_dim: slice(0, 5)})
+    assert not np.all(np.isnan(numeric_test_sample.values)), "Sample array contains only NaN values"
+    assert not np.all(numeric_test_sample.values == 0), "Sample array contains only zero values"
+    expected_sample = (data.isel(latitude=5, longitude=5, **{accum_time_dim: slice(0, 5)}).values) / (
+        3600.0 * result_scale_factor
+    )  # seconds in an hour
+    np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
+
+
+@pytest.mark.parametrize(
+    "time_dim_mode",
+    ("forecast", "valid_time"),
+)
+@pytest.mark.parametrize(
     "rate_units, expected_units, sample_sf",
     [
         ("seconds", " s^-1", 3600.0),
@@ -66,6 +101,7 @@ def test_accumulation_to_rate_base(time_dim_mode):
         ("hours", " hours^-1", 1.0),
         ("3 hours", " (3 hours)^-1", 1.0 / 3.0),
         ("step_length", "", 1.0),
+        (pd.to_timedelta("1 second"), " s^-1", 3600.0),
     ],
 )
 def test_accumulation_to_rate_start_of_step_rate_units(rate_units, expected_units, sample_sf, time_dim_mode):

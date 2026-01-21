@@ -34,14 +34,13 @@ def deaccumulate(
     ----------
     dataarray : xr.DataArray | xr.Dataset
         Data accumulated along time to be converted into rate (per time step).
-    step : float | int, optional
-        Interval between consecutive time steps (in hours, unless 'step_units' is specified). If not provided, the function
-        will infer the step from the first two time steps in the data.
-    step_units : str, optional
-        Units of the `step` parameter (if provided), default is 'hours'.
-    rate_units : str, optional
-        Units for the output rate, it can be any valid pandas time frequency string
-        (e.g., '15min', '3H', 'D') or simple units like 'seconds', 'minutes', 'hours', 'days',
+    step : timedelta | str , optional
+        Interval between consecutive time steps.
+        If a string, it should be a valid pandas time frequency string (e.g., '15min', '3h', '1 day').
+        If not provided, the will be inferred from the data.
+    rate_units : timedelta | str, optional
+        Units for the output rate. If a string, it must be a valid pandas time frequency string
+        (e.g., '15min', '3h', '1 day') or simple units like 'seconds', 'minutes', 'hours', 'days',
         or if set to 'step_length', the rate will be accumulation per time step.
         The default is 'seconds'.
     xp : T.Any
@@ -95,14 +94,13 @@ def accumulation_to_rate(
     ----------
     dataarray : xr.DataArray | xr.Dataset
         Data accumulated along time to be converted into rate (per second).
-    step : float | int, optional
-        Interval between consecutive time steps in hours. If not provided, the function
-        will infer the step from the first two time steps in the data.
-    step_units : str, optional
-        Units of the `step` parameter (if provided), default is 'hours'.
-    rate_units : str, optional
-        Units for the output rate, it can be any valid pandas time frequency string
-        (e.g., '15min', '3H', 'D') or simple units like 'seconds', 'minutes', 'hours', 'days',
+    step : timedelta | str , optional
+        Interval between consecutive time steps.
+        If a string, it should be a valid pandas time frequency string (e.g., '15min', '3h', '1 day').
+        If not provided, the will be inferred from the data.
+    rate_units : timedelta | str, optional
+        Units for the output rate. If a string, it must be a valid pandas time frequency string
+        (e.g., '15min', '3h', '1 day') or simple units like 'seconds', 'minutes', 'hours', 'days',
         or if set to 'step_length', the rate will be accumulation per time step.
         The default is 'seconds'.
     xp : T.Any
@@ -147,9 +145,8 @@ def accumulation_to_rate(
 
 def _accumulation_to_rate_dataarray(
     dataarray: xr.DataArray,
-    step: None | float | int = None,
-    step_units: str = "hours",
-    rate_units: str = "seconds",
+    step: None | str | pd.Timedelta = None,
+    rate_units: None | str | pd.Timedelta = "seconds",
     xp: T.Any = None,
     time_dim: str | None = None,
     accumulation_type: str = "start_of_step",
@@ -181,14 +178,13 @@ def _accumulation_to_rate_dataarray(
           throughout the forecast period.
         - "start_of_day": accumulation restarts at the beginning of each day (00:00 UTC).
         Default is "start_of_step".
-    step : float | int, optional
-        Interval between consecutive time steps in hours. If not provided, the function
-        will infer the step from the first two time steps in the data.
-    step_units : str, optional
-        Units of the `step` parameter (if provided), default is 'hours'.
-    rate_units : str, optional
-        Units for the output rate, it can be any valid pandas time frequency string
-        (e.g., '15min', '3H', 'D') or simple units like 'seconds', 'minutes', 'hours', 'days',
+    step : timedelta | str , optional
+        Interval between consecutive time steps.
+        If a string, it should be a valid pandas time frequency string (e.g., '15min', '3h', '1 day').
+        If not provided, the will be inferred from the data.
+    rate_units : timedelta | str, optional
+        Units for the output rate. If a string, it must be a valid pandas time frequency string
+        (e.g., '15min', '3h', '1 day') or simple units like 'seconds', 'minutes', 'hours', 'days',
         or if set to 'step_length', the rate will be accumulation per time step.
         The default is 'seconds'.
     xp : T.Any
@@ -259,22 +255,19 @@ def _accumulation_to_rate_dataarray(
             )
             step_obj = xr.concat([first_step, step_obj], dim=step_dim)
     else:
-        _step = float(step)
-        step_obj = pd.to_timedelta(f"{_step} {step_units}")
+        # Convert to timedelta
+        step_obj = pd.to_timedelta(step)
 
     if rate_units == "step_length":
         rate_scale_factor = 1.0
         rate_units_str = ""  # Do not append anything to units attribute
         rate_name_suffix = "_per_step"
     else:
-        try:
-            # Handle cases like '15min', '3H', etc.
-            rate_obj = pd.to_timedelta(rate_units)
-            rate_units_str = f" ({rate_units})^-1"
-        except ValueError:
-            # Handle simple units like 'seconds', 'minutes', 'hours', 'days'
-            rate_obj = pd.to_timedelta(f"1 {rate_units}")
-            rate_units_str = f" {rate_units}^-1"
+        if isinstance(rate_units, str) and not rate_units[0].isnumeric():
+            rate_units = "1 " + rate_units
+
+        rate_obj = pd.to_timedelta(rate_units)
+        rate_units_str = f" {_tools.timedelta_to_largest_unit(rate_obj)}^-1"
         rate_scale_factor = step_obj / rate_obj
         rate_name_suffix = "_rate"
 
