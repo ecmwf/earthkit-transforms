@@ -51,3 +51,4 @@ jobs:
     name: Run downstream CI HPC checks
     # needs: qa
     uses: ./.github/workflows/downstream-ci-hpc.yaml
+    secrets: inherit
