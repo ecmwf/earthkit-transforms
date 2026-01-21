@@ -29,6 +29,7 @@ readme = "README.md"
 [project.optional-dependencies]
 all = [
   # Additional, heavy, dependencies required by the complete package
+  "earthkit-data[all]>=0.11.2",
   "rasterio"  # Requires GDAL
 ]
 rasterio = [
