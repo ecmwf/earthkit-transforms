@@ -1,0 +1,24 @@
+name: Downstream CI HPC
+
+on:
+
+  # Trigger the workflow manually
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to deploy from"
+        required: true
+        default: "main"
+
+# Triggered by other workflows
+  workflow_call:
+
+jobs:
+  # Build downstream packages on HPC
+  downstream-ci-hpc:
+    name: downstream-ci-hpc
+    if: ${{ !github.event.pull_request.head.repo.fork && github.event.action != 'labeled' || github.event.label.name == 'approved-for-ci' }}
+    uses: ecmwf/downstream-ci/.github/workflows/downstream-ci-hpc.yml@main
+    with:
+      earthkit-transforms: ecmwf/earthkit-transforms@${{ github.event.pull_request.head.sha || github.sha }}
+    secrets: inherit
