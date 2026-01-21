@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import pytest
+import xarray as xr
 
 # from earthkit.data.core.temporary import temp_directory
 from earthkit import data as ek_data
@@ -37,10 +38,18 @@ def get_data(srcfile: str = "era5_temperature_europe_2015.grib"):
 )
 def test_accumulation_to_rate_base(time_dim_mode):
     test_file = "era5-sfc-precip-3deg-202401.grib"
-    data = get_data(test_file).to_xarray(**TO_XARRAY_KWARGS[time_dim_mode])["tp"]
-    original_units = data.attrs["units"]
+    dataset = get_data(test_file).to_xarray(**TO_XARRAY_KWARGS[time_dim_mode])
+    dataarray = dataset["tp"]
+    original_units = dataarray.attrs["units"]
 
-    rate_data = temporal.accumulation_to_rate(data)
+    rate_dataset = temporal.accumulation_to_rate(dataset)
+    assert isinstance(rate_dataset, xr.Dataset)
+    assert "tp_rate" == rate_dataset["tp_rate"].name
+    assert original_units + " s^-1" == rate_dataset["tp_rate"].attrs["units"]
+    assert "standard_name" not in rate_dataset["tp_rate"].attrs
+
+    rate_data = temporal.accumulation_to_rate(dataarray)
+    assert isinstance(rate_data, xr.DataArray)
     assert "tp_rate" == rate_data.name
     assert original_units + " s^-1" == rate_data.attrs["units"]
     assert "standard_name" not in rate_data.attrs
@@ -49,7 +58,7 @@ def test_accumulation_to_rate_base(time_dim_mode):
     numeric_test_sample = rate_data.isel(latitude=5, longitude=5, **{accum_time_dim: slice(0, 5)})
     assert not np.all(np.isnan(numeric_test_sample.values)), "Sample array contains only NaN values"
     assert not np.all(numeric_test_sample.values == 0), "Sample array contains only zero values"
-    expected_sample = (data.isel(latitude=5, longitude=5, **{accum_time_dim: slice(0, 5)}).values) / (
+    expected_sample = (dataarray.isel(latitude=5, longitude=5, **{accum_time_dim: slice(0, 5)}).values) / (
         3600.0
     )  # seconds in an hour
     np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
@@ -71,10 +80,18 @@ def test_accumulation_to_rate_base(time_dim_mode):
 )
 def test_accumulation_to_rate_base_step(time_dim_mode, step, result_scale_factor):
     test_file = "era5-sfc-precip-3deg-202401.grib"
-    data = get_data(test_file).to_xarray(**TO_XARRAY_KWARGS[time_dim_mode])["tp"]
-    original_units = data.attrs["units"]
+    dataset = get_data(test_file).to_xarray(**TO_XARRAY_KWARGS[time_dim_mode])
+    dataarray = dataset["tp"]
+    original_units = dataarray.attrs["units"]
 
-    rate_data = temporal.accumulation_to_rate(data, step=step)
+    rate_dataset = temporal.accumulation_to_rate(dataset, step=step)
+    assert isinstance(rate_dataset, xr.Dataset)
+    assert "tp_rate" == rate_dataset["tp_rate"].name
+    assert original_units + " s^-1" == rate_dataset["tp_rate"].attrs["units"]
+    assert "standard_name" not in rate_dataset["tp_rate"].attrs
+
+    rate_data = temporal.accumulation_to_rate(dataarray, step=step)
+    assert isinstance(rate_data, xr.DataArray)
     assert "tp_rate" == rate_data.name
     assert original_units + " s^-1" == rate_data.attrs["units"]
     assert "standard_name" not in rate_data.attrs
@@ -83,7 +100,7 @@ def test_accumulation_to_rate_base_step(time_dim_mode, step, result_scale_factor
     numeric_test_sample = rate_data.isel(latitude=5, longitude=5, **{accum_time_dim: slice(0, 5)})
     assert not np.all(np.isnan(numeric_test_sample.values)), "Sample array contains only NaN values"
     assert not np.all(numeric_test_sample.values == 0), "Sample array contains only zero values"
-    expected_sample = (data.isel(latitude=5, longitude=5, **{accum_time_dim: slice(0, 5)}).values) / (
+    expected_sample = (dataarray.isel(latitude=5, longitude=5, **{accum_time_dim: slice(0, 5)}).values) / (
         3600.0 * result_scale_factor
     )  # seconds in an hour
     np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
