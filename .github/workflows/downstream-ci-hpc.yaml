@@ -13,7 +13,6 @@ on:
 # Triggered by other workflows
   workflow_call:
 
-
 jobs:
   # Build downstream packages on HPC
   downstream-ci-hpc:

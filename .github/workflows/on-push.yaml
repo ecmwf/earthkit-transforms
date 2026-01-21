@@ -1,4 +1,4 @@
-name: Master CI
+name: Master CI Orchestration
 
 on:
   push:
@@ -41,13 +41,16 @@ jobs:
     name: Run internal CI checks
     needs: qa
     uses: ./.github/workflows/ci.yaml
+    secrets: inherit
 
   downstream:
     name: Run downstream CI checks
     needs: qa
     uses: ./.github/workflows/downstream-ci.yaml
+    secrets: inherit
 
   downstream-hpc:
     name: Run downstream CI HPC checks
     needs: qa
     uses: ./.github/workflows/downstream-ci-hpc.yaml
+    secrets: inherit
