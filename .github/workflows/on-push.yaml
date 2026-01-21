@@ -38,5 +38,5 @@ jobs:
 
   downstream:
     name: Run downstream CI checks
-    needs: ci
+    needs: qa
     uses: ./.github/workflows/downstream-ci.yaml
