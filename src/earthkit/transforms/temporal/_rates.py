@@ -325,7 +325,8 @@ def _accumulation_to_rate_dataarray(
                 # TODO: think of a more robust check to include here instead of a blanket warning
                 logger.warning(
                     "Please be aware that using accumulation_type='start_of_day' with a 'valid_time' "
-                    "representation assumes that the data is contiguous."
+                    "representation assumes that the data is contiguous with steps that can be identified"
+                    "as midnight in order to reset accumulation."
                 )
                 # Mask for midnight steps of the day (True = midnight)
                 midnight_mask = step_dim_array.dt.floor("h").dt.hour == 0
