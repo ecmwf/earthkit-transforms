@@ -41,8 +41,8 @@ def deaccumulate(
     rate_units : timedelta | str, optional
         Units for the output rate. If a string, it must be a valid pandas time frequency string
         (e.g., '15min', '3h', '1 day') or simple units like 'seconds', 'minutes', 'hours', 'days'.
-        If set to 'step_length', the rate will be accumulation per time step and the returned object will
-        preserve the units and long_name attributes of the input dataarray.
+        If set to 'step_length', the rate will be accumulation per time step ("deaccumulated") and the
+        returned object will preserve the units and long_name attributes of the input dataarray.
         The default is 'seconds'.
     xp : T.Any
         The array namespace to use for the reduction. If None, it will be inferred from the dataarray.
@@ -102,8 +102,8 @@ def accumulation_to_rate(
     rate_units : timedelta | str, optional
         Units for the output rate. If a string, it must be a valid pandas time frequency string
         (e.g., '15min', '3h', '1 day') or simple units like 'seconds', 'minutes', 'hours', 'days'.
-        If set to 'step_length', the rate will be accumulation per time step and the returned object will
-        preserve the units and long_name attributes of the input dataarray.
+        If set to 'step_length', the rate will be accumulation per time step ("deaccumulated") and the
+        returned object will preserve the units and long_name attributes of the input dataarray.
         The default is 'seconds'.
     xp : T.Any
         The array namespace to use for the reduction. If None, it will be inferred from the dataarray.
@@ -187,8 +187,8 @@ def _accumulation_to_rate_dataarray(
     rate_units : timedelta | str, optional
         Units for the output rate. If a string, it must be a valid pandas time frequency string
         (e.g., '15min', '3h', '1 day') or simple units like 'seconds', 'minutes', 'hours', 'days'.
-        If set to 'step_length', the rate will be accumulation per time step and the returned object will
-        preserve the units and long_name attributes of the input dataarray.
+        If set to 'step_length', the rate will be accumulation per time step ("deaccumulated") and the
+        returned object will preserve the units and long_name attributes of the input dataarray.
         The default is 'seconds'.
     xp : T.Any
         The array namespace to use for the reduction. If None, it will be inferred from the dataarray.
