@@ -303,8 +303,7 @@ def _accumulation_to_rate_dataarray(
         case "start_of_day":
             if period_dim_array is not None:
                 # This sceanario should be treated as "start_of_forecast", but we check that no step is > 24h
-                max_step = step_dim_array.diff(step_dim, label="upper").max().item()
-                if max_step > pd.Timedelta("1 days"):
+                if step_dim_array.max() > pd.Timedelta("1 days"):
                     logger.warning(
                         "For accumulation_type 'start_of_day' with time represented as forecast periods, "
                         "the step between periods should not be greater than 24 hours. "
@@ -329,15 +328,15 @@ def _accumulation_to_rate_dataarray(
                 # this eventuality is handled explicitly by the "from_first_step" logic below
                 first_step_of_day_mask = midnight_mask.shift(**{step_dim: 1})
 
-                # If first step is midnight, we set to NaN as no prior data
-                if midnight_mask.data[0]:
-                    dataarray[0] = xp.nan
-
                 # Compute forward differences
                 diff_data = dataarray.diff(step_dim, label="upper")
                 if from_first_step:
-                    # Prepend diff with first value being the same as the first dataarray value
-                    first_diff = dataarray.isel({step_dim: 0}).expand_dims(step_dim)
+                    if not midnight_mask.data[0]:
+                        first_diff = dataarray.isel({step_dim: 0}).expand_dims(step_dim)
+                    else:
+                        # If the first step is midnight, we do not know the accumulation before it,
+                        # so we set it to NaN
+                        first_diff = xp.nan * dataarray.isel({step_dim: 0}).expand_dims(step_dim)
                     diff_data = xr.concat([first_diff, diff_data], dim=step_dim)
                 else:
                     # We must drop the first element of the first_step_of_day_mask to match the diffed array
