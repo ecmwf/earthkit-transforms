@@ -32,11 +32,11 @@ jobs:
     uses: ./.github/workflows/qa.yaml
 
   ci:
-    name: Run existing CI jobs
+    name: Run internal CI checks
     needs: qa
     uses: ./.github/workflows/ci.yaml
 
   downstream:
-    name: Run downstream CI
+    name: Run downstream CI checks
     needs: ci
     uses: ./.github/workflows/downstream-ci.yaml
