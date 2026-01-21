@@ -12,11 +12,6 @@ on:
 
 # Triggered by other workflows
   workflow_call:
-    inputs:
-      ci_config_path:
-        required: true
-        type: string
-
 
 jobs:
   # Build downstream packages on HPC
@@ -25,5 +20,5 @@ jobs:
     if: ${{ !github.event.pull_request.head.repo.fork && github.event.action != 'labeled' || github.event.label.name == 'approved-for-ci' }}
     uses: ecmwf/downstream-ci/.github/workflows/downstream-ci-hpc.yml@main
     with:
-      earthkit-transforms: ecmwf/earthkit-transforms/${{ github.event.pull_request.head.sha || github.sha }}
+      earthkit-transforms: ecmwf/earthkit-transforms@${{ github.event.pull_request.head.sha || github.sha }}
     secrets: inherit
