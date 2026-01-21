@@ -302,7 +302,15 @@ def _accumulation_to_rate_dataarray(
 
         case "start_of_day":
             if period_dim_array is not None:
-                # This sceanario should be treated as "start_of_forecast"
+                # This sceanario should be treated as "start_of_forecast", but we check that no step is > 24h
+                max_step = step_dim_array.diff(step_dim, label="upper").max().item()
+                if max_step > pd.Timedelta("1 days"):
+                    logger.warning(
+                        "For accumulation_type 'start_of_day' with time represented as forecast periods, "
+                        "the step between periods should not be greater than 24 hours. "
+                        "accumulation_to_rate is proceeding treating accumulation as 'start_of_forecast'. "
+                        "Please check that you are performing the correct transformation."
+                    )
                 #  where the start of forecast is at the start of each day
                 # Compute forward differences
                 diff_data = dataarray.diff(step_dim, label="upper")
