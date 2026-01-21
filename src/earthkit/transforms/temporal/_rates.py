@@ -132,15 +132,11 @@ def accumulation_to_rate(
 
     """
     if isinstance(dataarray, xr.Dataset):
-        data_vars = {
-            var_name: _accumulation_to_rate_dataarray(
-                dataarray[var_name],
-                *_args,
-                **_kwargs,
-            )
-            for var_name in dataarray.data_vars
-        }
-        return xr.Dataset(data_vars)
+        out_ds = xr.Dataset().assign_attrs(dataarray.attrs)
+        for var in dataarray.data_vars:
+            out_da = _accumulation_to_rate_dataarray(dataarray[var], *_args, **_kwargs)
+            out_ds[out_da.name] = out_da
+        return out_ds
 
     return _accumulation_to_rate_dataarray(dataarray, *_args, **_kwargs)
 
