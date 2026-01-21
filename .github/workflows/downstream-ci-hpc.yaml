@@ -12,6 +12,10 @@ on:
 
 # Triggered by other workflows
   workflow_call:
+    inputs:
+      ci_config_path:
+        required: true
+        type: string
 
 
 jobs:
