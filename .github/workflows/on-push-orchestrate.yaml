@@ -1,0 +1,38 @@
+name: Master CI
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to deploy from"
+        required: true
+        default: "main"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash -l {0}
+
+jobs:
+  qa:
+    name: Run QA workflow
+    uses: ./.github/workflows/qa.yaml
+
+  ci:
+    name: Run existing CI jobs
+    needs: qa
+    uses: ./.github/workflows/on-push-ci.yaml
+
+  downstream:
+    name: Run downstream CI
+    needs: ci
+    uses: ./.github/workflows/downstream-ci.yaml
