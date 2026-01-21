@@ -2,30 +2,29 @@ name: downstream-ci
 
 on:
   # Trigger the workflow on push to main, excluding tags
-  push:
-    branches:
-    - 'main'
-    tags-ignore:
-    - '**'
-    paths-ignore:
-    - "docs/**"
-    - "README.md"
-    - "LICENCE"
-    - ".gitignore"
-    - ".readthedocs.yaml"
-
-  # Trigger the workflow on pull request
-  pull_request:
+  # push:
+  #   branches:
+  #   - 'main'
+  #   tags-ignore:
+  #   - '**'
+  #   paths-ignore:
+  #   - "docs/**"
+  #   - "README.md"
+  #   - "LICENCE"
+  #   - ".gitignore"
+  #   - ".readthedocs.yaml"
 
   # Trigger the workflow manually
   workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to deploy from"
+        required: true
+        default: "main"
 
 # Triggered by other workflows
   workflow_call:
 
-  # Trigger after public PR approved for CI
-  pull_request_target:
-    types: [labeled]
 
 jobs:
   # Run CI including downstream packages on self-hosted runners

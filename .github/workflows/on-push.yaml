@@ -14,6 +14,10 @@ on:
         required: true
         default: "main"
 
+  # Trigger after public PR approved for CI
+  pull_request_target:
+    types: [labeled]
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
