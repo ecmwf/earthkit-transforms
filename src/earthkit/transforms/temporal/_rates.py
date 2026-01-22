@@ -150,7 +150,7 @@ def accumulation_to_rate(
 def _accumulation_to_rate_dataarray(
     dataarray: xr.DataArray,
     step: None | str | pd.Timedelta = None,
-    rate_units: None | str | pd.Timedelta = "seconds",
+    rate_units: str | pd.Timedelta = "seconds",
     xp: T.Any = None,
     time_dim: str | None = None,
     accumulation_type: str = "start_of_step",
@@ -363,7 +363,7 @@ def _accumulation_to_rate_dataarray(
         case _:
             raise ValueError(f"Unknown accumulation_type: {accumulation_type}")
 
-    new_name = "_".join(filter(None, [dataarray.name, rate_label]))
+    new_name = "_".join(filter(None, [str(dataarray.name), rate_label]))
     output = output.rename(new_name)
     # Clear any existing attributes and set new ones
     output.attrs = {}
