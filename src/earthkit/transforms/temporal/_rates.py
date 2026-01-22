@@ -322,10 +322,10 @@ def _accumulation_to_rate_dataarray(
                 output = diff_data / rate_scale_factor
 
             else:
-                # TODO: think of a more robust check to include here instead of a blanket warning
+                # TODO: Think of a more robust check to include here instead of a blanket warning
                 logger.warning(
                     "Please be aware that using accumulation_type='start_of_day' with a 'valid_time' "
-                    "representation assumes that the data is contiguous with steps that can be identified"
+                    "representation assumes that the data is contiguous with steps that can be identified "
                     "as midnight in order to reset accumulation."
                 )
                 # Mask for midnight steps of the day (True = midnight)
