@@ -633,7 +633,8 @@ def _reduce_dataarray_as_xarray(
     # If no geodataframe, there is just one reduced array
     if geodataframe is not None:
         mask_dim_index = get_mask_dim_index(mask_dim, geodataframe)
-        out_xr = xr.concat(reduced_list, dim=mask_dim_index)
+        out_xr = xr.concat(reduced_list, dim=mask_dim_index.name)
+        out_xr = out_xr.assign_coords({mask_dim_index.name: mask_dim_index})
     elif mask_dim is None and len(reduced_list) == 1:
         out_xr = reduced_list[0]
     else:
