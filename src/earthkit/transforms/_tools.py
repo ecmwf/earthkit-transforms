@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from earthkit.data import transform
-from earthkit.data.utils.module_inputs_wrapper import _ensure_iterable, _ensure_tuple, signature_mapping
+from earthkit.data.utils.module_inputs_wrapper import _ensure_iterable, _ensure_tuple
 from earthkit.data.wrappers import Wrapper
 from earthkit.utils.array import array_namespace
 
@@ -657,3 +657,27 @@ def transform_inputs_decorator(
         return wrapper
 
     return decorator
+
+
+def signature_mapping(signature, kwarg_types):
+    """Map args and kwargs to object types, using hierarchical selection method:
+    1. Explicitly defined type
+    2. Based on Type setting in function
+    3. Do nothing
+    """
+    mapping = {}
+    for key, parameter in signature.parameters.items():
+        if key in kwarg_types:
+            # 1. Use explicitly defined type
+            kwarg_type = kwarg_types.get(key)
+        elif parameter.annotation not in EMPTY_TYPES:
+            # 2. Use type setting from function
+            kwarg_type = parameter.annotation
+            if T.get_origin(kwarg_type) in UNION_TYPES:
+                # Need to expand union_types to list
+                kwarg_type = T.get_args(kwarg_type)
+        else:
+            # 3. Do nothing, cannot assign None, as None is a valid type
+            continue
+        mapping[key] = kwarg_type
+    return mapping
