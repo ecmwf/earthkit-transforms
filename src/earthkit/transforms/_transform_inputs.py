@@ -35,7 +35,9 @@ def transform_inputs_decorator(
     kwarg_types : Dict[str, type]
         Mapping of accepted object types for each arg/kwarg
     convert_types : Tuple[type] or Dict[str, Tuple[type]]
-        Data types to try to convert. If a dict, applies per-argument.
+        Data types to try to convert, in cases where the function is flexible and can handle multiple
+        types which are not specified by the type-setting. For example, numpy functions can often handle
+        numpy, pandas and xarray data objects. If a dict, applies per-argument.
 
     Returns
     -------
@@ -56,7 +58,6 @@ def transform_inputs_decorator(
             for arg, name in zip(args, signature.parameters):
                 arg_names.append(name)
                 kwargs[name] = arg
-
             convert_kwargs = [k for k in kwargs if k in mapping]
 
             # Filter for convert_types
