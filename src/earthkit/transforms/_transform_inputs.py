@@ -5,10 +5,23 @@ import typing as T
 from functools import wraps
 
 from earthkit.data import transform
-from earthkit.data.utils.module_inputs_wrapper import _ensure_iterable, _ensure_tuple
 from earthkit.data.wrappers import Wrapper
 
 logger = logging.getLogger(__name__)
+
+
+def _ensure_iterable(input_item):
+    """Ensure that an item is iterable."""
+    if not isinstance(input_item, (tuple, list, dict)):
+        return [input_item]
+    return input_item
+
+
+def _ensure_tuple(input_item):
+    """Ensure that an item is a tuple."""
+    if not isinstance(input_item, tuple):
+        return tuple(_ensure_iterable(input_item))
+    return input_item
 
 
 def transform_inputs_decorator(
@@ -104,7 +117,9 @@ EMPTY_TYPES = [inspect._empty]
 
 
 def signature_mapping(signature, kwarg_types):
-    """Map args and kwargs to object types, using hierarchical selection method:
+    """Map args and kwargs to object types.
+
+    Uses hierarchical selection method:
     1. Explicitly defined type
     2. Based on Type setting in function
     3. Do nothing
