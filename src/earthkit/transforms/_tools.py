@@ -659,6 +659,17 @@ def transform_inputs_decorator(
     return decorator
 
 
+try:
+    UNION_TYPES = [T.Union, types.UnionType]
+except AttributeError:
+    # types.UnionType is not in versions of python<3.9
+    UNION_TYPES = [
+        T.Union,
+    ]
+
+EMPTY_TYPES = [inspect._empty]
+
+
 def signature_mapping(signature, kwarg_types):
     """Map args and kwargs to object types, using hierarchical selection method:
     1. Explicitly defined type
