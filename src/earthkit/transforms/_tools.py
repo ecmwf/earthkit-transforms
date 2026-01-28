@@ -9,8 +9,6 @@ import pandas as pd
 import xarray as xr
 from earthkit.utils.array import array_namespace
 
-from ._transform_inputs import transform_inputs_decorator
-
 logger = logging.getLogger(__name__)
 
 #: Mapping from pandas frequency strings to xarray time groups
@@ -573,7 +571,3 @@ def groupby_bins(
             f"a full list of valid frequencies."
         )
     return grouped_data
-
-
-# Ensure transform_inputs_decorator is available from this module
-transform_inputs_decorator = transform_inputs_decorator

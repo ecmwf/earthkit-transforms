@@ -4,6 +4,7 @@ import typing as T
 import numpy as np
 import pandas as pd
 import xarray as xr
+from earthkit.data.utils.inputs_transform import format_handler
 from earthkit.transforms import _tools
 from earthkit.transforms._aggregate import how_label_rename, resample
 from earthkit.transforms._aggregate import reduce as _reduce
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 @_tools.time_dim_decorator
-@_tools.transform_inputs_decorator()
+@format_handler()
 def standardise_time(
     dataarray: xr.Dataset | xr.DataArray,
     target_format: str = "%Y-%m-%d %H:%M:%S",
@@ -72,7 +73,7 @@ def standardise_time(
     return dataarray
 
 
-@_tools.transform_inputs_decorator()
+@format_handler()
 @_tools.time_dim_decorator
 def reduce(
     dataarray: xr.Dataset | xr.DataArray,
@@ -356,7 +357,7 @@ def sum(
     return reduce(*_args, **kwargs)
 
 
-@_tools.transform_inputs_decorator()
+@format_handler()
 @_tools.time_dim_decorator
 def daily_reduce(
     dataarray: xr.Dataset | xr.DataArray,
@@ -608,7 +609,7 @@ def daily_sum(*_args, **kwargs):
     return daily_reduce(*_args, how="sum", **kwargs)
 
 
-@_tools.transform_inputs_decorator()
+@format_handler()
 @_tools.time_dim_decorator
 def monthly_reduce(
     dataarray: xr.Dataset | xr.DataArray,
@@ -884,7 +885,7 @@ def monthly_sum(
     return monthly_reduce(*_args, how="sum", **kwargs)
 
 
-@_tools.transform_inputs_decorator()
+@format_handler()
 @_tools.time_dim_decorator
 def rolling_reduce(
     dataarray: xr.Dataset | xr.DataArray,
