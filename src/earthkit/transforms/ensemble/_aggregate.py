@@ -10,7 +10,7 @@
 from typing import Any, Callable, Optional, Union
 
 import xarray as xr
-from earthkit.data.utils.decorator import format_handler
+from earthkit.utils.decorators import format_handler
 from earthkit.transforms import _tools
 from earthkit.transforms._aggregate import reduce as _reduce
 

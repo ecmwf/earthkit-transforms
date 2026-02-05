@@ -4,7 +4,7 @@ import typing as T
 import numpy as np
 import pandas as pd
 import xarray as xr
-from earthkit.data.utils.decorator import format_handler
+from earthkit.utils.decorators import format_handler
 from earthkit.transforms import _tools
 from earthkit.transforms._aggregate import how_label_rename, resample
 from earthkit.transforms._aggregate import reduce as _reduce

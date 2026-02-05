@@ -5,7 +5,7 @@ from copy import deepcopy
 import geopandas as gpd
 import pandas as pd
 import xarray as xr
-from earthkit.data.utils.decorator import format_handler
+from earthkit.utils.decorators import format_handler
 from earthkit.transforms._tools import (
     array_namespace_from_object,
     ensure_list,
