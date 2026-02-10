@@ -197,9 +197,12 @@ def _accumulation_to_rate_dataarray(
         default behaviour is to deduce time dimension from attributes of coordinates,
         then fall back to `"time"`.
     from_first_step : bool, optional
-        Only used if `accumulation_type` is "start_of_forecast" or "start_of_day" and the first step is not
-        midnight. If True, the first time step's rate is calculated by dividing the first accumulation
-        value by the step duration. Default is False.
+        Only used if `accumulation_type` is "start_of_forecast" or "start_of_day".
+        If True, the first time step's rate is calculated by dividing the first accumulation
+        value by the step duration. If `accumulation_type` is "start_of_day" and the first
+        time step is at midnight, the first time step's rate will be set to NaN as it is not
+        possible to know the accumulation before it.
+        Default is False.
     provenance : bool, optional
         If True, appends a history entry to the output dataarray's attributes indicating
         that the transformation was applied. Default is True.
@@ -334,10 +337,14 @@ def _accumulation_to_rate_dataarray(
                 if from_first_step:
                     if not midnight_mask.data[0]:
                         first_diff = dataarray.isel({step_dim: 0}).expand_dims(step_dim)
+                        # diff_data = xr.concat([first_diff, diff_data], dim=step_dim)
                     else:
                         # If the first step is midnight, we do not know the accumulation before it,
                         # so we set it to NaN
                         first_diff = xp.nan * dataarray.isel({step_dim: 0}).expand_dims(step_dim)
+                        # And set first step_dim of first_step_of_day_mask to False to avoid
+                        # it being repopulated by the original dataarray values in the output below
+                        first_step_of_day_mask[{step_dim: 0}] = False
                     diff_data = xr.concat([first_diff, diff_data], dim=step_dim)
                 else:
                     # We must drop the first element of the first_step_of_day_mask to match the diffed array

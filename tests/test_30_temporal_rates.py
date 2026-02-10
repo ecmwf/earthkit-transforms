@@ -263,6 +263,9 @@ def test_accumulation_to_rate_start_of_day(time_dim_mode):
     assert "tp_rate" == rate_data.name
     assert original_units + " s^-1" == rate_data.attrs["units"]
     assert "standard_name" not in rate_data.attrs
+
+    # First step is midnight, so first step should be dropped
+
     assert rate_data[accum_time_dim][0].values == data[accum_time_dim][0].values
 
     if time_dim_mode == "valid_time":
@@ -431,4 +434,28 @@ def test_accumulation_to_rate_single_timestep():
     )
     assert result.name == "tp_rate"
     assert result.attrs["units"] == "m s^-1"
-    assert result.item() == 6./3600
+    assert result.item() == 6.0 / 3600
+
+
+def test_accumulation_to_rate_start_of_day_from_first_step_first_step_midnight():
+    data = xr.DataArray(
+        [24.0, 1.0, 2.0],
+        dims=["valid_time"],
+        coords={
+            "valid_time": [
+                np.datetime64("2024-01-01T00:00"),
+                np.datetime64("2024-01-01T01:00"),
+                np.datetime64("2024-01-01T02:00"),
+            ]
+        },
+        name="tp",
+        attrs={"units": "m"},
+    )
+
+    out = temporal.accumulation_to_rate(
+        data,
+        time_dim="valid_time",
+        accumulation_type="start_of_day",
+        from_first_step=True,
+    )
+    assert np.isnan(out[0].item())
