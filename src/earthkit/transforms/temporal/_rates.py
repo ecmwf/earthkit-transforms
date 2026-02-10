@@ -38,15 +38,8 @@ def deaccumulate(
         Interval between consecutive time steps.
         If a string, it should be a valid pandas time frequency string (e.g., '15min', '3h', '1 day').
         If not provided, the will be inferred from the data.
-    rate_units : timedelta | str, optional
-        Units for the output rate. If a string, it must be a valid pandas time frequency string
-        (e.g., '15min', '3h', '1 day') or simple units like 'seconds', 'minutes', 'hours', 'days'.
-        If set to 'step_length', the rate will be accumulation per time step ("deaccumulated") and the
-        returned object will preserve the units and long_name attributes of the input dataarray.
-        The default is 'seconds'.
-    rate_label: str | None = None, optional
-        Suffix to append to the name of the output dataarray. If None, defaults to
-        'rate' or 'per_step' depending on the rate_units.
+    rate_label: str = "", optional
+        Suffix to append to the name and long_name of the output dataarray.
     xp : T.Any
         The array namespace to use for the reduction. If None, it will be inferred from the dataarray.
     time_dim : str, optional
@@ -77,6 +70,7 @@ def deaccumulate(
         logger.warning("The 'rate_units' parameter is not applicable for `deaccumulate` and will be ignored.")
     _kwargs["rate_units"] = "step_length"
     _kwargs.setdefault("accumulation_type", "start_of_forecast")
+    _kwargs.setdefault("rate_label", "")
     return accumulation_to_rate(dataarray, *_args, **_kwargs)
 
 

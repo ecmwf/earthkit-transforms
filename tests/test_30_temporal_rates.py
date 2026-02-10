@@ -369,9 +369,9 @@ def test_deaccumulate(time_dim_mode):
     original_units = data.attrs["units"]
 
     deaccum_data = temporal.deaccumulate(data, from_first_step=True)
-    assert "tp_per_step" == deaccum_data.name
+    assert "tp" == deaccum_data.name
     assert original_units == deaccum_data.attrs["units"]
-    assert deaccum_data.attrs["long_name"].endswith(" per step")
+    assert deaccum_data.attrs["long_name"] == data.attrs["long_name"]
     assert "standard_name" not in deaccum_data.attrs
 
     # Check first timestep is unchanged
@@ -393,9 +393,9 @@ def test_deaccumulate(time_dim_mode):
     np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
 
     deaccum_data = temporal.deaccumulate(data)
-    assert "tp_per_step" == deaccum_data.name
+    assert "tp" == deaccum_data.name
     assert original_units == deaccum_data.attrs["units"]
-    assert deaccum_data.attrs["long_name"].endswith(" per step")
+    assert deaccum_data.attrs["long_name"] == data.attrs["long_name"]
     assert "standard_name" not in deaccum_data.attrs
 
     isel_kwargs = {k: 0 for k in data.dims if k not in (accum_time_dim, "latitude", "longitude")}
