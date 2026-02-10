@@ -657,3 +657,28 @@ def transform_inputs_decorator(
         return wrapper
 
     return decorator
+
+
+def timedelta_to_largest_unit(td: pd.Timedelta) -> str:
+    """Convert a pandas Timedelta to a decimal value string in the largest non-zero unit."""
+    # Define units in decreasing order
+    units = [
+        ("days", td.total_seconds() / 86400),  # 1 day = 86400 seconds
+        ("hours", td.total_seconds() / 3600),
+        ("minutes", td.total_seconds() / 60),
+        ("seconds", td.total_seconds()),
+    ]
+
+    for unit_name, value in units:
+        if abs(value) >= 1:
+            # Round to 6 decimals to avoid floating-point noise
+            value = round(value, 6)
+            if np.isclose(value, 1):
+                return unit_name
+            if value.is_integer():
+                value = int(value)
+            return f"({value} {unit_name})"
+
+    # Fallback (less than 1 second)
+    milliseconds = td.total_seconds() * 1000
+    return f"{round(milliseconds, 6)} milliseconds"

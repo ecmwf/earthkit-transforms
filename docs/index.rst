@@ -43,7 +43,10 @@ Import and use
    :caption: Examples
    :maxdepth: 2
 
-   notebooks/aggregate-examples
+   notebooks/temporal/index.rst
+   notebooks/climatology/index.rst
+   notebooks/spatial/index.rst
+
 
 .. toctree::
    :maxdepth: 2
