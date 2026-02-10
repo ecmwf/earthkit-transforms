@@ -251,13 +251,13 @@ def _accumulation_to_rate_dataarray(
             # step_obj is an array of time differences
             step_obj = step_dim_array.diff(step_dim, label="upper")
 
-        if from_first_step or accumulation_type in ["start_of_step"]:
-            # Prepend the first step assuming it's the same as the second step
-            first_step = step_obj.isel(**{step_dim: 0}).expand_dims(step_dim)
-            first_step = first_step.assign_coords(
-                {step_dim: step_dim_array.isel(**{step_dim: 0}).expand_dims(step_dim)}
-            )
-            step_obj = xr.concat([first_step, step_obj], dim=step_dim)
+            if from_first_step or accumulation_type in ["start_of_step"]:
+                # Prepend the first step assuming it's the same as the second step
+                first_step = step_obj.isel(**{step_dim: 0}).expand_dims(step_dim)
+                first_step = first_step.assign_coords(
+                    {step_dim: step_dim_array.isel(**{step_dim: 0}).expand_dims(step_dim)}
+                )
+                step_obj = xr.concat([first_step, step_obj], dim=step_dim)
     else:
         # Convert to timedelta
         step_obj = pd.to_timedelta(step)

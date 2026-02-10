@@ -410,3 +410,25 @@ def test_deaccumulate(time_dim_mode):
         - data.isel(**{accum_time_dim: slice(1, 5)}, **SEAS5_TEST_POINT, **isel_kwargs).values
     )
     np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
+
+
+def test_accumulation_to_rate_single_timestep():
+    data = xr.DataArray(
+        [[6.0]],
+        dims=["forecast_reference_time", "forecast_period"],
+        coords={
+            "forecast_reference_time": [np.datetime64("2024-01-01")],
+            "forecast_period": [np.timedelta64(1, "h")],
+        },
+        name="tp",
+        attrs={"units": "m"},
+    )
+
+    result = temporal.accumulation_to_rate(
+        data,
+        time_dim="forecast_reference_time",
+        accumulation_type="start_of_step",
+    )
+    assert result.name == "tp_rate"
+    assert result.attrs["units"] == "m s^-1"
+    assert result.item() == 6./3600
