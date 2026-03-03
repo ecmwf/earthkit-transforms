@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 import xarray as xr
+
 from earthkit.transforms import reduce, rolling_reduce
 from earthkit.transforms._aggregate import (
     _reduce_dataarray,

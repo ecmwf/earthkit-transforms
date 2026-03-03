@@ -10,6 +10,7 @@
 from typing import Any, Callable, Optional, Union
 
 import xarray as xr
+
 from earthkit.transforms import _tools
 from earthkit.transforms._aggregate import reduce as _reduce
 
@@ -36,6 +37,7 @@ def reduce(
     dim : str (optional)
         Name of the ensemble dimension in the data object, default behaviour is to detect the
         ensemble dimension from the input object.
+
     """
     if dim is None:
         dim = _tools.get_dim_key(dataarray, "realization", raise_error=True)
@@ -55,6 +57,7 @@ def mean(*args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
         ensemble dimension from the input object.
     *args, **kwargs
         Additional arguments and keyword arguments to pass to the underlying reduce function.
+
     """
     kwargs["how"] = "mean"
     return reduce(*args, **kwargs)
@@ -73,6 +76,7 @@ def std(*args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
         ensemble dimension from the input object.
     *args, **kwargs
         Additional arguments and keyword arguments to pass to the underlying reduce function.
+
     """
     kwargs["how"] = "std"
     return reduce(*args, **kwargs)
@@ -91,6 +95,7 @@ def min(*args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
         ensemble dimension from the input object.
     *args, **kwargs
         Additional arguments and keyword arguments to pass to the underlying reduce function.
+
     """
     kwargs["how"] = "min"
     return reduce(*args, **kwargs)
@@ -109,6 +114,7 @@ def max(*args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
         ensemble dimension from the input object.
     *args, **kwargs
         Additional arguments and keyword arguments to pass to the underlying reduce function.
+
     """
     kwargs["how"] = "max"
     return reduce(*args, **kwargs)
@@ -127,6 +133,7 @@ def sum(*args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
         ensemble dimension from the input object.
     *args, **kwargs
         Additional arguments and keyword arguments to pass to the underlying reduce function.
+
     """
     kwargs["how"] = "sum"
     return reduce(*args, **kwargs)
