@@ -1,6 +1,7 @@
 import typing as T
 
 import xarray as xr
+
 from earthkit.transforms import _tools
 from earthkit.transforms._aggregate import reduce as _reduce
 from earthkit.transforms._aggregate import resample
@@ -50,6 +51,7 @@ def reduce(
     Returns
     -------
     xr.DataArray
+
     """
     grouped_data = groupby_time(
         dataarray,
@@ -82,6 +84,7 @@ def mean(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     Returns
     -------
     xr.DataArray
+
     """
     _kwargs["how"] = "mean"
     return reduce(*_args, **_kwargs)
@@ -110,6 +113,7 @@ def median(*_args, **_kwargs) -> xr.DataArray:
     Returns
     -------
     xr.DataArray
+
     """
     result = quantiles(*_args, q=[0.5], **_kwargs)
     return result.isel(quantile=0)
@@ -138,6 +142,7 @@ def min(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     Returns
     -------
     xr.DataArray
+
     """
     _kwargs["how"] = "max"
     return reduce(*_args, **_kwargs)
@@ -166,6 +171,7 @@ def max(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     Returns
     -------
     xr.DataArray
+
     """
     _kwargs["how"] = "max"
     return reduce(*_args, **_kwargs)
@@ -195,6 +201,7 @@ def std(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     Returns
     -------
     xr.DataArray
+
     """
     _kwargs["how"] = "std"
     return reduce(*_args, **_kwargs)
@@ -229,6 +236,7 @@ def daily_reduce(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     Returns
     -------
     xr.DataArray
+
     """
     _kwargs["frequency"] = "dayofyear"
     return reduce(*_args, **_kwargs)
@@ -255,6 +263,7 @@ def daily_mean(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     Returns
     -------
     xr.DataArray
+
     """
     _kwargs["how"] = "mean"
     return daily_reduce(*_args, **_kwargs)
@@ -281,6 +290,7 @@ def daily_median(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     Returns
     -------
     xr.DataArray
+
     """
     _kwargs["how"] = "median"
     return daily_reduce(*_args, **_kwargs)
@@ -307,6 +317,7 @@ def daily_min(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     Returns
     -------
     xr.DataArray
+
     """
     _kwargs["how"] = "min"
     return daily_reduce(*_args, **_kwargs)
@@ -333,6 +344,7 @@ def daily_max(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     Returns
     -------
     xr.DataArray
+
     """
     _kwargs["how"] = "max"
     return daily_reduce(*_args, **_kwargs)
@@ -360,6 +372,7 @@ def daily_std(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     Returns
     -------
     xr.DataArray
+
     """
     _kwargs["how"] = "std"
     return daily_reduce(*_args, **_kwargs)
@@ -394,6 +407,7 @@ def monthly_reduce(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     Returns
     -------
     xr.DataArray
+
     """
     _kwargs["frequency"] = "month"
     return reduce(*_args, **_kwargs)
@@ -420,6 +434,7 @@ def monthly_mean(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     Returns
     -------
     xr.DataArray
+
     """
     _kwargs["how"] = "mean"
     return monthly_reduce(*_args, **_kwargs)
@@ -446,6 +461,7 @@ def monthly_median(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     Returns
     -------
     xr.DataArray
+
     """
     _kwargs["how"] = "median"
     return monthly_reduce(*_args, **_kwargs)
@@ -472,6 +488,7 @@ def monthly_min(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     Returns
     -------
     xr.DataArray
+
     """
     _kwargs["how"] = "min"
     return monthly_reduce(*_args, **_kwargs)
@@ -498,6 +515,7 @@ def monthly_max(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     Returns
     -------
     xr.DataArray
+
     """
     _kwargs["how"] = "max"
     return monthly_reduce(*_args, **_kwargs)
@@ -525,6 +543,7 @@ def monthly_std(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     Returns
     -------
     xr.DataArray
+
     """
     _kwargs["how"] = "std"
     return monthly_reduce(*_args, **_kwargs)
@@ -567,6 +586,7 @@ def quantiles(
     Returns
     -------
     xr.DataArray
+
     """
     grouped_data = groupby_time(dataarray.chunk({time_dim: -1}), time_dim=time_dim, **groupby_kwargs)
     results = []
@@ -613,6 +633,7 @@ def percentiles(
     Returns
     -------
     xr.DataArray
+
     """
     if not isinstance(p, (list, tuple)):
         p = [p]
@@ -661,6 +682,7 @@ def anomaly(
     Returns
     -------
     xr.DataArray
+
     """
     if isinstance(dataarray, xr.Dataset):
         out_ds = xr.Dataset().assign_attrs(dataarray.attrs)
@@ -718,6 +740,7 @@ def _anomaly_dataarray(
     Returns
     -------
     xr.DataArray
+
     """
     var_name = dataarray.name
     if isinstance(climatology, xr.Dataset):
@@ -815,6 +838,7 @@ def relative_anomaly(*_args, **_kwargs):
     Returns
     -------
     xr.DataArray
+
     """
     anomaly_xarray = anomaly(*_args, relative=True, **_kwargs)
 
@@ -862,6 +886,7 @@ def auto_anomaly(
     Returns
     -------
     xr.DataArray
+
     """
     # If climate range is defined, use it
     if climatology_range is not None and all(c_r is not None for c_r in climatology_range):

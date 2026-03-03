@@ -1,10 +1,11 @@
 import typing as T
 
 import xarray as xr
-from earthkit.transforms import _tools
 
 # Use numpy.ndarray for Array type hinting
 from numpy import ndarray as Array
+
+from earthkit.transforms import _tools
 
 
 def how_label_rename(
@@ -176,6 +177,7 @@ def rolling_reduce(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs) -> xr
     Returns
     -------
     xr.DataArray or xr.Dataset (as provided)
+
     """
     if isinstance(dataarray, (xr.Dataset)):
         out_ds = xr.Dataset().assign_attrs(dataarray.attrs)
@@ -219,6 +221,7 @@ def _rolling_reduce_dataarray(
     Returns
     -------
     xr.DataArray
+
     """
     xp = _tools.array_namespace_from_object(dataarray)
 
@@ -299,6 +302,7 @@ def resample(
     Returns
     -------
     xr.Dataset | xr.DataArray
+
     """
     # Handle legacy API instances:
     time_dim = kwargs.pop("dim", time_dim)

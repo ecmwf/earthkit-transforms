@@ -136,6 +136,7 @@ def array_namespace_from_object(data_object: T.Any) -> types.ModuleType:
     TypeError
         If the input data_object contains an compatible array interface,
         e.g. a xr.Dataset with mixed array namespaces.
+
     """
     if isinstance(data_object, xr.DataArray):
         return array_namespace(data_object.data)
@@ -183,6 +184,7 @@ def nanaverage(data, weights=None, **kwargs):
     -------
     Array mean of data (along axis) where nan-values are ignored
     and weights applied if provided.
+
     """
     xp = array_namespace_from_object(data)
     if weights is not None:
@@ -315,7 +317,7 @@ def get_how(how: str, how_methods=HOW_METHODS):
         except KeyError:
             raise ValueError(f"method must come from one of {ALLOWED_LIBS}")
         except AttributeError:
-            raise AttributeError(f"module '{module}' has no attribute " f"'{function}'")
+            raise AttributeError(f"module '{module}' has no attribute '{function}'")
 
     return how
 
@@ -338,6 +340,7 @@ def resolve_function_from_path(path: str) -> T.Callable:
     ------
     ValueError
         If the path is invalid or the function/module is not found.
+
     """
     if "." not in path:
         raise ValueError(f"Invalid path '{path}'. Must be in the form 'module.func'.")
@@ -391,6 +394,7 @@ def get_how_xp(
     ------
     ValueError
         If the method cannot be found in xp.
+
     """
     # First check if the "how_str" has a `.`, if so, we assume it is a full path to the method
     if "." in how_str:
@@ -456,6 +460,7 @@ def get_dim_key(
     -------
     str
         The key of the dimension in the dataarray that matches the axis.
+
     """
     # First check if the axis value is in any dim:
     for dim in dataarray.dims:
@@ -595,6 +600,7 @@ def transform_inputs_decorator(
     -------
     Callable
         Wrapped function.
+
     """
     if convert_types is None:
         convert_types = {}

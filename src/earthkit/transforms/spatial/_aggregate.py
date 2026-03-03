@@ -5,6 +5,8 @@ from copy import deepcopy
 import geopandas as gpd
 import pandas as pd
 import xarray as xr
+from numpy import ndarray
+
 from earthkit.transforms._tools import (
     array_namespace_from_object,
     ensure_list,
@@ -13,7 +15,6 @@ from earthkit.transforms._tools import (
     standard_weights,
     transform_inputs_decorator,
 )
-from numpy import ndarray
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,7 @@ def _transform_from_latlon(lat, lon):
 
     lon : list
         arrays or lists of latitude and longitude
+
     """
     from affine import Affine
 
@@ -433,9 +435,9 @@ def reduce(
         Each slice of layer corresponds to a feature in layer.
 
     """
-    assert not (
-        geodataframe is not None and mask_arrays is not None
-    ), "Either a geodataframe or mask arrays must be provided, not both"
+    assert not (geodataframe is not None and mask_arrays is not None), (
+        "Either a geodataframe or mask arrays must be provided, not both"
+    )
     if mask_arrays is not None:
         _mask_arrays: list[xr.DataArray] | None = ensure_list(mask_arrays)
     else:
