@@ -34,7 +34,7 @@
   <a href="https://earthkit-transforms.readthedocs.io/en/latest/">Documentation</a>
 </p>
 
-> \[!IMPORTANT\]
+> [!IMPORTANT]
 > This software is **Incubating** and subject to ECMWF's guidelines on [Software Maturity](https://github.com/ecmwf/codex/raw/refs/heads/main/Project%20Maturity).
 
 **earthkit-transforms** is a library of software tools to support people working with climate and meteorology data.
@@ -57,7 +57,6 @@ pip install earthkit-transforms
 import earthkit.transforms as ekt
 
 daily_mean = ekt.temporal.daily_mean(MY_DATA)
-
 ```
 
 ## Detailed documentation

@@ -3,13 +3,13 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
+from earthkit.data.testing import earthkit_remote_test_data_file
+from shapely.geometry import Polygon
 
 # from earthkit.data.core.temporary import temp_directory
 from earthkit import data as ek_data
-from earthkit.data.testing import earthkit_remote_test_data_file
 from earthkit.transforms import spatial
 from earthkit.transforms.spatial import _aggregate as _spatial
-from shapely.geometry import Polygon
 
 try:
     import rasterio  # noqa: F401

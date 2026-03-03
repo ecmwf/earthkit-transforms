@@ -4,6 +4,7 @@ import typing as T
 import numpy as np
 import pandas as pd
 import xarray as xr
+
 from earthkit.transforms import _tools
 from earthkit.transforms._aggregate import how_label_rename, resample
 from earthkit.transforms._aggregate import reduce as _reduce
@@ -396,6 +397,7 @@ def daily_reduce(
     -------
     xr.DataArray | xr.Dataset
         A dataarray reduced to daily values using the specified method
+
     """
     # If time_dim in dimensions then use resample, this should be faster.
     #  At present, performance differences are small, but resampling can be improved by handling as
@@ -459,6 +461,7 @@ def daily_mean(*_args, **kwargs) -> xr.Dataset | xr.DataArray:
     -------
     xr.DataArray | xr.Dataset
         A dataarray reduced to daily mean values
+
     """
     return daily_reduce(*_args, how="mean", **kwargs)
 
@@ -488,6 +491,7 @@ def daily_median(*_args, **kwargs):
     -------
     xr.DataArray | xr.Dataset
         A dataarray reduced to daily median values
+
     """
     return daily_reduce(*_args, how="median", **kwargs)
 
@@ -517,6 +521,7 @@ def daily_max(*_args, **kwargs):
     -------
     xr.DataArray | xr.Dataset
         A dataarray reduced to daily max values
+
     """
     return daily_reduce(*_args, how="max", **kwargs)
 
@@ -546,6 +551,7 @@ def daily_min(*_args, **kwargs):
     -------
     xr.DataArray | xr.Dataset
         A dataarray reduced to daily min values
+
     """
     return daily_reduce(*_args, how="min", **kwargs)
 
@@ -575,6 +581,7 @@ def daily_std(*_args, **kwargs):
     -------
     xr.DataArray | xr.Dataset
         A dataarray reduced to daily standard deviation values
+
     """
     return daily_reduce(*_args, how="std", **kwargs)
 
@@ -604,6 +611,7 @@ def daily_sum(*_args, **kwargs):
     -------
     xr.DataArray | xr.Dataset
         A dataarray reduced to daily sum values
+
     """
     return daily_reduce(*_args, how="sum", **kwargs)
 
@@ -649,6 +657,7 @@ def monthly_reduce(
     -------
     xr.DataArray | xr.Dataset
         A dataarray reduced to monthly values using the specified method
+
     """
     # If time_dim in dimensions then use resample, this should be faster.
     #  At present, performance differences are small, but resampling can be improved by handling as
@@ -720,6 +729,7 @@ def monthly_mean(
     -------
     xr.DataArray | xr.Dataset
         A dataarray reduced to monthly mean values
+
     """
     return monthly_reduce(*_args, how="mean", **kwargs)
 
@@ -752,6 +762,7 @@ def monthly_median(
     -------
     xr.DataArray | xr.Dataset
         A dataarray reduced to monthly median values
+
     """
     return monthly_reduce(*_args, how="median", **kwargs)
 
@@ -784,6 +795,7 @@ def monthly_min(
     -------
     xr.DataArray | xr.Dataset
         A dataarray reduced to monthly minimum values
+
     """
     return monthly_reduce(*_args, how="min", **kwargs)
 
@@ -816,6 +828,7 @@ def monthly_max(
     -------
     xr.DataArray | xr.Dataset
         A dataarray reduced to monthly maximum values
+
     """
     return monthly_reduce(*_args, how="max", **kwargs)
 
@@ -848,6 +861,7 @@ def monthly_std(
     -------
     xr.DataArray | xr.Dataset
         A dataarray reduced to monthly standard deviation values
+
     """
     return monthly_reduce(*_args, how="std", **kwargs)
 
@@ -880,6 +894,7 @@ def monthly_sum(
     -------
     xr.DataArray | xr.Dataset
         A dataarray reduced to monthly sum values
+
     """
     return monthly_reduce(*_args, how="sum", **kwargs)
 
@@ -925,6 +940,7 @@ def rolling_reduce(
     -------
     xr.DataArray | xr.Dataset
         A dataarray reduced values with a rolling window applied along the time dimension.
+
     """
     if window_length is not None:
         kwargs.update({str(time_dim): window_length})
