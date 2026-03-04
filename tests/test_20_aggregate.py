@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import pytest
 import xarray as xr
 
@@ -6,6 +7,7 @@ from earthkit.transforms import reduce, rolling_reduce
 from earthkit.transforms._aggregate import (
     _reduce_dataarray,
     _rolling_reduce_dataarray,
+    resample,
 )
 from earthkit.transforms._tools import nanaverage
 
@@ -170,3 +172,52 @@ def test_rolling_reduce_dataarray(how, expected_result):
     assert isinstance(result, xr.Dataset)
     assert result[f"test_{how}"].shape == (4, 5)
     assert result[f"test_{how}"].values[0, 0] == expected_result
+
+
+def create_time_dataarray():
+    time = pd.date_range("2024-01-01", periods=4, freq="D")
+    return xr.DataArray([1.0, 2.0, 3.0, 4.0], dims=("time",), coords={"time": time}, name="test")
+
+
+def test_resample_dataarray_mean_2d():
+    dataarray = create_time_dataarray()
+    result = resample(dataarray, frequency="2D", how="mean")
+
+    assert result.dims == ("time",)
+    assert len(result.time) == 2
+    assert np.allclose(result.values, [1.5, 3.5])
+
+
+def test_resample_dataset_how_label():
+    dataarray = create_time_dataarray()
+    dataset = xr.Dataset({"test": dataarray})
+    result = resample(dataset, frequency="2D", how="sum", how_label="sum")
+
+    assert "test_sum" in result
+    assert np.allclose(result["test_sum"].values, [3.0, 7.0])
+
+
+def test_resample_extra_reduce_dims():
+    time = pd.date_range("2024-01-01", periods=4, freq="D")
+    dataarray = xr.DataArray(
+        [[1.0, 2.0], [3.0, np.nan], [5.0, 6.0], [7.0, 8.0]],
+        dims=("time", "x"),
+        coords={"time": time, "x": [0, 1]},
+        name="test",
+    )
+    result = resample(dataarray, frequency="2D", how="mean")
+    assert result.dims == ("time", "x")
+
+    result = resample(dataarray, frequency="2D", how="mean", extra_reduce_dims=["x"])
+    assert result.dims == ("time",)
+    assert np.allclose(result.values, [2.0, 6.5])
+
+
+def test_resample_frequency_mapping_month():
+    time = pd.date_range("2024-01-01", periods=40, freq="D")
+    dataarray = xr.DataArray(np.arange(40.0), dims=("time",), coords={"time": time}, name="test")
+
+    result = resample(dataarray, frequency="month", how="mean")
+    expected = dataarray.resample(time="MS").mean(dim="time")
+
+    xr.testing.assert_allclose(result, expected)
