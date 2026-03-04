@@ -213,9 +213,7 @@ def test_temporal_daily_reduce_extra_reduce_dims():
         name="test",
     )
 
-    result = temporal.daily_reduce(
-        dataarray, how="mean", time_dim="time", extra_reduce_dims=["x"]
-    )
+    result = temporal.daily_reduce(dataarray, how="mean", time_dim="time", extra_reduce_dims=["x"])
 
     assert result.dims == ("time",)
     assert np.allclose(result.values, [4.0, 12.0])
@@ -230,9 +228,7 @@ def test_temporal_monthly_reduce_extra_reduce_dims():
         name="test",
     )
 
-    result = temporal.monthly_reduce(
-        dataarray, how="mean", time_dim="time", extra_reduce_dims=["x"]
-    )
+    result = temporal.monthly_reduce(dataarray, how="mean", time_dim="time", extra_reduce_dims=["x"])
 
     assert result.dims == ("time",)
     assert np.allclose(result.values, [2.5, 6.5])
