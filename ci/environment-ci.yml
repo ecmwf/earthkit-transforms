@@ -22,3 +22,6 @@ dependencies:
 - multiurl
 # Required for notebook example
 - statsmodels
+- pip
+- pip:
+  - git+https://github.com/ecmwf/earthkit-plots@release/1.0.0rc0

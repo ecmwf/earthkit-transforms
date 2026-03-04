@@ -272,6 +272,7 @@ def resample(
     how_args: list[T.Any] = [],
     how_kwargs: dict[str, T.Any] = {},
     how_label: str | None = None,
+    extra_reduce_dims: list[str] = [],
     **kwargs,
 ) -> xr.Dataset | xr.DataArray:
     """Resample dataarray to a user-defined frequency using a user-defined "how" method.
@@ -314,8 +315,8 @@ def resample(
     # Translate and xarray frequencies to pandas language:
     frequency = _tools._PANDAS_FREQUENCIES_R.get(frequency, frequency)
     kwargs[time_dim] = frequency
-    resample = dataarray.resample(skipna=skipna, **kwargs)
-    result = resample.__getattribute__(how)(*how_args, dim=time_dim, **how_kwargs)
+    _resample = dataarray.resample(skipna=skipna, **kwargs)
+    result = _resample.__getattribute__(how)(*how_args, dim=[time_dim] + extra_reduce_dims, **how_kwargs)
 
     result = how_label_rename(result, how_label=how_label)
 
