@@ -296,6 +296,9 @@ def resample(
         List of arguments to be passed to the reduction method.
     how_kwargs : dict
         Dictionary of keyword arguments to be passed to the reduction method.
+    extra_reduce_dims : list
+        List of extra dimensions to reduce over in addition to the resampling dimension.
+        These dimensions will be reduced over using the same `how` method as the resampling dimension.
     **kwargs
         Keyword arguments to be passed to :func:`resample`. Defaults have been set as:
         `{"skipna": True}`
