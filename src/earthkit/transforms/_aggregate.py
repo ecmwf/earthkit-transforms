@@ -272,7 +272,6 @@ def resample(
     how_args: list[T.Any] = [],
     how_kwargs: dict[str, T.Any] = {},
     how_label: str | None = None,
-    extra_reduce_dims: list[str] = [],
     **kwargs,
 ) -> xr.Dataset | xr.DataArray:
     """Resample dataarray to a user-defined frequency using a user-defined "how" method.
@@ -296,9 +295,6 @@ def resample(
         List of arguments to be passed to the reduction method.
     how_kwargs : dict
         Dictionary of keyword arguments to be passed to the reduction method.
-    extra_reduce_dims : list
-        List of extra dimensions to reduce over in addition to the resampling dimension.
-        These dimensions will be reduced over using the same `how` method as the resampling dimension.
     **kwargs
         Keyword arguments to be passed to :func:`resample`. Defaults have been set as:
         `{"skipna": True}`
@@ -318,8 +314,8 @@ def resample(
     # Translate and xarray frequencies to pandas language:
     frequency = _tools._PANDAS_FREQUENCIES_R.get(frequency, frequency)
     kwargs[time_dim] = frequency
-    _resample = dataarray.resample(skipna=skipna, **kwargs)
-    result = _resample.__getattribute__(how)(*how_args, dim=[time_dim] + extra_reduce_dims, **how_kwargs)
+    resample = dataarray.resample(skipna=skipna, **kwargs)
+    result = resample.__getattribute__(how)(*how_args, dim=time_dim, **how_kwargs)
 
     result = how_label_rename(result, how_label=how_label)
 
