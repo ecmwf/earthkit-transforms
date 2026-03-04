@@ -390,6 +390,9 @@ def daily_reduce(
         equality in sampling periods. Default is False.
     how_label : str
         Label to append to the name of the variable in the reduced object, default is _daily_{how}
+    extra_reduce_dims : str or list of str
+        Additional dimensions to reduce over (in addition to the grouping dimension), for example to
+        calculate a daily global mean you would set this to "longitude" and "latitude". Default is None.
     **kwargs
         Keyword arguments to be passed to :func:`reduce`.
 
@@ -416,7 +419,8 @@ def daily_reduce(
             raise TypeError(f"Invalid type for time dimension ({time_dim}): {dataarray[time_dim].dtype}")
 
         grouped_data = _tools.groupby_time(dataarray, time_dim=time_dim, frequency=group_key)
-        # Ensure additional dimensions (if provided) are reduced as well
+
+        # Additional dimensions to reduce over (if provided), need to merge with the grouping dimension(s)
         extra_reduce_dims = _tools.ensure_list(kwargs.pop("extra_reduce_dims", []))
         if extra_reduce_dims:
             if not hasattr(grouped_data, "_group_dim"):
@@ -660,7 +664,9 @@ def monthly_reduce(
         equality in sampling periods. Default is False.
     how_label : str
         Label to append to the name of the variable in the reduced object, default is _monthly_{how}
-
+    extra_reduce_dims : str or list of str
+        Additional dimensions to reduce over (in addition to the grouping dimension), for example to
+        calculate a monthly global mean you would set this to "longitude" and "latitude". Default is None.
     **kwargs
         Keyword arguments to be passed to :func:`reduce`.
 
@@ -693,6 +699,17 @@ def monthly_reduce(
             )
         else:
             raise TypeError(f"Invalid type for time dimension ({time_dim}): {dataarray[time_dim].dtype}")
+
+        # Additional dimensions to reduce over (if provided), need to merge with the grouping dimension(s)
+        extra_reduce_dims = _tools.ensure_list(kwargs.pop("extra_reduce_dims", []))
+        if extra_reduce_dims:
+            if not hasattr(grouped_data, "_group_dim"):
+                logger.warning(
+                    "Not possible to detect grouping dimensions with your version of xarray, "
+                    "so extra_reduce_dims will be ignored. "
+                )
+            else:
+                kwargs["dim"] = _tools.ensure_list(grouped_data._group_dim) + extra_reduce_dims
 
         # If how is string and inbuilt method of grouped_data, we apply
         if isinstance(how, str) and how in dir(grouped_data):

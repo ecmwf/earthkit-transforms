@@ -4,7 +4,7 @@ import pytest
 
 # from earthkit.data.core.temporary import temp_directory
 import xarray as xr
-from earthkit.data.testing import earthkit_remote_test_data_file
+from earthkit.data.utils.testing import earthkit_remote_test_data_file
 
 from earthkit import data as ek_data
 from earthkit.transforms import temporal
@@ -202,3 +202,37 @@ def test_temporal_daily_monthly_methods(method, in_data, expected_return_type):
         assert "2t" == reduced_data.name
     else:
         assert "2t" in reduced_data
+
+
+def test_temporal_daily_reduce_extra_reduce_dims():
+    time = pd.date_range("2024-01-01", periods=4, freq="12h")
+    dataarray = xr.DataArray(
+        [[1.0, 3.0], [5.0, 7.0], [9.0, 11.0], [13.0, 15.0]],
+        dims=("time", "x"),
+        coords={"time": time, "x": [0, 1]},
+        name="test",
+    )
+
+    result = temporal.daily_reduce(
+        dataarray, how="mean", time_dim="time", extra_reduce_dims=["x"]
+    )
+
+    assert result.dims == ("time",)
+    assert np.allclose(result.values, [4.0, 12.0])
+
+
+def test_temporal_monthly_reduce_extra_reduce_dims():
+    time = pd.to_datetime(["2024-01-01", "2024-01-15", "2024-02-01", "2024-02-15"])
+    dataarray = xr.DataArray(
+        [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]],
+        dims=("time", "x"),
+        coords={"time": time, "x": [0, 1]},
+        name="test",
+    )
+
+    result = temporal.monthly_reduce(
+        dataarray, how="mean", time_dim="time", extra_reduce_dims=["x"]
+    )
+
+    assert result.dims == ("time",)
+    assert np.allclose(result.values, [2.5, 6.5])
