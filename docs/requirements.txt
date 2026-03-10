@@ -2,10 +2,9 @@ ipykernel
 docutils
 Pygments>=2.6.1
 Sphinx
-sphinx-rtd-theme
+furo
 nbsphinx
 setuptools
-sphinx-autoapi
 entrypoints
 pandas
 tqdm

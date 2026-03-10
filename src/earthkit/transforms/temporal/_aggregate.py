@@ -421,15 +421,15 @@ def daily_reduce(
         grouped_data = _tools.groupby_time(dataarray, time_dim=time_dim, frequency=group_key)
 
         # Additional dimensions to reduce over (if provided), need to merge with the grouping dimension(s)
-        extra_reduce_dims = _tools.ensure_list(kwargs.pop("extra_reduce_dims", []))
-        if extra_reduce_dims:
+        _extra_reduce_dims = _tools.normalize_dims(kwargs.pop("extra_reduce_dims", None))
+        if _extra_reduce_dims:
             if not hasattr(grouped_data, "_group_dim"):
                 logger.warning(
                     "Not possible to detect grouping dimensions with your version of xarray, "
                     "so extra_reduce_dims will be ignored. "
                 )
             else:
-                kwargs["dim"] = _tools.ensure_list(grouped_data._group_dim) + extra_reduce_dims
+                kwargs["dim"] = _tools.ensure_list(grouped_data._group_dim) + _extra_reduce_dims
 
         # If how is string and inbuilt method of grouped_data, we apply
         if isinstance(how, str) and how in dir(grouped_data):
@@ -701,15 +701,15 @@ def monthly_reduce(
             raise TypeError(f"Invalid type for time dimension ({time_dim}): {dataarray[time_dim].dtype}")
 
         # Additional dimensions to reduce over (if provided), need to merge with the grouping dimension(s)
-        extra_reduce_dims = _tools.ensure_list(kwargs.pop("extra_reduce_dims", []))
-        if extra_reduce_dims:
+        _extra_reduce_dims = _tools.normalize_dims(kwargs.pop("extra_reduce_dims", None))
+        if _extra_reduce_dims:
             if not hasattr(grouped_data, "_group_dim"):
                 logger.warning(
                     "Not possible to detect grouping dimensions with your version of xarray, "
                     "so extra_reduce_dims will be ignored. "
                 )
             else:
-                kwargs["dim"] = _tools.ensure_list(grouped_data._group_dim) + extra_reduce_dims
+                kwargs["dim"] = _tools.ensure_list(grouped_data._group_dim) + _extra_reduce_dims
 
         # If how is string and inbuilt method of grouped_data, we apply
         if isinstance(how, str) and how in dir(grouped_data):

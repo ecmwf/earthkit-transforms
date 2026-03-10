@@ -53,7 +53,7 @@ Import and use
    :caption: Documentation
 
    guide/index
-   _api/index
+   API reference <autodocs/earthkit.transforms>
    development
 
 .. toctree::
