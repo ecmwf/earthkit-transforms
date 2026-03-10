@@ -355,3 +355,4 @@ tags
 
 dev/
 .conda/
+.opencode/
