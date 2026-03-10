@@ -10,8 +10,8 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from earthkit.data import transform
-from earthkit.data.utils.module_inputs_wrapper import _ensure_iterable, _ensure_tuple, signature_mapping
 from earthkit.data.data.wrappers import ObjectWrapperData as Wrapper
+from earthkit.data.utils.module_inputs_wrapper import _ensure_iterable, _ensure_tuple, signature_mapping
 from earthkit.utils.array import array_namespace
 
 logger = logging.getLogger(__name__)
