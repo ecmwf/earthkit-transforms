@@ -315,7 +315,7 @@ def resample(
     if how_kwargs is None:
         how_kwargs = {}
     # Normalise extra_reduce_dims: None → [], str → [str]
-    extra_reduce_dims = _tools.normalize_dims(extra_reduce_dims)
+    _extra_reduce_dims = _tools.normalize_dims(extra_reduce_dims)
 
     # Handle legacy API instances:
     time_dim = kwargs.pop("dim", time_dim)
@@ -328,7 +328,7 @@ def resample(
     frequency = _tools._PANDAS_FREQUENCIES_R.get(frequency, frequency)
     kwargs[time_dim] = frequency
     _resample = dataarray.resample(skipna=skipna, **kwargs)
-    result = _resample.__getattribute__(how)(*how_args, dim=[time_dim] + extra_reduce_dims, **how_kwargs)
+    result = _resample.__getattribute__(how)(*how_args, dim=[time_dim] + _extra_reduce_dims, **how_kwargs)
 
     result = how_label_rename(result, how_label=how_label)
 
