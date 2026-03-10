@@ -1,5 +1,5 @@
 earthkit.transforms.ensemble
 --------------------------------------
 
-The :doc:`../../_api/transforms/ensemble/index` module includes methods
+The :doc:`../autodocs/earthkit.transforms.ensemble` module includes methods
 for aggregating data accross ensemble members.

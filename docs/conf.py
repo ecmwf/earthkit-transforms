@@ -38,8 +38,6 @@ author = "European Centre for Medium-Range Weather Forecasts (ECMWF)"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    # Generates API reference pages from the source tree
-    "autoapi.extension",
     # Automatically extracts documentation from your Python docstrings
     "sphinx.ext.autodoc",
     # Supports Google-style and NumPy-style docstrings
@@ -73,21 +71,13 @@ extensions = [
 ]
 
 autodoc_typehints = "none"
-
-autoapi_dirs = ["../src/earthkit/transforms"]
-autoapi_ignore = ["*/version.py", "*/earthkit/transforms/aggregate"]
-autoapi_options = [
-    "members",
-    "inherited-members",
-    "undoc-members",
-    "show-inheritance",
-    "show-module-summary",
-    "imported-members",
-]
-autoapi_root = "_api"
-autoapi_python_use_implicit_namespaces = True
-autoapi_imported_members = True
-autoapi_add_toctree_entry = True
+autodoc_inherit_docstrings = True
+autodoc_default_options = {
+    "members": True,
+    "imported-members": True,
+    "undoc-members": False,
+    "show-inheritance": True,
+}
 
 # GitHub links configuration
 extlinks = {
@@ -123,7 +113,6 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
-
 
 html_theme = "furo"
 

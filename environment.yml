@@ -10,7 +10,6 @@ dependencies:
 - pytest
 - pytest-cov
 - sphinx
-- sphinx-autoapi
 - nbsphinx
 - array-api-compat
 - numpy

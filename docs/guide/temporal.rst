@@ -1,7 +1,7 @@
 earthkit.transforms.temporal
 --------------------------------------
 
-The :doc:`../../_api/transforms/temporal/index` module includes methods
+The :doc:`../autodocs/earthkit.transforms.temporal` module includes methods
 for transforming data with respect to the temporal coordinate(s).
 This includes aggregating the data in time dimension to a single value,
 daily values, or monthly values and calculating rates from accumulated data.
@@ -21,13 +21,15 @@ daily or monthly values respectively. The `how` parameter can be used to specify
 method. The default is `mean`.
 
 .. autofunction:: earthkit.transforms.temporal.daily_reduce
+   :no-index:
 .. autofunction:: earthkit.transforms.temporal.monthly_reduce
+   :no-index:
 
 
 In addition to the `XXX_reduce` functions, the temporal module also includes several methods
 which calculate the desired reduction, without the "how" parameter. These methods are
 wrappers of the `daily_reduce` and `monthly_reduce` methods and are documented
-in the API reference guide: :doc:`../../_api/transforms/temporal/index`:
+in the API reference guide: :doc:`../autodocs/earthkit.transforms.temporal`:
 
 - `temporal.daily_mean`
 - `temporal.daily_median`
@@ -61,9 +63,12 @@ i.e. converting accumulated values to step values, you can set `rate_units` to "
 `rate_units` will be equal to the step length between time points.
 
 The `accumulation_type` parameter is used to specify the type of accumulation used in the input data.
+
 The options are:
+
 - "start_of_step": accumulation restarts at the beginning of each time step, e.g. ERA5.
 - "start_of_forecast": accumulation restarts at the beginning of each forecast, e.g. Seeason forecasts.
 - "start_of_day": accumulation restarts at the beginning of each day, e.g. ERA5-land.
 
 .. autofunction:: earthkit.transforms.temporal.accumulation_to_rate
+   :no-index:
