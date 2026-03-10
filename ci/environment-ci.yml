@@ -21,6 +21,7 @@ dependencies:
 - multiurl
 # Required for notebook example
 - statsmodels
+- reverse-geocode
 - pip
 - pip:
   - git+https://github.com/ecmwf/earthkit-plots@release/1.0.0rc0
