@@ -6,7 +6,7 @@ dependencies:
 - mypy
 - myst-parser
 - pre-commit
-- sphinx-rtd-theme
+- furo
 - pytest
 - pytest-cov
 - sphinx
