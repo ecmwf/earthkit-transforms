@@ -48,12 +48,14 @@ def deaccumulate(
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
     accumulation_type : str, optional
-        Type of accumulation used in the input data. Default is "start_of_forecast". Options are:
+        Type of accumulation used in the input data. Default is "start_of_forecast".
+
+        Options are:
+
         - "start_of_step": accumulation restarts at the beginning of each time step.
         - "start_of_forecast": accumulation starts at the beginning of the forecast and continues
           throughout the forecast period.
         - "start_of_day": accumulation restarts at the beginning of each day (00:00 UTC).
-        Default is "start_of_step".
     from_first_step : bool, optional
         Only used if `accumulation_type` is "start_of_forecast". If True, the first time step's rate is
         calculated by dividing the first accumulation value by the step duration. Default is False.
@@ -113,12 +115,14 @@ def accumulation_to_rate(
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
     accumulation_type : str, optional
-        Type of accumulation used in the input data. Default is "start_of_step". Options are:
+        Type of accumulation used in the input data. Default is "start_of_step".
+
+        Options are:
+
         - "start_of_step": accumulation restarts at the beginning of each time step.
         - "start_of_forecast": accumulation starts at the beginning of the forecast and continues
           throughout the forecast period.
         - "start_of_day": accumulation restarts at the beginning of each day (00:00 UTC).
-        Default is "start_of_step".
     from_first_step : bool, optional
         Only used if `accumulation_type` is "start_of_forecast". If True, the first time step's rate is
         calculated by dividing the first accumulation value by the step duration. Default is False.
@@ -172,11 +176,15 @@ def _accumulation_to_rate_dataarray(
     dataarray : xr.DataArray
         Data accumulated along time to be converted into rate (per second).
     accumulation_type : str, optional
-        Type of accumulation used in the input data. Options are:
+        Type of accumulation used in the input data.
+
+        Options are:
+
         - "start_of_step": accumulation restarts at the beginning of each time step.
         - "start_of_forecast": accumulation starts at the beginning of the forecast and continues
           throughout the forecast period.
         - "start_of_day": accumulation restarts at the beginning of each day (00:00 UTC).
+
         Default is "start_of_step".
     step : timedelta | str , optional
         Interval between consecutive time steps.
