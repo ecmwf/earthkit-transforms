@@ -48,6 +48,19 @@ def ensure_list(thing) -> list[T.Any]:
         return [thing]
 
 
+def normalize_dims(dims: str | list[str] | None) -> list[str]:
+    """Normalise a dimension argument to a list of strings.
+
+    ``None`` is treated as "no dimensions" and returns an empty list.
+    A bare string is wrapped in a list. Any other sequence is converted to a list.
+    """
+    if dims is None:
+        return []
+    if isinstance(dims, str):
+        return [dims]
+    return list(dims)
+
+
 def time_dim_decorator(func):
     @functools.wraps(func)
     def wrapper(

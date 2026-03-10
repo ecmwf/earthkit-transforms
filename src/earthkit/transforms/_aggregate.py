@@ -269,10 +269,10 @@ def resample(
     time_dim: str = "time",
     how: str = "mean",
     skipna: bool = True,
-    how_args: list[T.Any] = [],
-    how_kwargs: dict[str, T.Any] = {},
+    how_args: list[T.Any] | None = None,
+    how_kwargs: dict[str, T.Any] | None = None,
     how_label: str | None = None,
-    extra_reduce_dims: list[str] = [],
+    extra_reduce_dims: str | list[str] | None = None,
     **kwargs,
 ) -> xr.Dataset | xr.DataArray:
     """Resample dataarray to a user-defined frequency using a user-defined "how" method.
@@ -296,6 +296,10 @@ def resample(
         List of arguments to be passed to the reduction method.
     how_kwargs : dict
         Dictionary of keyword arguments to be passed to the reduction method.
+    extra_reduce_dims : str or list of str, optional
+        Extra dimensions to reduce over in addition to the resampling dimension.
+        These dimensions will be reduced over using the same `how` method as the resampling dimension.
+        Default is None (no extra dimensions).
     **kwargs
         Keyword arguments to be passed to :func:`resample`. Defaults have been set as:
         `{"skipna": True}`
@@ -305,6 +309,14 @@ def resample(
     xr.Dataset | xr.DataArray
 
     """
+    # Normalise mutable defaults
+    if how_args is None:
+        how_args = []
+    if how_kwargs is None:
+        how_kwargs = {}
+    # Normalise extra_reduce_dims: None → [], str → [str]
+    _extra_reduce_dims = _tools.normalize_dims(extra_reduce_dims)
+
     # Handle legacy API instances:
     time_dim = kwargs.pop("dim", time_dim)
 
@@ -316,7 +328,7 @@ def resample(
     frequency = _tools._PANDAS_FREQUENCIES_R.get(frequency, frequency)
     kwargs[time_dim] = frequency
     _resample = dataarray.resample(skipna=skipna, **kwargs)
-    result = _resample.__getattribute__(how)(*how_args, dim=[time_dim] + extra_reduce_dims, **how_kwargs)
+    result = _resample.__getattribute__(how)(*how_args, dim=[time_dim] + _extra_reduce_dims, **how_kwargs)
 
     result = how_label_rename(result, how_label=how_label)
 

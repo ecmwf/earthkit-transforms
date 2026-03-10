@@ -390,6 +390,9 @@ def daily_reduce(
         equality in sampling periods. Default is False.
     how_label : str
         Label to append to the name of the variable in the reduced object, default is _daily_{how}
+    extra_reduce_dims : str or list of str
+        Additional dimensions to reduce over (in addition to the grouping dimension), for example to
+        calculate a daily global mean you would set this to "longitude" and "latitude". Default is None.
     **kwargs
         Keyword arguments to be passed to :func:`reduce`.
 
@@ -416,16 +419,17 @@ def daily_reduce(
             raise TypeError(f"Invalid type for time dimension ({time_dim}): {dataarray[time_dim].dtype}")
 
         grouped_data = _tools.groupby_time(dataarray, time_dim=time_dim, frequency=group_key)
-        # Find group_dim names, these are groups that were created by the groupby but are not dimensions
-        # of the original dataarray, and so must be reduced over in addition to the time dimension.
-        # This allows additional grouping dimensions to be passed in via kwargs without breaking the function.
-        group_dims = [dim for dim in grouped_data.dims if dim not in dataarray.dims]
-        # Ensure additional dimensions (if provided) are reduced as well
-        extra_reduce_dims = _tools.ensure_list(kwargs.pop("extra_reduce_dims", []))
-        if extra_reduce_dims:
-            kwargs["dim"] = group_dims + extra_reduce_dims
-        print(kwargs)
-        print(grouped_data.dims)
+
+        # Additional dimensions to reduce over (if provided), need to merge with the grouping dimension(s)
+        _extra_reduce_dims = _tools.normalize_dims(kwargs.pop("extra_reduce_dims", None))
+        if _extra_reduce_dims:
+            if not hasattr(grouped_data, "_group_dim"):
+                logger.warning(
+                    "Not possible to detect grouping dimensions with your version of xarray, "
+                    "so extra_reduce_dims will be ignored. "
+                )
+            else:
+                kwargs["dim"] = _tools.ensure_list(grouped_data._group_dim) + _extra_reduce_dims
 
         # If how is string and inbuilt method of grouped_data, we apply
         if isinstance(how, str) and how in dir(grouped_data):
@@ -660,7 +664,9 @@ def monthly_reduce(
         equality in sampling periods. Default is False.
     how_label : str
         Label to append to the name of the variable in the reduced object, default is _monthly_{how}
-
+    extra_reduce_dims : str or list of str
+        Additional dimensions to reduce over (in addition to the grouping dimension), for example to
+        calculate a monthly global mean you would set this to "longitude" and "latitude". Default is None.
     **kwargs
         Keyword arguments to be passed to :func:`reduce`.
 
@@ -693,6 +699,17 @@ def monthly_reduce(
             )
         else:
             raise TypeError(f"Invalid type for time dimension ({time_dim}): {dataarray[time_dim].dtype}")
+
+        # Additional dimensions to reduce over (if provided), need to merge with the grouping dimension(s)
+        _extra_reduce_dims = _tools.normalize_dims(kwargs.pop("extra_reduce_dims", None))
+        if _extra_reduce_dims:
+            if not hasattr(grouped_data, "_group_dim"):
+                logger.warning(
+                    "Not possible to detect grouping dimensions with your version of xarray, "
+                    "so extra_reduce_dims will be ignored. "
+                )
+            else:
+                kwargs["dim"] = _tools.ensure_list(grouped_data._group_dim) + _extra_reduce_dims
 
         # If how is string and inbuilt method of grouped_data, we apply
         if isinstance(how, str) and how in dir(grouped_data):
