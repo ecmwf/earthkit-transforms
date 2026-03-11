@@ -47,7 +47,7 @@ docs = [
   "myst-parser",
   "statsmodels",
   "matplotlib",
-  "earthkit-plots",
+  "earthkit-plots @ git+https://github.com/ecmwf/earthkit-plots@release/1.0.0rc0",
   "rasterio"
 ]
 rasterio = [
