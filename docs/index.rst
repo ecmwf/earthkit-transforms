@@ -20,7 +20,7 @@ output produced by **earthkit-transforms**.
    :gutter: 2
 
    .. grid-item-card:: Installation and Getting Started
-      :img-top: _static/card-getting-started.svg
+      :img-top: _static/rocket.svg
       :link: getting-started
       :link-type: doc
       :class-card: sd-shadow-sm
@@ -31,7 +31,7 @@ output produced by **earthkit-transforms**.
    :gutter: 2
 
    .. grid-item-card:: Tutorials
-      :img-top: _static/card-tutorials.svg
+      :img-top: _static/book.svg
       :link: tutorials/index
       :link-type: doc
       :class-card: sd-shadow-sm
@@ -39,15 +39,15 @@ output produced by **earthkit-transforms**.
       Step-by-step guides to learn earthkit-transforms.
 
    .. grid-item-card:: How-tos
-      :img-top: _static/card-howtos.svg
+      :img-top: _static/tool.svg
       :link: how-tos
       :link-type: doc
       :class-card: sd-shadow-sm
 
       Practical recipes for common tasks.
 
-   .. grid-item-card:: Concepts
-      :img-top: _static/card-concepts.svg
+   .. grid-item-card:: Concepts and Explanations
+      :img-top: _static/bulb.svg
       :link: explanations/index
       :link-type: doc
       :class-card: sd-shadow-sm
@@ -55,7 +55,7 @@ output produced by **earthkit-transforms**.
       Understand the core ideas behind earthkit-transforms.
 
    .. grid-item-card:: API Reference
-      :img-top: _static/card-api.svg
+      :img-top: _static/brackets-contain.svg
       :link: api-reference
       :link-type: doc
       :class-card: sd-shadow-sm

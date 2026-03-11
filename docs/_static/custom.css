@@ -53,3 +53,13 @@ h1, h2, h3, h4, h5, h6 {
     width: calc(50% - 26em);
   }
 }
+
+/* Homepage card styling */
+.sd-card .sd-card-img-top {
+  height: 100px;
+  width: auto;
+  object-fit: contain;
+  margin: 1rem auto 0 auto;
+  display: block;
+  background: transparent;
+}
