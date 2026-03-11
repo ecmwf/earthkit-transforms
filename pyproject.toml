@@ -34,9 +34,6 @@ all = [
   "earthkit-data[all]>=0.11.2",
   "rasterio"  # Requires GDAL
 ]
-rasterio = [
-  "rasterio"  # Requires GDAL
-]
 docs = [
   "ipykernel",
   "docutils",
@@ -52,6 +49,9 @@ docs = [
   "matplotlib",
   "earthkit-plots",
   "rasterio"
+]
+rasterio = [
+  "rasterio"  # Requires GDAL
 ]
 
 [tool.coverage.run]
