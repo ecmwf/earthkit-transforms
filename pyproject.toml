@@ -34,6 +34,22 @@ all = [
   "earthkit-data[all] @ git+https://github.com/ecmwf/earthkit-data@release/1.0.0rc0",
   "rasterio"  # Requires GDAL
 ]
+docs = [
+  "ipykernel",
+  "docutils",
+  "Pygments>=2.6.1",
+  "Sphinx",
+  "sphinx-rtd-theme",
+  "nbsphinx",
+  "nbconvert",
+  "sphinx-autoapi",
+  "filelock",
+  "myst-parser",
+  "statsmodels",
+  "matplotlib",
+  "earthkit-plots",
+  "rasterio"
+]
 rasterio = [
   "rasterio"  # Requires GDAL
 ]
