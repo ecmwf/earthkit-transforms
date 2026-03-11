@@ -3,6 +3,7 @@ version.py
 
 # Sphinx automatic generation of API
 docs/_api/
+docs/autodocs/
 
 # Combined environments
 ci/combined-environment-*.yml
@@ -356,3 +357,4 @@ tags
 dev/
 .conda/
 .opencode/
+.opencode

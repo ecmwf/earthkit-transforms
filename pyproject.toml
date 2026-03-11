@@ -37,6 +37,22 @@ all = [
 rasterio = [
   "rasterio"  # Requires GDAL
 ]
+docs = [
+  "ipykernel",
+  "docutils",
+  "Pygments>=2.6.1",
+  "Sphinx",
+  "sphinx-rtd-theme",
+  "nbsphinx",
+  "nbconvert",
+  "sphinx-autoapi",
+  "filelock",
+  "myst-parser",
+  "statsmodels",
+  "matplotlib",
+  "earthkit-plots",
+  "rasterio"
+]
 
 [tool.coverage.run]
 branch = true
