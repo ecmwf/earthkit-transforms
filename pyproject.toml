@@ -43,6 +43,7 @@ docs = [
   "nbsphinx",
   "nbconvert",
   "sphinx-autoapi",
+  "sphinx_design",
   "filelock",
   "myst-parser",
   "statsmodels",
