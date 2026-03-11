@@ -1,5 +1,5 @@
-earthkit.transforms.climatology
------------------------------------------
+Climatologies and anomalies
+---------------------------
 
 The :doc:`../autodocs/earthkit.transforms.climatology` module includes methods
 for aggregating climatologies and anomalies of data, including grouping the data in

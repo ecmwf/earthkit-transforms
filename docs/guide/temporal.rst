@@ -1,5 +1,5 @@
-earthkit.transforms.temporal
---------------------------------------
+Temporal computations
+---------------------
 
 The :doc:`../autodocs/earthkit.transforms.temporal` module includes methods
 for transforming data with respect to the temporal coordinate(s).

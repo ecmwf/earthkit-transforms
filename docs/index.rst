@@ -1,11 +1,12 @@
-Welcome to Earthkit-transforms’s documentation!
-===============================================
+Welcome to Earthkit-transforms' documentation!
+==============================================
 
 **earthkit-transforms** is a library of software tools to support people
-working with climate and meteorology data. It is made of sub-modules desigined
+working with climate and meteorology data. It is made of sub-modules designed
 for  transformations of data in specific domains.
 For example, the temporal module contains methods for aggregation and
 statistics analysis accross time dimensions/coordinates.
+
 **earthkit-transforms** has been designed
 following the philosophy of earthkit, hence the methods should be
 interoperable with any data object understood by earthkit-data.
@@ -40,36 +41,47 @@ Import and use
 
 
 .. toctree::
-   :caption: Examples
+   :caption: User guide 
    :maxdepth: 2
 
-   notebooks/temporal/index.rst
-   notebooks/climatology/index.rst
-   notebooks/spatial/index.rst
+   install
+   notebooks/index
+   howto
+   guide/index
+   api-reference
+   development
 
+.. .. toctree::
+..    :caption: How-to/Examples/Use-cases
+..    :maxdepth: 2
+
+..    notebooks/temporal/index.rst
+..    notebooks/climatology/index.rst
+..    notebooks/spatial/index.rst
 
 .. toctree::
    :maxdepth: 2
-   :caption: Documentation
+   :caption: Developer guide
 
-   guide/index
-   API reference <autodocs/earthkit.transforms>
    development
 
 .. toctree::
    :maxdepth: 2
-   :caption: Installation
+   :caption: Reference
 
-   install
    release-notes/index
    licence
 
 
 .. toctree::
    :maxdepth: 2
-   :caption: Projects
+   :caption: Related projects
 
    earthkit <https://earthkit.readthedocs.io/en/latest>
+   earthkit-data <https://earthkit-data.readthedocs.io/en/latest>
+   earthkit-plots <https://earthkit-plots.readthedocs.io/en/latest>
+   earthkit-meteo <https://earthkit-meteo.readthedocs.io/en/latest>
+   earthkit-hydro <https://earthkit-hydro.readthedocs.io/en/latest>
 
 
 Indices and tables

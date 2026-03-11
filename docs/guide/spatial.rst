@@ -1,5 +1,5 @@
-earthkit.transforms.spatial
---------------------------------------
+Spatial aggregations and masking
+--------------------------------
 
 The :doc:`../autodocs/earthkit.transforms.spatial` module includes methods
 for aggregating data in space. This includes masking and aggregating data with geometries.

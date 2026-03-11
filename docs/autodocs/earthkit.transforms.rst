@@ -1,5 +1,5 @@
-API reference
-=============
+earthkit.transforms
+===================
 
 Submodules
 ----------

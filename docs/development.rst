@@ -1,8 +1,5 @@
-Development
-===========
-
-Contributions
--------------
+Contributing
+============
 
 The code repository is hosted on ``Github``, testing, bug reports
 and contributions are highly welcomed and appreciated. Feel free to fork
