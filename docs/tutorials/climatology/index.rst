@@ -1,5 +1,5 @@
-Climatology examples
-====================
+Climatology tutorials
+=====================
 
 .. toctree::
    :maxdepth: 1

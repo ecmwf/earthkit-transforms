@@ -1,4 +1,4 @@
-Spatial examples
+Spatial tutorials
 =================
 
 .. toctree::

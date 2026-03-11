@@ -1,5 +1,5 @@
-Getting started
-===============
+Installation and Getting Started
+================================
 
 Installing from PyPi
 --------------------

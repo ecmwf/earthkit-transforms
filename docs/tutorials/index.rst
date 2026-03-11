@@ -12,5 +12,5 @@ to get a deeper understanding of how they work and how to use them effectively.
    :maxdepth: 2
 
    temporal/index.rst
-   climatology/index.rst
    spatial/index.rst
+   climatology/index.rst
