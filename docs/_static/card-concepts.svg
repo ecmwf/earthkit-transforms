@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120">
+  <defs>
+    <linearGradient id="concept-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#9C27B0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6A1B9A;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="200" height="120" fill="url(#concept-grad)" rx="8"/>
+  <!-- Lightbulb icon -->
+  <g transform="translate(75, 25)" fill="white">
+    <path d="M25 0 Q45 0 45 25 Q45 35 35 42 L35 50 L15 50 L15 42 Q5 35 5 25 Q5 0 25 0" fill="white"/>
+    <rect x="17" y="52" width="16" height="4" fill="white" rx="1"/>
+    <rect x="19" y="58" width="12" height="4" fill="white" rx="1"/>
+    <rect x="21" y="64" width="8" height="3" fill="white" rx="1"/>
+    <line x1="25" y1="15" x2="25" y2="28" stroke="#6A1B9A" stroke-width="3" stroke-linecap="round"/>
+    <line x1="18" y1="22" x2="32" y2="22" stroke="#6A1B9A" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>

@@ -11,38 +11,62 @@ statistics analysis accross time dimensions/coordinates.
 following the philosophy of earthkit, hence the methods should be
 interoperable with any data object understood by earthkit-data.
 Under the bonnet, **earthkit-transforms** generally uses
-[xarray](https://xarray.pydata.org/en/stable/) for computations,
+`xarray <https://xarray.pydata.org/en/stable/>`_ for computations,
 therefore it recommended to prepare your data as xarray objects
 before using the methods. This ensure clarity and consistency of the
 output produced by **earthkit-transforms**.
 
-Getting started
----------------
+.. grid:: 1
+   :gutter: 2
 
-**earthkit-transforms** is available from PyPi. To make use of the
-interoperable functionality you should ensure that you have installed
-the dependencies of *earthkit-data*.
+   .. grid-item-card:: Installation and Getting Started
+      :img-top: _static/card-getting-started.svg
+      :link: getting-started
+      :link-type: doc
+      :class-card: sd-shadow-sm
 
-Installation
-~~~~~~~~~~~~
+      New to earthkit-transforms? Start here with installation and a quick overview.
 
-.. code:: bash
+.. grid:: 1 1 2 2
+   :gutter: 2
 
-   pip install earthkit-transforms
+   .. grid-item-card:: Tutorials
+      :img-top: _static/card-tutorials.svg
+      :link: tutorials/index
+      :link-type: doc
+      :class-card: sd-shadow-sm
 
-Import and use
-~~~~~~~~~~~~~~
+      Step-by-step guides to learn earthkit-transforms.
 
-.. code:: python
+   .. grid-item-card:: How-tos
+      :img-top: _static/card-howtos.svg
+      :link: how-tos
+      :link-type: doc
+      :class-card: sd-shadow-sm
 
-    import earthkit.transforms as ekt
+      Practical recipes for common tasks.
 
-    daily_mean = ekt.temporal.daily_mean(MY_DATA)
+   .. grid-item-card:: Concepts
+      :img-top: _static/card-concepts.svg
+      :link: explanations/index
+      :link-type: doc
+      :class-card: sd-shadow-sm
+
+      Understand the core ideas behind earthkit-transforms.
+
+   .. grid-item-card:: API Reference
+      :img-top: _static/card-api.svg
+      :link: api-reference
+      :link-type: doc
+      :class-card: sd-shadow-sm
+
+      Detailed documentation of all functions and classes.
 
 
 .. toctree::
-   :caption: User guide 
+   :caption: User guide
    :maxdepth: 2
+   :hidden:
 
    getting-started
    tutorials/index
@@ -52,8 +76,9 @@ Import and use
 
 
 .. toctree::
-   :caption: Developer guide 
+   :caption: Developer guide
    :maxdepth: 2
+   :hidden:
 
    contributing
 
@@ -61,26 +86,20 @@ Import and use
 .. toctree::
    :maxdepth: 2
    :caption: Extras
+   :hidden:
 
    release-notes/index
    licence
+   genindex
 
 
 .. toctree::
    :maxdepth: 2
    :caption: Related projects
+   :hidden:
 
    earthkit <https://earthkit.readthedocs.io/en/latest>
    earthkit-data <https://earthkit-data.readthedocs.io/en/latest>
    earthkit-plots <https://earthkit-plots.readthedocs.io/en/latest>
    earthkit-meteo <https://earthkit-meteo.readthedocs.io/en/latest>
    earthkit-hydro <https://earthkit-hydro.readthedocs.io/en/latest>
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-
-.. * :ref:`modindex`
-.. * :ref:`search`

@@ -68,6 +68,8 @@ extensions = [
     "nbsphinx",
     # Simplifies linking to external resources with short aliases
     "sphinx.ext.extlinks",
+    # Enables responsive grid layouts and card components
+    "sphinx_design",
 ]
 
 autodoc_typehints = "none"
@@ -121,6 +123,8 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "furo"
+
+html_title = version
 
 html_static_path = ["_static"]
 
