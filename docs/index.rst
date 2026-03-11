@@ -49,7 +49,6 @@ Import and use
    howto
    guide/index
    api-reference
-   development
 
 .. .. toctree::
 ..    :caption: How-to/Examples/Use-cases
