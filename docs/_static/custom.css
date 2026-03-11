@@ -63,3 +63,45 @@ h1, h2, h3, h4, h5, h6 {
   display: block;
   background: transparent;
 }
+
+/* Light mode - show regular icons */
+[data-mode="light"] .sd-card .sd-card-img-top[src*="rocket-light.svg"] {
+  content: url("rocket-light.svg");
+}
+
+[data-mode="light"] .sd-card .sd-card-img-top[src*="book-light.svg"] {
+  content: url("book-light.svg");
+}
+
+[data-mode="light"] .sd-card .sd-card-img-top[src*="tool-light.svg"] {
+  content: url("tool-light.svg");
+}
+
+[data-mode="light"] .sd-card .sd-card-img-top[src*="bulb-light.svg"] {
+  content: url("bulb-light.svg");
+}
+
+[data-mode="light"] .sd-card .sd-card-img-top[src*="brackets-contain-light.svg"] {
+  content: url("brackets-contain-light.svg");
+}
+
+/* Dark mode - show dark versions */
+[data-mode="dark"] .sd-card .sd-card-img-top[src*="rocket-light.svg"] {
+  content: url("rocket-dark.svg");
+}
+
+[data-mode="dark"] .sd-card .sd-card-img-top[src*="book-light.svg"] {
+  content: url("book-dark.svg");
+}
+
+[data-mode="dark"] .sd-card .sd-card-img-top[src*="tool-light.svg"] {
+  content: url("tool-dark.svg");
+}
+
+[data-mode="dark"] .sd-card .sd-card-img-top[src*="bulb-light.svg"] {
+  content: url("bulb-dark.svg");
+}
+
+[data-mode="dark"] .sd-card .sd-card-img-top[src*="brackets-contain-light.svg"] {
+  content: url("brackets-contain-dark.svg");
+}

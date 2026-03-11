@@ -19,19 +19,19 @@ output produced by **earthkit-transforms**.
 .. grid:: 1
    :gutter: 2
 
-   .. grid-item-card:: Installation and Getting Started
-      :img-top: _static/rocket.svg
-      :link: getting-started
-      :link-type: doc
-      :class-card: sd-shadow-sm
+    .. grid-item-card:: Installation and Getting Started
+       :img-top: _static/rocket-light.svg
+       :link: getting-started
+       :link-type: doc
+       :class-card: sd-shadow-sm
 
-      New to earthkit-transforms? Start here with installation and a quick overview.
+       New to earthkit-transforms? Start here with installation and a quick overview.
 
 .. grid:: 1 1 2 2
    :gutter: 2
 
    .. grid-item-card:: Tutorials
-      :img-top: _static/book.svg
+      :img-top: _static/book-light.svg
       :link: tutorials/index
       :link-type: doc
       :class-card: sd-shadow-sm
@@ -39,7 +39,7 @@ output produced by **earthkit-transforms**.
       Step-by-step guides to learn earthkit-transforms.
 
    .. grid-item-card:: How-tos
-      :img-top: _static/tool.svg
+      :img-top: _static/tool-light.svg
       :link: how-tos
       :link-type: doc
       :class-card: sd-shadow-sm
@@ -47,7 +47,7 @@ output produced by **earthkit-transforms**.
       Practical recipes for common tasks.
 
    .. grid-item-card:: Concepts and Explanations
-      :img-top: _static/bulb.svg
+      :img-top: _static/bulb-light.svg
       :link: explanations/index
       :link-type: doc
       :class-card: sd-shadow-sm
@@ -55,7 +55,7 @@ output produced by **earthkit-transforms**.
       Understand the core ideas behind earthkit-transforms.
 
    .. grid-item-card:: API Reference
-      :img-top: _static/brackets-contain.svg
+      :img-top: _static/brackets-contain-light.svg
       :link: api-reference
       :link-type: doc
       :class-card: sd-shadow-sm
