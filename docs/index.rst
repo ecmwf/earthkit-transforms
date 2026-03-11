@@ -44,11 +44,12 @@ Import and use
    :caption: User guide 
    :maxdepth: 2
 
-   install
-   notebooks/index
-   howto
-   guide/index
+   getting-started
+   tutorials/index
+   how-tos
+   explanation/index
    api-reference
+
 
 .. toctree::
    :caption: Developer guide 

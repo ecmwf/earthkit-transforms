@@ -12,7 +12,7 @@ The default behaviour of `mask` is to return a mask for each feature found in th
 i.e. the same behaviour as the `masks` method in earlier versions. To reproduce the earlier behaviour
 of `mask`, i.e. to union all features into a single mask, then use the new kwarg `union_geometries=True`.
 For more details, please see the
-:doc:`spatial aggregation example notebook <../notebooks/spatial/01-era5-masking>`.
+:doc:`spatial aggregation example notebook <../tutorials/spatial/01-era5-masking>`.
 
 - Update earthkit-transforms to use latest version of earthkit-data (in #37)
 - Precomputed masks for spatial aggregation methods (in #38).
