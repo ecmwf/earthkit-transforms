@@ -12,7 +12,22 @@ BUILDDIR      = _build
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
-.PHONY: help Makefile
+.PHONY: help Makefile autodocs
+
+# Generate autodocs RST files
+autodocs:
+	@echo "Preparing autodocs folder..."
+	@mkdir -p ./$(SOURCEDIR)/autodocs
+	@rm -rf ./$(SOURCEDIR)/autodocs/*
+	@echo "Generating .rst files with sphinx-apidoc..."
+	sphinx-apidoc --implicit-namespaces --separate -o ./$(SOURCEDIR)/autodocs ../src/earthkit/
+	@rm ./$(SOURCEDIR)/autodocs/earthkit.rst
+	@rm ./$(SOURCEDIR)/autodocs/modules.rst
+	python clean_autodocs.py
+
+# Build HTML documentation (depends on autodocs)
+html: autodocs
+	@$(SPHINXBUILD) -M html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).

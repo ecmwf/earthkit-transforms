@@ -1,4 +1,4 @@
-How-to examples
-================
+How-tos
+=======
 
 To do

@@ -105,6 +105,12 @@ intersphinx_mapping = {
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
+# Modules to hide from autodocs (relative to earthkit.transforms)
+# These modules will not appear in the API documentation sidebar
+autodocs_hidden_modules = [
+    "aggregate",
+]
+
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.

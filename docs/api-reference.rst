@@ -22,4 +22,4 @@ Submodules
    :maxdepth: 2
    :hidden:
 
-   autodocs/earthkit.transforms
+   earthkit.transforms <autodocs/earthkit.transforms>

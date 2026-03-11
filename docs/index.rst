@@ -47,7 +47,7 @@ Import and use
    getting-started
    tutorials/index
    how-tos
-   explanation/index
+   explanations/index
    api-reference
 
 
@@ -71,10 +71,10 @@ Import and use
    :caption: Related projects
 
    earthkit <https://earthkit.readthedocs.io/en/latest>
-   .. earthkit-data <https://earthkit-data.readthedocs.io/en/latest>
-   .. earthkit-plots <https://earthkit-plots.readthedocs.io/en/latest>
-   .. earthkit-meteo <https://earthkit-meteo.readthedocs.io/en/latest>
-   .. earthkit-hydro <https://earthkit-hydro.readthedocs.io/en/latest>
+   earthkit-data <https://earthkit-data.readthedocs.io/en/latest>
+   earthkit-plots <https://earthkit-plots.readthedocs.io/en/latest>
+   earthkit-meteo <https://earthkit-meteo.readthedocs.io/en/latest>
+   earthkit-hydro <https://earthkit-hydro.readthedocs.io/en/latest>
 
 
 Indices and tables
