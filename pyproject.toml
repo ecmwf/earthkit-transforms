@@ -49,6 +49,8 @@ docs = [
   "filelock",
   "myst-parser",
   "statsmodels",
+  "matplotlib",
+  "earthkit-plots",
   "rasterio"
 ]
 
