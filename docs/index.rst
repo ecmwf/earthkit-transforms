@@ -50,23 +50,16 @@ Import and use
    guide/index
    api-reference
 
-.. .. toctree::
-..    :caption: How-to/Examples/Use-cases
-..    :maxdepth: 2
+.. toctree::
+   :caption: Developer guide 
+   :maxdepth: 2
 
-..    notebooks/temporal/index.rst
-..    notebooks/climatology/index.rst
-..    notebooks/spatial/index.rst
+   contributing
+
 
 .. toctree::
    :maxdepth: 2
-   :caption: Developer guide
-
-   development
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Reference
+   :caption: Extras
 
    release-notes/index
    licence
@@ -77,10 +70,10 @@ Import and use
    :caption: Related projects
 
    earthkit <https://earthkit.readthedocs.io/en/latest>
-   earthkit-data <https://earthkit-data.readthedocs.io/en/latest>
-   earthkit-plots <https://earthkit-plots.readthedocs.io/en/latest>
-   earthkit-meteo <https://earthkit-meteo.readthedocs.io/en/latest>
-   earthkit-hydro <https://earthkit-hydro.readthedocs.io/en/latest>
+   .. earthkit-data <https://earthkit-data.readthedocs.io/en/latest>
+   .. earthkit-plots <https://earthkit-plots.readthedocs.io/en/latest>
+   .. earthkit-meteo <https://earthkit-meteo.readthedocs.io/en/latest>
+   .. earthkit-hydro <https://earthkit-hydro.readthedocs.io/en/latest>
 
 
 Indices and tables
