@@ -50,6 +50,7 @@ docs = [
   "xarray",
   "filelock",
   "statsmodels",
+  "reverse_geocoder",
   "matplotlib",
   "rasterio",
   "earthkit-plots @ git+https://github.com/ecmwf/earthkit-plots@release/1.0.0rc0",
