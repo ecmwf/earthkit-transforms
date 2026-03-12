@@ -16,17 +16,19 @@ statistics analysis accross time dimensions/coordinates.
 .. before using the methods. This ensure clarity and consistency of the
 .. output produced by **earthkit-transforms**.
 
-.. grid:: 1 1 2 2
+.. grid:: 1
    :gutter: 2
 
    .. grid-item-card:: Installation and Getting Started
-      :columns: 2
       :img-top: _static/rocket.svg
       :link: getting-started
       :link-type: doc
       :class-card: sd-shadow-sm
 
       New to earthkit-transforms? Start here with installation and a quick overview.
+
+.. grid:: 1 1 2 2
+   :gutter: 2
 
    .. grid-item-card:: Tutorials
       :img-top: _static/book.svg
