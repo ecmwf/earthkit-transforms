@@ -160,7 +160,7 @@ def min(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     xr.DataArray
 
     """
-    _kwargs["how"] = "max"
+    _kwargs["how"] = "min"
     return reduce(*_args, **_kwargs)
 
 
@@ -170,7 +170,7 @@ def max(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     Parameters
     ----------
     dataarray : xr.DataArray
-        The DataArray over which to calculate the climatological mean. Must
+        The DataArray over which to calculate the climatological maximum. Must
         contain a `time` dimension.
     frequency : str (optional)
         Valid options are `day`, `week`, `month` and `year`. The default is `year`.

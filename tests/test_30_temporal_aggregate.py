@@ -43,23 +43,6 @@ def test_temporal_reduce(in_data, expected_return_type):
         assert "2t_mean" in reduced_data
 
 
-def test_temporal_reduce_frequency(in_data, expected_return_type):
-    in_data = get_data().to_xarray()
-    reduced_data = temporal.reduce(in_data, how="mean")
-    assert isinstance(reduced_data, expected_return_type)
-    assert "forecast_reference_time" not in list(reduced_data.dims)
-    if expected_return_type == xr.DataArray:
-        assert "2t" == reduced_data.name
-    else:
-        assert "2t" in reduced_data
-    reduced_data = temporal.reduce(in_data, how="mean", how_label="mean")
-    assert isinstance(reduced_data, expected_return_type)
-    assert "forecast_reference_time" not in list(reduced_data.dims)
-    if expected_return_type == xr.DataArray:
-        assert "2t_mean" == reduced_data.name
-    else:
-        assert "2t_mean" in reduced_data
-
 
 def test_standardise_time_basic():
     data = get_data().to_xarray()
@@ -250,3 +233,117 @@ def test_temporal_monthly_reduce_extra_reduce_dims():
 
     assert result.dims == ("time",)
     assert np.allclose(result.values, [2.5, 6.5])
+
+
+# ---------------------------------------------------------------------------
+# Local (synthetic-data) tests — no network required
+# ---------------------------------------------------------------------------
+
+def _make_hourly_da(n_hours=48, start="2020-01-01"):
+    """Two days of hourly data starting at `start`."""
+    time = pd.date_range(start, periods=n_hours, freq="h")
+    data = np.arange(float(n_hours))
+    return xr.DataArray(data, dims=["time"], coords={"time": time}, name="var")
+
+
+def _make_daily_da(n_days=60, start="2020-01-01"):
+    """Two months of daily data (Jan+Feb 2020 by default)."""
+    time = pd.date_range(start, periods=n_days, freq="D")
+    data = np.arange(float(n_days))
+    return xr.DataArray(data, dims=["time"], coords={"time": time}, name="var")
+
+
+def _make_monthly_da_local(n_months=36, start="2020-01-01"):
+    """Three years of monthly data."""
+    time = pd.date_range(start, periods=n_months, freq="MS")
+    data = np.arange(float(n_months))
+    return xr.DataArray(data, dims=["time"], coords={"time": time}, name="var")
+
+
+# --- temporal.reduce (local) ------------------------------------------------
+
+def test_temporal_reduce_local_mean():
+    da = _make_hourly_da()
+    result = temporal.reduce(da, how="mean")
+    assert isinstance(result, xr.DataArray)
+    assert result.dims == ()
+    np.testing.assert_allclose(result.values, np.mean(da.values))
+
+
+def test_temporal_reduce_local_how_label():
+    da = _make_hourly_da()
+    result = temporal.reduce(da, how="mean", how_label="mean")
+    assert result.name == "var_mean"
+
+
+def test_temporal_reduce_local_frequency_resample():
+    """temporal.reduce with frequency= should trigger the resample path."""
+    da = _make_hourly_da()
+    result = temporal.reduce(da, how="mean", frequency="D")
+    assert isinstance(result, xr.DataArray)
+    assert result.dims == ("time",)
+    assert len(result) == 2
+
+
+# --- temporal.standardise_time (local) -------------------------------------
+
+def test_standardise_time_local_preserves_values():
+    da = _make_monthly_da_local()
+    result = temporal.standardise_time(da)
+    # Default format keeps full datetime; values should be unchanged
+    np.testing.assert_array_equal(result.values, da.values)
+
+
+def test_standardise_time_local_monthly_format():
+    da = _make_monthly_da_local()
+    result = temporal.standardise_time(da, target_format="%Y-%m-15")
+    days = [pd.Timestamp(t).day for t in result.time.values]
+    assert all(d == 15 for d in days)
+
+
+# --- temporal.daily_reduce (local) -----------------------------------------
+
+@pytest.mark.parametrize("how", ("mean", "min", "max", "std", "sum"))
+def test_daily_reduce_local(how):
+    da = _make_hourly_da()
+    result = temporal.daily_reduce(da, how=how)
+    assert isinstance(result, xr.DataArray)
+    assert result.dims == ("time",)
+    assert len(result) == 2  # 48 hours = 2 days
+
+
+def test_daily_reduce_local_returns_correct_mean():
+    da = _make_hourly_da()
+    result = temporal.daily_reduce(da, how="mean")
+    # First day: hours 0-23 → mean = 11.5; second day: hours 24-47 → mean = 35.5
+    np.testing.assert_allclose(result.values, [11.5, 35.5])
+
+
+# --- temporal.monthly_reduce (local) ---------------------------------------
+
+@pytest.mark.parametrize("how", ("mean", "min", "max", "std", "sum"))
+def test_monthly_reduce_local(how):
+    da = _make_daily_da()
+    result = temporal.monthly_reduce(da, how=how)
+    assert isinstance(result, xr.DataArray)
+    assert result.dims == ("time",)
+    assert len(result) == 2  # Jan + Feb
+
+
+def test_monthly_reduce_local_returns_correct_mean():
+    da = _make_daily_da()
+    result = temporal.monthly_reduce(da, how="mean")
+    # Jan: days 0-30 (31 days) → mean = 15.0; Feb 2020: days 31-59 (29 days) → mean = 45.0
+    assert len(result) == 2
+    np.testing.assert_allclose(result.isel(time=0).values, np.mean(np.arange(31.0)))
+    np.testing.assert_allclose(result.isel(time=1).values, np.mean(np.arange(31.0, 60.0)))
+
+
+# --- temporal.rolling_reduce (local) ----------------------------------------
+
+def test_rolling_reduce_local():
+    da = _make_daily_da(n_days=10)
+    result = temporal.rolling_reduce(da, window_length=3, how_reduce="mean")
+    assert isinstance(result, xr.DataArray)
+    assert result.dims == ("time",)
+    assert len(result) == len(da)

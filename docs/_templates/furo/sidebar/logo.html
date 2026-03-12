@@ -1,9 +1,0 @@
-{# -- This replaces only the brand text component, not the logo itself -- #}
-<a class="sidebar-brand" href="{{ pathto(master_doc) }}">
-  {% if theme_light_logo or theme_logo %}
-    <img class="sidebar-logo" src="{{ pathto('_static/' ~ (theme_light_logo or theme_logo), 1) }}" alt="{{ project }}" />
-  {% endif %}
-  <span class="sidebar-brand-text">
-    Version: {{ version }}
-  </span>
-</a>

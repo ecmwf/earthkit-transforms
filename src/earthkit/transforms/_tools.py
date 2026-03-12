@@ -127,7 +127,7 @@ def season_order_decorator(func):
     def wrapper(*args, **kwargs):
         result = func(*args, **kwargs)
         if kwargs.get("frequency", "NOTseason") in ["season"]:
-            result.reindex(season=["DJF", "MAM", "JJA", "SON"])
+            result = result.reindex(season=["DJF", "MAM", "JJA", "SON"])
         return result
 
     return wrapper
@@ -544,7 +544,8 @@ def _pandas_frequency_and_bins(
     frequency: str,
 ) -> tuple[str, int | None]:
     freq = frequency.lstrip("0123456789")
-    bins = int(frequency[: -len(freq)]) or None
+    prefix = frequency[: -len(freq)] if len(freq) < len(frequency) else ""
+    bins = int(prefix) if prefix else None
     freq = _PANDAS_FREQUENCIES.get(freq.lstrip(" "), frequency)
     return freq, bins
 

@@ -11,14 +11,21 @@ import pytest
 import xarray as xr
 
 from earthkit.transforms._tools import (
+    ensure_list,
     get_dim_key,
     get_how,
     get_how_xp,
     get_spatial_info,
+    groupby_bins,
     groupby_kwargs_decorator,
+    groupby_time,
     latitude_weights,
     nanaverage,
+    normalize_dims,
+    season_order_decorator,
+    standard_weights,
     time_dim_decorator,
+    timedelta_to_largest_unit,
 )
 
 
@@ -324,3 +331,191 @@ def test_latitude_weights():
 
     weights = latitude_weights(da.rename({"y": "latitude"}))
     assert np.allclose(weights, [0, 0.5, 1, 0.5, 0])
+
+
+# ---------------------------------------------------------------------------
+# normalize_dims
+# ---------------------------------------------------------------------------
+
+def test_normalize_dims_none():
+    assert normalize_dims(None) == []
+
+
+def test_normalize_dims_string():
+    assert normalize_dims("time") == ["time"]
+
+
+def test_normalize_dims_list():
+    assert normalize_dims(["lat", "lon"]) == ["lat", "lon"]
+
+
+def test_normalize_dims_tuple():
+    assert normalize_dims(("lat", "lon")) == ["lat", "lon"]
+
+
+# ---------------------------------------------------------------------------
+# ensure_list
+# ---------------------------------------------------------------------------
+
+def test_ensure_list_already_list():
+    assert ensure_list([1, 2, 3]) == [1, 2, 3]
+
+
+def test_ensure_list_scalar():
+    assert ensure_list("foo") == ["foo"]
+
+
+def test_ensure_list_to_list_method():
+    # pandas Index has a .to_list() method
+    idx = pd.Index(["a", "b", "c"])
+    assert ensure_list(idx) == ["a", "b", "c"]
+
+
+# ---------------------------------------------------------------------------
+# timedelta_to_largest_unit
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize(
+    "td, expected",
+    [
+        (pd.Timedelta("1 days"), "days"),
+        (pd.Timedelta("2 days"), "(2 days)"),
+        (pd.Timedelta("1 hour"), "hours"),
+        (pd.Timedelta("3 hours"), "(3 hours)"),
+        (pd.Timedelta("1 minute"), "minutes"),
+        (pd.Timedelta("90 seconds"), "(1.5 minutes)"),
+        (pd.Timedelta("1 second"), "seconds"),
+    ],
+)
+def test_timedelta_to_largest_unit(td, expected):
+    assert timedelta_to_largest_unit(td) == expected
+
+
+# ---------------------------------------------------------------------------
+# season_order_decorator
+# ---------------------------------------------------------------------------
+
+def _make_seasonal_da():
+    """Create a DataArray with a 'season' dimension in wrong order."""
+    return xr.DataArray(
+        [1.0, 2.0, 3.0, 4.0],
+        dims=["season"],
+        coords={"season": ["SON", "JJA", "MAM", "DJF"]},
+    )
+
+
+def _dummy_season_func(dataarray, *args, **kwargs):
+    return dataarray
+
+
+def test_season_order_decorator_passthrough():
+    """Without frequency='season', result is returned unchanged."""
+    da = _make_seasonal_da()
+    decorated = season_order_decorator(_dummy_season_func)
+    result = decorated(da)
+    # Season order should be unchanged because frequency != 'season'
+    assert list(result.season.values) == ["SON", "JJA", "MAM", "DJF"]
+
+
+def test_season_order_decorator_season_reindexed():
+    """With frequency='season', result must be reindexed to canonical DJF/MAM/JJA/SON order."""
+    da = _make_seasonal_da()
+    decorated = season_order_decorator(_dummy_season_func)
+    result = decorated(da, frequency="season")
+    assert list(result.season.values) == ["DJF", "MAM", "JJA", "SON"]
+
+
+# ---------------------------------------------------------------------------
+# nanaverage with weights and axis
+# ---------------------------------------------------------------------------
+
+def test_nanaverage_with_weights_no_nan():
+    data = np.array([1.0, 2.0, 3.0, 4.0])
+    weights = np.array([1.0, 1.0, 1.0, 1.0])
+    result = nanaverage(data, weights=weights)
+    assert np.isclose(result, np.mean(data))
+
+
+def test_nanaverage_with_weights_and_nan():
+    data = np.array([1.0, np.nan, 3.0, 4.0])
+    weights = np.array([1.0, 1.0, 1.0, 1.0])
+    result = nanaverage(data, weights=weights)
+    assert np.isclose(result, np.nanmean(data))
+
+
+def test_nanaverage_with_weights_and_axis():
+    data = np.array([[1.0, 2.0], [3.0, 4.0]])
+    weights = np.array([1.0, 3.0])  # weight axis-1
+    result = nanaverage(data, weights=weights, axis=1)
+    expected = np.average(data, weights=weights, axis=1)
+    assert np.allclose(result, expected)
+
+
+# ---------------------------------------------------------------------------
+# standard_weights error path
+# ---------------------------------------------------------------------------
+
+def test_standard_weights_unrecognised():
+    da = xr.DataArray(
+        np.ones((3, 4)),
+        dims=["latitude", "longitude"],
+        coords={"latitude": [-30, 0, 30], "longitude": [0, 90, 180, 270]},
+    )
+    with pytest.raises(NotImplementedError):
+        standard_weights(da, weights="nonsense")
+
+
+# ---------------------------------------------------------------------------
+# groupby_time
+# ---------------------------------------------------------------------------
+
+def _make_monthly_da():
+    time = pd.date_range("2020-01-01", periods=24, freq="MS")
+    return xr.DataArray(np.arange(24.0), dims=["time"], coords={"time": time})
+
+
+def test_groupby_time_by_month():
+    da = _make_monthly_da()
+    grouped = groupby_time(da, frequency="month")
+    result = grouped.mean()
+    assert "month" in result.dims
+    assert len(result) == 12
+
+
+def test_groupby_time_infer_freq():
+    """groupby_time should infer the frequency from the data when not provided."""
+    da = _make_monthly_da()
+    # monthly data infers "month"
+    grouped = groupby_time(da)
+    result = grouped.mean()
+    # Result will have a time-derived grouping dimension
+    assert result.ndim == 1
+
+
+def test_groupby_time_invalid_frequency():
+    da = _make_monthly_da()
+    with pytest.raises((ValueError, AttributeError)):
+        groupby_time(da, frequency="nonsense_freq")
+
+
+# ---------------------------------------------------------------------------
+# groupby_bins
+# ---------------------------------------------------------------------------
+
+def test_groupby_bins_int_bin_widths():
+    time = pd.date_range("2020-01-01", periods=12, freq="MS")
+    da = xr.DataArray(np.arange(12.0), dims=["time"], coords={"time": time})
+    grouped = groupby_bins(da, frequency="month", bin_widths=3)
+    result = grouped.mean()
+    assert result.ndim == 1
+    # 12 months / 3 per bin = 4 bins
+    assert len(result) == 4
+
+
+def test_groupby_bins_list_bin_widths():
+    time = pd.date_range("2020-01-01", periods=12, freq="MS")
+    da = xr.DataArray(np.arange(12.0), dims=["time"], coords={"time": time})
+    grouped = groupby_bins(da, frequency="month", bin_widths=[0, 6, 12])
+    result = grouped.mean()
+    assert result.ndim == 1
+    assert len(result) == 2
