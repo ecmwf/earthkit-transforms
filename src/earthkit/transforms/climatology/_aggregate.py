@@ -6,7 +6,7 @@ from earthkit.transforms import _tools
 from earthkit.transforms._aggregate import reduce as _reduce
 from earthkit.transforms._aggregate import resample
 from earthkit.transforms._tools import groupby_time
-
+from earthkit.transforms.temporal import reduce as _temporal_reduce
 
 @_tools.transform_inputs_decorator()
 @_tools.time_dim_decorator
@@ -35,7 +35,8 @@ def reduce(
         Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
         to return the result of reducing an array over an integer valued axis
     frequency : str (optional)
-        Valid options are `day`, `week`, `month` and `year`. The default is `year`.
+        Valid options are `day`, `week` and `month`. If not provided the climatology is
+        calculated for the period.
     bin_widths : int or list (optional)
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
@@ -53,13 +54,15 @@ def reduce(
     xr.DataArray
 
     """
-    groupby_kwargs.setdefault("frequency", "year")
-    grouped_data = groupby_time(
-        dataarray,
-        time_dim=time_dim,
-        **groupby_kwargs,
-    )
-    return _reduce(grouped_data, how=how, dim=time_dim, **reduce_kwargs)
+    if groupby_kwargs.get("frequency") is not None:
+        grouped_data = groupby_time(
+            dataarray,
+            time_dim=time_dim,
+            **groupby_kwargs,
+        )
+        return _reduce(grouped_data, how=how, dim=time_dim, **reduce_kwargs)
+
+    return _reduce(dataarray, how=how, dim=time_dim, **reduce_kwargs)
 
 
 def mean(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
@@ -744,6 +747,7 @@ def _anomaly_dataarray(
     xr.DataArray
 
     """
+    reduce_kwargs.setdefault("how", "mean")
     var_name = dataarray.name
     if isinstance(climatology, xr.Dataset):
         if var_name in climatology:
@@ -771,24 +775,38 @@ def _anomaly_dataarray(
     # If frequency not defined, it is deduced from the climatology.
     # This is somewhat hardcoded, but it is best practice, so for now it can stay here
     if groupby_kwargs.get("frequency") is None:
-        for freq in ["dayofyear", "week", "month", "year"]:
+        for freq in ["dayofyear", "week", "month"]:
             if freq in climatology_da.dims:
                 groupby_kwargs["frequency"] = freq
                 break
+        else:
+            groupby_kwargs["frequency"] = "year"
 
-    anomaly_array = groupby_time(dataarray, time_dim=time_dim, **groupby_kwargs) - climatology_da
+    # Annual anomalies are simpler and do not need to be subtracted from before resampling
+    if groupby_kwargs["frequency"] == "year":
+        anomaly_array = _temporal_reduce(
+            dataarray, time_dim=time_dim, **groupby_kwargs, **reduce_kwargs
+        )
+        anomaly_array = anomaly_array - climatology_da
+
+        if relative:
+            anomaly_array = (anomaly_array / climatology_da) * 100.0
+
+    else:
+        anomaly_array = groupby_time(dataarray, time_dim=time_dim, **groupby_kwargs) - climatology_da
+
+        if relative:
+            anomaly_array = (
+                groupby_time(anomaly_array, time_dim=time_dim, **groupby_kwargs) / climatology_da
+            ) * 100.0
+        anomaly_array = resample(anomaly_array, **reduce_kwargs, **groupby_kwargs, dim=time_dim)
 
     if relative:
-        anomaly_array = (
-            groupby_time(anomaly_array, time_dim=time_dim, **groupby_kwargs) / climatology_da
-        ) * 100.0
         name_tag = "relative anomaly"
         update_attrs = {"units": "%"}
     else:
         name_tag = "anomaly"
         update_attrs = {}
-
-    anomaly_array = resample(anomaly_array, how="mean", **reduce_kwargs, **groupby_kwargs, dim=time_dim)
 
     return _update_anomaly_array(
         anomaly_array, dataarray, var_name, name_tag, update_attrs, how_label=how_label

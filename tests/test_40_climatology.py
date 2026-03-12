@@ -37,7 +37,8 @@ def get_data():
 def test_climatology_base(in_data, expected_return_type, method):
     clim = method(in_data)
     assert isinstance(clim, expected_return_type)
-    assert "year" in list(clim.dims)
+    # TBC, should the time-dimension be dropped altogether?
+    # assert "year" in list(clim.dims)
     if expected_return_type == xr.DataArray:
         assert "2t" == clim.name
     else:
@@ -78,7 +79,7 @@ def test_anomaly_base(in_data, expected_return_type, clim_method):
     # Check alternate frequencies
     for freq in ["month", "dayofyear"]:
         clim_m = clim_method(in_data, frequency=freq)
-        anom_m = climatology.anomaly(in_data, clim_m, frequency=freq)
+        anom_m = climatology.anomaly(in_data, clim_m)
         # Dimensions of the anomaly should be the same as the input data
         assert all(dim in list(anom_m.dims) for dim in in_data.dims)
 

@@ -43,6 +43,24 @@ def test_temporal_reduce(in_data, expected_return_type):
         assert "2t_mean" in reduced_data
 
 
+def test_temporal_reduce_frequency(in_data, expected_return_type):
+    in_data = get_data().to_xarray()
+    reduced_data = temporal.reduce(in_data, how="mean")
+    assert isinstance(reduced_data, expected_return_type)
+    assert "forecast_reference_time" not in list(reduced_data.dims)
+    if expected_return_type == xr.DataArray:
+        assert "2t" == reduced_data.name
+    else:
+        assert "2t" in reduced_data
+    reduced_data = temporal.reduce(in_data, how="mean", how_label="mean")
+    assert isinstance(reduced_data, expected_return_type)
+    assert "forecast_reference_time" not in list(reduced_data.dims)
+    if expected_return_type == xr.DataArray:
+        assert "2t_mean" == reduced_data.name
+    else:
+        assert "2t_mean" in reduced_data
+
+
 def test_standardise_time_basic():
     data = get_data().to_xarray()
     original_time = data.forecast_reference_time
@@ -232,3 +250,5 @@ def test_temporal_monthly_reduce_extra_reduce_dims():
 
     assert result.dims == ("time",)
     assert np.allclose(result.values, [2.5, 6.5])
+
+
