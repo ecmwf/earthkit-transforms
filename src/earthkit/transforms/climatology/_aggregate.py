@@ -788,8 +788,9 @@ def _anomaly_dataarray(
 
     # Annual anomalies are simpler and do not need to be subtracted from before resampling
     if groupby_kwargs["frequency"] == "year":
-        anomaly_array = _temporal_reduce(dataarray, time_dim=time_dim, **groupby_kwargs, **reduce_kwargs)
-        anomaly_array = anomaly_array - climatology_da
+        anomaly_array = (
+            _temporal_reduce(dataarray, time_dim=time_dim, **groupby_kwargs, **reduce_kwargs) - climatology_da
+        )
 
         if relative:
             anomaly_array = (anomaly_array / climatology_da) * 100.0
