@@ -17,6 +17,99 @@ def get_data():
 
 
 @pytest.mark.parametrize(
+    "method",
+    (
+        climatology.mean,
+        climatology.median,
+        climatology.min,
+        climatology.max,
+        climatology.std,
+    ),
+)
+@pytest.mark.parametrize(
+    "in_data, expected_return_type",
+    (
+        # [get_data(), xr.Dataset],
+        [get_data().to_xarray(), xr.Dataset],
+        [get_data().to_xarray()["2t"], xr.DataArray],
+    ),
+)
+def test_climatology_base(in_data, expected_return_type, method):
+    clim = method(in_data)
+    assert isinstance(clim, expected_return_type)
+    assert "year" in list(clim.dims)
+    if expected_return_type == xr.DataArray:
+        assert "2t" == clim.name
+    else:
+        assert "2t" in clim
+
+    # Check alternate frequencies
+    for freq in ["month", "dayofyear"]:
+        clim = method(in_data, frequency=freq)
+        assert freq in list(clim.dims)
+
+
+@pytest.mark.parametrize(
+    "clim_method",
+    (
+        climatology.mean,
+        climatology.median,
+    ),
+)
+@pytest.mark.parametrize(
+    "in_data, expected_return_type",
+    (
+        [get_data().to_xarray(), xr.Dataset],
+        [get_data().to_xarray()["2t"], xr.DataArray],
+    ),
+)
+def test_anomaly_base(in_data, expected_return_type, clim_method):
+    clim_m = clim_method(in_data)
+    anom_m = climatology.anomaly(in_data, clim_m)
+
+    assert isinstance(anom_m, expected_return_type)
+    # Dimensions of the anomaly should be the same as the input data
+    assert all(dim in list(anom_m.dims) for dim in in_data.dims)
+    if expected_return_type == xr.DataArray:
+        assert "2t" == anom_m.name
+    else:
+        assert "2t" in anom_m
+
+    # Check alternate frequencies
+    for freq in ["month", "dayofyear"]:
+        clim_m = clim_method(in_data, frequency=freq)
+        anom_m = climatology.anomaly(in_data, clim_m, frequency=freq)
+        # Dimensions of the anomaly should be the same as the input data
+        assert all(dim in list(anom_m.dims) for dim in in_data.dims)
+
+
+# @pytest.mark.parametrize(
+#     "time_string, expected_dim",
+#     (
+#         ("D", "dayofyear"),
+#         ("M", "month"),
+#         ("Y", "year"),
+#     )
+# )
+# @pytest.mark.parametrize(
+#     "method",
+#     (
+#         climatology.mean,
+#         climatology.median,
+#     ),
+# )
+# def test_climatology_pandas_time_strings(method, time_string, expected_dim):
+#     in_data = get_data().to_xarray()
+#     clim = method(in_data, frequency=time_string)
+#     assert expected_dim in list(clim.dims)
+
+#     # Check alternate frequencies
+#     for dim in ["month", "dayofyear"]:
+#         clim = method(in_data, frequency=dim)
+#         assert dim in list(clim.dims)
+
+
+@pytest.mark.parametrize(
     "method, how",
     (
         (climatology.monthly_mean, "mean"),

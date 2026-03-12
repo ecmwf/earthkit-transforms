@@ -16,7 +16,7 @@ def reduce(
     dataarray: xr.Dataset | xr.DataArray,
     time_dim: str | None = None,
     how: str | T.Callable | None = "mean",
-    groupby_kwargs: dict = {},
+    groupby_kwargs: dict | None = None,
     **reduce_kwargs,
 ):
     """Group data annually over a given `frequency` and reduce using the specified `how` method.
@@ -35,7 +35,7 @@ def reduce(
         Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
         to return the result of reducing an array over an integer valued axis
     frequency : str (optional)
-        Valid options are `day`, `week` and `month`.
+        Valid options are `day`, `week`, `month` and `year`. The default is `year`.
     bin_widths : int or list (optional)
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
@@ -53,6 +53,7 @@ def reduce(
     xr.DataArray
 
     """
+    groupby_kwargs.setdefault("frequency", "year")
     grouped_data = groupby_time(
         dataarray,
         time_dim=time_dim,
@@ -70,7 +71,7 @@ def mean(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
         The DataArray over which to calculate the climatological mean. Must
         contain a `time` dimension.
     frequency : str (optional)
-        Valid options are `day`, `week` and `month`.
+        Valid options are `day`, `week`, `month` and `year`. The default is `year`.
     bin_widths : int or list (optional)
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
@@ -99,7 +100,7 @@ def median(*_args, **_kwargs) -> xr.DataArray:
         The DataArray over which to calculate the climatological median. Must
         contain a `time` dimension.
     frequency : str (optional)
-        Valid options are `day`, `week` and `month`.
+        Valid options are `day`, `week`, `month` and `year`. The default is `year`.
     bin_widths : int or list (optional)
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
@@ -128,7 +129,7 @@ def min(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
         The DataArray over which to calculate the climatological mean. Must
         contain a `time` dimension.
     frequency : str (optional)
-        Valid options are `day`, `week` and `month`.
+        Valid options are `day`, `week`, `month` and `year`. The default is `year`.
     bin_widths : int or list (optional)
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
@@ -157,7 +158,7 @@ def max(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
         The DataArray over which to calculate the climatological mean. Must
         contain a `time` dimension.
     frequency : str (optional)
-        Valid options are `day`, `week` and `month`.
+        Valid options are `day`, `week`, `month` and `year`. The default is `year`.
     bin_widths : int or list (optional)
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
@@ -186,7 +187,7 @@ def std(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
         The DataArray over which to calculate the climatological standard deviation.
         Must contain a `time` dimension.
     frequency : str (optional)
-        Valid options are `day`, `week` and `month`.
+        Valid options are `day`, `week`, `month` and `year`. The default is `year`.
     bin_widths : int or list (optional)
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
@@ -557,7 +558,7 @@ def quantiles(
     dataarray: xr.Dataset | xr.DataArray,
     q: float | list,
     time_dim: str | None = None,
-    groupby_kwargs: dict = {},
+    groupby_kwargs: dict | None = None,
     **reduce_kwargs,
 ) -> xr.DataArray:
     """Calculate a set of climatological quantiles.
@@ -570,7 +571,7 @@ def quantiles(
     q : float | list
         The quantile, or list of quantiles, to calculate the climatology.
     frequency : str (optional)
-        Valid options are `day`, `week` and `month`.
+        Valid options are `day`, `week`, `month` and `year`. The default is `year`.
     bin_widths : int or list (optional)
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
@@ -588,6 +589,7 @@ def quantiles(
     xr.DataArray
 
     """
+    groupby_kwargs.setdefault("frequency", "year")
     grouped_data = groupby_time(dataarray.chunk({time_dim: -1}), time_dim=time_dim, **groupby_kwargs)
     results = []
     if not isinstance(q, (list, tuple)):
@@ -701,7 +703,7 @@ def _anomaly_dataarray(
     dataarray: xr.DataArray,
     climatology: xr.Dataset | xr.DataArray,
     time_dim: str | None = None,
-    groupby_kwargs: dict = {},
+    groupby_kwargs: dict | None = None,
     relative: bool = False,
     climatology_how_tag: str = "",
     how_label: str | None = None,
@@ -769,7 +771,7 @@ def _anomaly_dataarray(
     # If frequency not defined, it is deduced from the climatology.
     # This is somewhat hardcoded, but it is best practice, so for now it can stay here
     if groupby_kwargs.get("frequency") is None:
-        for freq in ["dayofyear", "week", "month"]:
+        for freq in ["dayofyear", "week", "month", "year"]:
             if freq in climatology_da.dims:
                 groupby_kwargs["frequency"] = freq
                 break

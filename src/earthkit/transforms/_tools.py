@@ -24,6 +24,7 @@ _PANDAS_FREQUENCIES = {
     "ME": "month",
     "MS": "month",
     "H": "hour",
+    "YE": "year",
 }
 # Note this is not 100% reversible, 3 pandas freqs map to xarray's "month",
 # but "month" will only map to "MS"
@@ -36,6 +37,7 @@ _BIN_MAXES = {
     "weekofyear": 53,
     "month": 12,
     "season": 4,
+    "year": 1,
 }
 
 

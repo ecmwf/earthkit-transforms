@@ -40,6 +40,7 @@ def should_hide_module(module_name: str, hidden_modules: list[str]) -> bool:
 
     Returns:
         True if the module should be hidden.
+
     """
     if is_private_module(module_name):
         return True
@@ -62,6 +63,7 @@ def get_short_name(module_name: str) -> str:
 
     Returns:
         Short name (e.g., 'temporal')
+
     """
     if module_name.startswith(f"{MODULE_PREFIX}."):
         return module_name[len(MODULE_PREFIX) + 1 :]
@@ -80,11 +82,11 @@ def clean_toctree(content: str, hidden_modules: list[str]) -> str:
 
     Returns:
         Updated RST content
+
     """
     lines = content.split("\n")
     result_lines = []
     in_toctree = False
-    toctree_indent = ""
 
     for line in lines:
         # Detect start of toctree directive
@@ -139,7 +141,7 @@ def clean_toctree(content: str, hidden_modules: list[str]) -> str:
 
 
 def clean_autodocs():
-    """Main function to clean up autodocs RST files."""
+    """Clean up autodocs RST files."""
     hidden_modules = get_hidden_modules()
     print(f"Hidden modules: {hidden_modules}")
 

@@ -23,4 +23,3 @@ Import and use
     import earthkit.transforms as ekt
 
     daily_mean = ekt.temporal.daily_mean(MY_DATA)
-
