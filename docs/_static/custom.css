@@ -54,6 +54,25 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+/* ── xarray dark-mode fix for Furo "auto" theme ──────────────────────
+   xarray's inline <style> only targets explicit body[data-theme="dark"],
+   but Furo's auto mode keeps data-theme="auto" and relies on
+   @media (prefers-color-scheme: dark).  Mirror the dark palette here
+   so xarray widgets remain readable when the OS is in dark mode.
+   ─────────────────────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  body:not([data-theme="light"]) {
+    --xr-font-color0: rgba(255, 255, 255, 1);
+    --xr-font-color2: rgba(255, 255, 255, 0.54);
+    --xr-font-color3: rgba(255, 255, 255, 0.38);
+    --xr-border-color: #555;
+    --xr-disabled-color: #888;
+    --xr-background-color: var(--color-background-primary, #131416);
+    --xr-background-color-row-even: var(--color-background-secondary, #1a1c1e);
+    --xr-background-color-row-odd: var(--color-background-hover, #1e2124);
+  }
+}
+
 /* Homepage card styling */
 .sd-card .sd-card-img-top {
   height: 100px;
@@ -65,43 +84,43 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Light mode - show regular icons */
-[data-mode="light"] .sd-card .sd-card-img-top[src*="rocket-light.svg"] {
+[data-theme="light"] .sd-card .sd-card-img-top[src*="rocket-light.svg"] {
   content: url("rocket-light.svg");
 }
 
-[data-mode="light"] .sd-card .sd-card-img-top[src*="book-light.svg"] {
+[data-theme="light"] .sd-card .sd-card-img-top[src*="book-light.svg"] {
   content: url("book-light.svg");
 }
 
-[data-mode="light"] .sd-card .sd-card-img-top[src*="tool-light.svg"] {
+[data-theme="light"] .sd-card .sd-card-img-top[src*="tool-light.svg"] {
   content: url("tool-light.svg");
 }
 
-[data-mode="light"] .sd-card .sd-card-img-top[src*="bulb-light.svg"] {
+[data-theme="light"] .sd-card .sd-card-img-top[src*="bulb-light.svg"] {
   content: url("bulb-light.svg");
 }
 
-[data-mode="light"] .sd-card .sd-card-img-top[src*="brackets-contain-light.svg"] {
+[data-theme="light"] .sd-card .sd-card-img-top[src*="brackets-contain-light.svg"] {
   content: url("brackets-contain-light.svg");
 }
 
 /* Dark mode - show dark versions */
-[data-mode="dark"] .sd-card .sd-card-img-top[src*="rocket-light.svg"] {
+[data-theme="dark"] .sd-card .sd-card-img-top[src*="rocket-light.svg"] {
   content: url("rocket-dark.svg");
 }
 
-[data-mode="dark"] .sd-card .sd-card-img-top[src*="book-light.svg"] {
+[data-theme="dark"] .sd-card .sd-card-img-top[src*="book-light.svg"] {
   content: url("book-dark.svg");
 }
 
-[data-mode="dark"] .sd-card .sd-card-img-top[src*="tool-light.svg"] {
+[data-theme="dark"] .sd-card .sd-card-img-top[src*="tool-light.svg"] {
   content: url("tool-dark.svg");
 }
 
-[data-mode="dark"] .sd-card .sd-card-img-top[src*="bulb-light.svg"] {
+[data-theme="dark"] .sd-card .sd-card-img-top[src*="bulb-light.svg"] {
   content: url("bulb-dark.svg");
 }
 
-[data-mode="dark"] .sd-card .sd-card-img-top[src*="brackets-contain-light.svg"] {
+[data-theme="dark"] .sd-card .sd-card-img-top[src*="brackets-contain-light.svg"] {
   content: url("brackets-contain-dark.svg");
 }
