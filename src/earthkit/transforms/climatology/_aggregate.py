@@ -929,7 +929,3 @@ def auto_anomaly(
     )
 
     return anomaly(dataarray, climatology, *_args, relative=relative, **_kwargs)
-
-
-# Alias easter eggs
-anomalazy = auto_anomaly
