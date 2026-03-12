@@ -85,7 +85,14 @@ h1, h2, h3, h4, h5, h6 {
   transition: filter 0.2s ease;
 }
 
-/* Dark mode - invert and brighten icons for visibility */
+/* Dark mode when user explicitly selects dark */
 [data-theme="dark"] .sd-card .sd-card-img-top {
   filter: invert(1) brightness(0.6);
+}
+
+/* Dark mode when theme = auto and system prefers dark */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .sd-card .sd-card-img-top {
+    filter: invert(1) brightness(0.6);
+  }
 }

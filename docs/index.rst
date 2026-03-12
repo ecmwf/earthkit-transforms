@@ -1,5 +1,5 @@
-Welcome to Earthkit-transforms' documentation!
-==============================================
+Earthkit-transforms documentation
+=================================
 
 **earthkit-transforms** is a library of software tools to support people
 working with climate and meteorology data. It is made of sub-modules designed
@@ -40,7 +40,7 @@ statistics analysis accross time dimensions/coordinates.
 
    .. grid-item-card:: How-tos
       :img-top: _static/tool.svg
-      :link: how-tos
+      :link: how-tos/index
       :link-type: doc
       :class-card: sd-shadow-sm
 
@@ -70,7 +70,7 @@ statistics analysis accross time dimensions/coordinates.
 
    getting-started
    tutorials/index
-   how-tos
+   how-tos/index
    explanations/index
    api-reference
 

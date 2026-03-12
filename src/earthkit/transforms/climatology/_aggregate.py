@@ -845,6 +845,8 @@ def relative_anomaly(*_args, **_kwargs):
     return anomaly_xarray
 
 
+@_tools.time_dim_decorator
+@_tools.groupby_kwargs_decorator
 @_tools.transform_inputs_decorator()
 def auto_anomaly(
     dataarray: xr.Dataset | xr.DataArray,
