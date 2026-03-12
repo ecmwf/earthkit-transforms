@@ -18,6 +18,7 @@ def reduce(
     time_dim: str | None = None,
     how: str | T.Callable | None = "mean",
     groupby_kwargs: dict | None = None,
+    climatology_range: T.Sequence[int] | None = None,
     **reduce_kwargs,
 ):
     """Group data annually over a given `frequency` and reduce using the specified `how` method.
@@ -45,6 +46,9 @@ def reduce(
     time_dim : str (optional)
         Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
+    climatology_range : (list or tuple, optional)
+        Start and end year of the period to be used for the reference climatology. Default
+        is to use the entire time-series.
     groupby_kwargs : dict
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.groupby_time`
     **reduce_kwargs :
@@ -55,16 +59,22 @@ def reduce(
     xr.DataArray
 
     """
+    # If climate range is defined, use it
+    if climatology_range is not None and all(c_r is not None for c_r in climatology_range):
+        selection = dataarray.sel(time=slice(*climatology_range))
+    else:
+        selection = dataarray
+
     groupby_kwargs = groupby_kwargs or {}
     if groupby_kwargs.get("frequency") is not None:
         grouped_data = groupby_time(
-            dataarray,
+            selection,
             time_dim=time_dim,
             **groupby_kwargs,
         )
         return _reduce(grouped_data, how=how, dim=time_dim, **reduce_kwargs)
 
-    return _reduce(dataarray, how=how, dim=time_dim, **reduce_kwargs)
+    return _reduce(selection, how=how, dim=time_dim, **reduce_kwargs)
 
 
 def mean(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
@@ -906,19 +916,17 @@ def auto_anomaly(
     relative : bool (optional)
         Return the relative anomaly, i.e. the percentage change w.r.t the climatological period
     **reduce_kwargs :
-        Any other kwargs that are accepted by `earthkit.transforms.aggregate.climatology.mean`
+        Any other kwargs that are accepted by `earthkit.transforms.resample`
 
     Returns
     -------
     xr.DataArray
 
     """
-    # If climate range is defined, use it
-    if climatology_range is not None and all(c_r is not None for c_r in climatology_range):
-        selection = dataarray.sel(time=slice(*climatology_range))
-    else:
-        selection = dataarray
-    climatology = reduce(selection, *_args, how=climatology_how, **_kwargs)
+    clim_kwargs = {k: v for k, v in _kwargs.items() if k not in ["how"]}
+    climatology = reduce(
+        dataarray, *_args, how=climatology_how, climatology_range=climatology_range, **clim_kwargs
+    )
 
     return anomaly(dataarray, climatology, *_args, relative=relative, **_kwargs)
 
