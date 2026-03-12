@@ -250,5 +250,3 @@ def test_temporal_monthly_reduce_extra_reduce_dims():
 
     assert result.dims == ("time",)
     assert np.allclose(result.values, [2.5, 6.5])
-
-

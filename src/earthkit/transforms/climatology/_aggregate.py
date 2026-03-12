@@ -8,6 +8,7 @@ from earthkit.transforms._aggregate import resample
 from earthkit.transforms._tools import groupby_time
 from earthkit.transforms.temporal import reduce as _temporal_reduce
 
+
 @_tools.transform_inputs_decorator()
 @_tools.time_dim_decorator
 @_tools.groupby_kwargs_decorator
@@ -54,6 +55,7 @@ def reduce(
     xr.DataArray
 
     """
+    groupby_kwargs = groupby_kwargs or {}
     if groupby_kwargs.get("frequency") is not None:
         grouped_data = groupby_time(
             dataarray,
@@ -592,6 +594,7 @@ def quantiles(
     xr.DataArray
 
     """
+    groupby_kwargs = groupby_kwargs or {}
     groupby_kwargs.setdefault("frequency", "year")
     grouped_data = groupby_time(dataarray.chunk({time_dim: -1}), time_dim=time_dim, **groupby_kwargs)
     results = []
@@ -774,6 +777,7 @@ def _anomaly_dataarray(
 
     # If frequency not defined, it is deduced from the climatology.
     # This is somewhat hardcoded, but it is best practice, so for now it can stay here
+    groupby_kwargs = groupby_kwargs or {}
     if groupby_kwargs.get("frequency") is None:
         for freq in ["dayofyear", "week", "month"]:
             if freq in climatology_da.dims:
@@ -784,9 +788,7 @@ def _anomaly_dataarray(
 
     # Annual anomalies are simpler and do not need to be subtracted from before resampling
     if groupby_kwargs["frequency"] == "year":
-        anomaly_array = _temporal_reduce(
-            dataarray, time_dim=time_dim, **groupby_kwargs, **reduce_kwargs
-        )
+        anomaly_array = _temporal_reduce(dataarray, time_dim=time_dim, **groupby_kwargs, **reduce_kwargs)
         anomaly_array = anomaly_array - climatology_da
 
         if relative:
