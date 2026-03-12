@@ -18,7 +18,7 @@ def reduce(
     time_dim: str | None = None,
     how: str | T.Callable | None = "mean",
     groupby_kwargs: dict | None = None,
-    climatology_range: T.Sequence[int] | None = None,
+    climatology_range: tuple | list | None = None,
     **reduce_kwargs,
 ):
     """Group data annually over a given `frequency` and reduce using the specified `how` method.
@@ -61,7 +61,7 @@ def reduce(
     """
     # If climate range is defined, use it
     if climatology_range is not None and all(c_r is not None for c_r in climatology_range):
-        selection = dataarray.sel(time=slice(*climatology_range))
+        selection = dataarray.sel({time_dim: slice(*climatology_range)})
     else:
         selection = dataarray
 
