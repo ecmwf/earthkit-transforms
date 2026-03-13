@@ -10,6 +10,11 @@ build:
   os: ubuntu-22.04
   tools:
     python: "3.11"
+  jobs:
+    pre_build:
+      - rm -rf _build
+      - rm -rf docs/_build
+      - cd docs && make rst
     # You can also specify other tool versions:
     # nodejs: "19"
     # rust: "1.64"
