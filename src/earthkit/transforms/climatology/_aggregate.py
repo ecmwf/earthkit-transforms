@@ -11,7 +11,7 @@ from earthkit.transforms.temporal import reduce as _temporal_reduce
 
 @_tools.transform_inputs_decorator()
 @_tools.time_dim_decorator
-@_tools.groupby_kwargs_decorator
+@_tools.groupby_kwargs_decorator(climatology=True)
 @_tools.season_order_decorator
 def reduce(
     dataarray: xr.Dataset | xr.DataArray,
@@ -567,7 +567,7 @@ def monthly_std(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
 @_tools.transform_inputs_decorator()
 @_tools.time_dim_decorator
-@_tools.groupby_kwargs_decorator
+@_tools.groupby_kwargs_decorator(climatology=True)
 @_tools.season_order_decorator
 def quantiles(
     dataarray: xr.Dataset | xr.DataArray,
@@ -663,7 +663,7 @@ def percentiles(
     )
     result = quantile_data.assign_coords(percentile=("quantile", p))
     result = result.swap_dims({"quantile": "percentile"})
-    result = result.drop("quantile")
+    result = result.drop_vars("quantile")
     return result
 
 
@@ -713,7 +713,7 @@ def anomaly(
 
 
 @_tools.time_dim_decorator
-@_tools.groupby_kwargs_decorator
+@_tools.groupby_kwargs_decorator(climatology=True)
 @_tools.season_order_decorator
 def _anomaly_dataarray(
     dataarray: xr.DataArray,
@@ -789,7 +789,7 @@ def _anomaly_dataarray(
     # This is somewhat hardcoded, but it is best practice, so for now it can stay here
     groupby_kwargs = groupby_kwargs or {}
     if groupby_kwargs.get("frequency") is None:
-        for freq in ["dayofyear", "week", "month"]:
+        for freq in _tools.VALID_CLIMATOLOGY_FREQUENCIES:
             if freq in climatology_da.dims:
                 groupby_kwargs["frequency"] = freq
                 break
@@ -840,7 +840,7 @@ def _update_anomaly_array(anomaly_array, original_array, var_name, name_tag, upd
 
 
 @_tools.time_dim_decorator
-@_tools.groupby_kwargs_decorator
+@_tools.groupby_kwargs_decorator(climatology=True)
 @_tools.season_order_decorator
 def relative_anomaly(*_args, **_kwargs):
     """Calculate the relative anomaly from a reference climatology, i.e. percentage change.
@@ -879,7 +879,7 @@ def relative_anomaly(*_args, **_kwargs):
 
 
 @_tools.time_dim_decorator
-@_tools.groupby_kwargs_decorator
+@_tools.groupby_kwargs_decorator(climatology=True)
 @_tools.transform_inputs_decorator()
 def auto_anomaly(
     dataarray: xr.Dataset | xr.DataArray,

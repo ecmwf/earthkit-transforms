@@ -260,7 +260,7 @@ def _make_monthly_da_local(n_months=36, start="2020-01-01"):
     return xr.DataArray(data, dims=["time"], coords={"time": time}, name="var")
 
 
-# --- temporal.reduce (local) ------------------------------------------------
+# --- temporal.reduce and temporal.method (local) ------------------------------------------------
 
 
 def test_temporal_reduce_local_mean():
@@ -277,13 +277,67 @@ def test_temporal_reduce_local_how_label():
     assert result.name == "var_mean"
 
 
-def test_temporal_reduce_local_frequency_resample():
+@pytest.mark.parametrize(
+    "freq, expected_length",
+    (
+        ("D", 90),
+        ("dayofyear", 90),
+        ("5D", 18),
+        ("weekofyear", 14),
+        ("day", 90),
+        ("MS", 3),
+        ("ME", 3),
+        ("3MS", 1),
+        ("month", 3),
+        ("YE", 1),
+        ("YE", 1),
+        ("year", 1),
+    ),
+)
+def test_temporal_reduce_local_frequency_resample(freq, expected_length):
     """temporal.reduce with frequency= should trigger the resample path."""
-    da = _make_hourly_da()
-    result = temporal.reduce(da, how="mean", frequency="D")
+    da = _make_hourly_da(n_hours=24 * 90)
+    result = temporal.reduce(da, how="mean", frequency=freq)
     assert isinstance(result, xr.DataArray)
     assert result.dims == ("time",)
-    assert len(result) == 2
+    assert len(result) == expected_length
+
+
+@pytest.mark.parametrize(
+    "method",
+    (
+        temporal.mean,
+        temporal.median,
+        temporal.min,
+        temporal.max,
+        temporal.std,
+        temporal.sum,
+    ),
+)
+@pytest.mark.parametrize(
+    "freq, expected_length",
+    (
+        ("D", 90),
+        ("dayofyear", 90),
+        ("5D", 18),
+        ("weekofyear", 14),
+        ("day", 90),
+        ("MS", 3),
+        ("ME", 3),
+        ("3MS", 1),
+        ("month", 3),
+        ("YE", 1),
+        ("YE", 1),
+        ("year", 1),
+    ),
+)
+def test_temporal_methods_local_frequency_resample(method, freq, expected_length):
+    """temporal.reduce with frequency= should trigger the resample path."""
+    da = _make_hourly_da(n_hours=24 * 90)
+    result = method(da, how="mean", frequency=freq)
+    assert isinstance(result, xr.DataArray)
+    assert result.dims == ("time",)
+    assert len(result) == expected_length
 
 
 # --- temporal.standardise_time (local) -------------------------------------

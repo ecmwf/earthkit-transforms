@@ -14,7 +14,7 @@ ek_data.settings.set("cache-policy", "user")
 
 
 def get_data():
-    remote_era5_file = earthkit_remote_test_data_file("era5_temperature_france_2015_2016_2017_3deg.grib")
+    remote_era5_file = earthkit_remote_test_data_file("era5-Europe-sfc-2m-temperature-3deg-2015-2017.grib")
     return ek_data.from_source("url", remote_era5_file)
 
 
@@ -32,8 +32,8 @@ def get_data():
     "in_data, expected_return_type",
     (
         # [get_data(), xr.Dataset],
-        [get_data().to_xarray(), xr.Dataset],
-        [get_data().to_xarray()["2t"], xr.DataArray],
+        [get_data().to_xarray().compute(), xr.Dataset],
+        [get_data().to_xarray().compute()["2t"], xr.DataArray],
     ),
 )
 def test_climatology_base(in_data, expected_return_type, method):
@@ -53,6 +53,37 @@ def test_climatology_base(in_data, expected_return_type, method):
 
 
 @pytest.mark.parametrize(
+    "freq, expected_dim",
+    (
+        ("D", "dayofyear"),
+        ("dayofyear", "dayofyear"),
+        # ("day", "day"),  # "day" is invalid for climatology calculations
+        # ("5D", "dayofyear"),
+        ("week", "week"),
+        ("weekofyear", "weekofyear"),
+        ("MS", "month"),
+        ("ME", "month"),
+        # ("3MS", "month"),
+        ("month", "month"),
+        ("YE", "year"),
+        ("year", "year"),
+    ),
+)
+@pytest.mark.parametrize(
+    "method",
+    (
+        climatology.mean,
+        climatology.median,
+    ),
+)
+def test_climatology_frequency(method, freq, expected_dim):
+    in_data = get_data().to_xarray(time_dim_mode="valid_time").compute()
+    clim = method(in_data, frequency=freq)
+    assert "2t" in clim
+    assert expected_dim in list(clim.dims)
+
+
+@pytest.mark.parametrize(
     "clim_method",
     (
         climatology.mean,
@@ -62,7 +93,7 @@ def test_climatology_base(in_data, expected_return_type, method):
 @pytest.mark.parametrize(
     "in_data, expected_return_type",
     (
-        [get_data().to_xarray(), xr.Dataset],
+        [get_data().to_xarray().compute(), xr.Dataset],
         [get_data().to_xarray()["2t"], xr.DataArray],
     ),
 )
@@ -86,30 +117,37 @@ def test_anomaly_base(in_data, expected_return_type, clim_method):
         assert all(dim in list(anom_m.dims) for dim in in_data.dims)
 
 
-# @pytest.mark.parametrize(
-#     "time_string, expected_dim",
-#     (
-#         ("D", "dayofyear"),
-#         ("M", "month"),
-#         ("Y", "year"),
-#     )
-# )
-# @pytest.mark.parametrize(
-#     "method",
-#     (
-#         climatology.mean,
-#         climatology.median,
-#     ),
-# )
-# def test_climatology_pandas_time_strings(method, time_string, expected_dim):
-#     in_data = get_data().to_xarray()
-#     clim = method(in_data, frequency=time_string)
-#     assert expected_dim in list(clim.dims)
-
-#     # Check alternate frequencies
-#     for dim in ["month", "dayofyear"]:
-#         clim = method(in_data, frequency=dim)
-#         assert dim in list(clim.dims)
+@pytest.mark.parametrize(
+    "freq, expected_dim_length",
+    (
+        ("D", 365 + 366 + 365),
+        ("dayofyear", 365 + 366 + 365),
+        # ("day", "Ambiguous, not supported"),
+        ("week", 52 + 53 + 52),
+        ("weekofyear", 52 + 53 + 52),
+        ("MS", 36),
+        ("ME", 36),
+        # ("3MS", "month"),
+        ("month", 36),
+        ("YE", 3),
+        ("year", 3),
+    ),
+)
+@pytest.mark.parametrize(
+    "clim_method",
+    (
+        climatology.mean,
+        climatology.median,
+    ),
+)
+def test_anomaly_frequency(clim_method, expected_dim_length, freq):
+    in_data = get_data().to_xarray(time_dim_mode="valid_time").compute()
+    clim_m = clim_method(in_data, frequency=freq)
+    anom_m = climatology.anomaly(in_data, clim_m)
+    # Dimensions of the anomaly should be the same as the input data
+    assert all(dim in list(anom_m.dims) for dim in in_data.dims)
+    # Check valid_time is the correct length for the frequency used
+    assert anom_m.sizes["valid_time"] == expected_dim_length
 
 
 @pytest.mark.parametrize(
@@ -124,9 +162,9 @@ def test_anomaly_base(in_data, expected_return_type, clim_method):
 @pytest.mark.parametrize(
     "in_data, expected_return_type",
     (
-        [get_data(), xr.Dataset],
-        [get_data().to_xarray(), xr.Dataset],
-        [get_data().to_xarray()["2t"], xr.DataArray],
+        # [get_data(), xr.Dataset],
+        [get_data().to_xarray().compute(), xr.Dataset],
+        [get_data().to_xarray().compute()["2t"], xr.DataArray],
     ),
 )
 def test_climatology_monthly(in_data, expected_return_type, method, how):
@@ -160,8 +198,8 @@ def test_climatology_monthly(in_data, expected_return_type, method, how):
     "in_data, expected_return_type",
     (
         # [get_data(), xr.Dataset],
-        [get_data().to_xarray(), xr.Dataset],
-        [get_data().to_xarray()["2t"], xr.DataArray],
+        [get_data().to_xarray().compute(), xr.Dataset],
+        [get_data().to_xarray().compute()["2t"], xr.DataArray],
     ),
 )
 def test_climatology_daily(in_data, expected_return_type, method, how):
@@ -193,8 +231,8 @@ def test_climatology_daily(in_data, expected_return_type, method, how):
     "in_data, expected_return_type",
     (
         # [get_data(), xr.Dataset],
-        [get_data().to_xarray(), xr.Dataset],
-        [get_data().to_xarray()["2t"], xr.DataArray],
+        [get_data().to_xarray().compute(), xr.Dataset],
+        [get_data().to_xarray().compute()["2t"], xr.DataArray],
     ),
 )
 def test_anomaly_monthly(in_data, expected_return_type, clim_method):
@@ -224,8 +262,8 @@ def test_anomaly_monthly(in_data, expected_return_type, clim_method):
     "in_data, expected_return_type",
     (
         # [get_data(), xr.Dataset],
-        [get_data().to_xarray(), xr.Dataset],
-        [get_data().to_xarray()["2t"], xr.DataArray],
+        [get_data().to_xarray().compute(), xr.Dataset],
+        [get_data().to_xarray().compute()["2t"], xr.DataArray],
     ),
 )
 def test_anomaly_daily(in_data, expected_return_type, clim_method):

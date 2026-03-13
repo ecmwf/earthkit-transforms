@@ -107,7 +107,7 @@ def gb_dummy_func(*args, groupby_kwargs=None, **kwargs):
 # Test case for the decorator when groupby_kwargs is None
 def test_groupby_kwargs_decorator_none():
     # Call the decorated function with no groupby_kwargs
-    result_groupby_kwargs, result_kwargs = groupby_kwargs_decorator(gb_dummy_func)()
+    result_groupby_kwargs, result_kwargs = groupby_kwargs_decorator()(gb_dummy_func)()
 
     # Check if groupby_kwargs is None and other kwargs are empty
     assert result_groupby_kwargs == {}
@@ -121,7 +121,7 @@ def test_groupby_kwargs_decorator_provided():
     other_kwargs = {"method": "linear", "fill_value": 0}
 
     # Call the decorated function with groupby_kwargs provided
-    result_groupby_kwargs, result_kwargs = groupby_kwargs_decorator(gb_dummy_func)(
+    result_groupby_kwargs, result_kwargs = groupby_kwargs_decorator()(gb_dummy_func)(
         **groupby_kwargs, **other_kwargs
     )
 
@@ -136,7 +136,7 @@ def test_groupby_kwargs_decorator_partial_provided():
     other_kwargs = {"method": "linear"}
 
     # Call the decorated function with some groupby_kwargs provided as keyword arguments
-    result_groupby_kwargs, result_kwargs = groupby_kwargs_decorator(gb_dummy_func)(
+    result_groupby_kwargs, result_kwargs = groupby_kwargs_decorator()(gb_dummy_func)(
         **groupby_kwargs, **other_kwargs
     )
 
@@ -153,7 +153,7 @@ def test_groupby_kwargs_decorator_override():
     override_groupby_kwargs = {"frequency": "hour"}
 
     # Call the decorated function with groupby_kwargs provided
-    result_groupby_kwargs, result_kwargs = groupby_kwargs_decorator(gb_dummy_func)(
+    result_groupby_kwargs, result_kwargs = groupby_kwargs_decorator()(gb_dummy_func)(
         groupby_kwargs=override_groupby_kwargs, **groupby_kwargs, **other_kwargs
     )
 
@@ -527,3 +527,30 @@ def test_groupby_bins_list_bin_widths():
     result = grouped.mean()
     assert result.ndim == 1
     assert len(result) == 2
+
+
+# ---------------------------------------------------------------------------
+# groupby_kwargs_decorator climatology validation
+# ---------------------------------------------------------------------------
+
+
+def test_groupby_kwargs_decorator_climatology_invalid_freq():
+    """frequency='day' must raise ValueError when climatology=True."""
+
+    @groupby_kwargs_decorator(climatology=True)
+    def dummy(data, groupby_kwargs=None):
+        return groupby_kwargs
+
+    with pytest.raises(ValueError, match="frequency='day' is not accepted for climatology"):
+        dummy(None, frequency="day")
+
+
+def test_groupby_kwargs_decorator_climatology_valid_freq():
+    """frequency='month' must NOT raise when climatology=True."""
+
+    @groupby_kwargs_decorator(climatology=True)
+    def dummy(data, groupby_kwargs=None):
+        return groupby_kwargs
+
+    result = dummy(None, frequency="month")
+    assert result["frequency"] == "month"
