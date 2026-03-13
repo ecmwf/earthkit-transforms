@@ -304,6 +304,7 @@ def test_reduce_as_pandas_without_geodataframe():
 # Local (synthetic-data) tests — no network required
 # ---------------------------------------------------------------------------
 
+
 def test_spatial_reduce_dataset_local():
     """spatial.reduce on a Dataset should return a Dataset."""
     ds = xr.Dataset({"var": SAMPLE_ARRAY})

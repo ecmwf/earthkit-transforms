@@ -248,6 +248,7 @@ def test_anomaly_daily(in_data, expected_return_type, clim_method):
 # Local (synthetic-data) tests — no network required
 # ---------------------------------------------------------------------------
 
+
 def _make_monthly_clim_da(n_years=3, start_year=2000):
     """n_years of monthly data, values = month index (0-based)."""
     time = pd.date_range(f"{start_year}-01-01", periods=12 * n_years, freq="MS")
@@ -265,6 +266,7 @@ def _make_daily_clim_da(n_years=4, start_year=2001):
 
 
 # --- climatology.reduce (local) --------------------------------------------
+
 
 def test_climatology_reduce_local_mean():
     da = _make_monthly_clim_da()
@@ -294,6 +296,7 @@ def test_climatology_reduce_local_climatology_range():
 
 # --- climatology.min regression (bug fix) ----------------------------------
 
+
 def test_climatology_min_le_mean_local():
     """Regression: climatology.min must be <= climatology.mean for all months."""
     rng = np.random.default_rng(0)
@@ -305,6 +308,7 @@ def test_climatology_min_le_mean_local():
 
 
 # --- climatology.monthly_* (local) -----------------------------------------
+
 
 @pytest.mark.parametrize(
     "method",
@@ -328,6 +332,7 @@ def test_climatology_monthly_mean_values_local():
 
 # --- climatology.daily_* (local) -------------------------------------------
 
+
 def test_climatology_daily_local():
     da = _make_daily_clim_da()
     result = climatology.daily_mean(da)
@@ -337,6 +342,7 @@ def test_climatology_daily_local():
 
 
 # --- climatology.quantiles / percentiles (local) ---------------------------
+
 
 def test_climatology_quantiles_local():
     da = _make_monthly_clim_da()
@@ -355,6 +361,7 @@ def test_climatology_percentiles_local():
 
 
 # --- climatology.anomaly (local) -------------------------------------------
+
 
 def test_climatology_anomaly_local():
     da = _make_monthly_clim_da()
@@ -375,6 +382,7 @@ def test_climatology_anomaly_local_near_zero_mean():
 
 
 # --- climatology.auto_anomaly (local) --------------------------------------
+
 
 def test_climatology_auto_anomaly_local():
     da = _make_monthly_clim_da()

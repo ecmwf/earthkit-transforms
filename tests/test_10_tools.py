@@ -337,6 +337,7 @@ def test_latitude_weights():
 # normalize_dims
 # ---------------------------------------------------------------------------
 
+
 def test_normalize_dims_none():
     assert normalize_dims(None) == []
 
@@ -357,6 +358,7 @@ def test_normalize_dims_tuple():
 # ensure_list
 # ---------------------------------------------------------------------------
 
+
 def test_ensure_list_already_list():
     assert ensure_list([1, 2, 3]) == [1, 2, 3]
 
@@ -374,6 +376,7 @@ def test_ensure_list_to_list_method():
 # ---------------------------------------------------------------------------
 # timedelta_to_largest_unit
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.parametrize(
     "td, expected",
@@ -394,6 +397,7 @@ def test_timedelta_to_largest_unit(td, expected):
 # ---------------------------------------------------------------------------
 # season_order_decorator
 # ---------------------------------------------------------------------------
+
 
 def _make_seasonal_da():
     """Create a DataArray with a 'season' dimension in wrong order."""
@@ -429,6 +433,7 @@ def test_season_order_decorator_season_reindexed():
 # nanaverage with weights and axis
 # ---------------------------------------------------------------------------
 
+
 def test_nanaverage_with_weights_no_nan():
     data = np.array([1.0, 2.0, 3.0, 4.0])
     weights = np.array([1.0, 1.0, 1.0, 1.0])
@@ -455,6 +460,7 @@ def test_nanaverage_with_weights_and_axis():
 # standard_weights error path
 # ---------------------------------------------------------------------------
 
+
 def test_standard_weights_unrecognised():
     da = xr.DataArray(
         np.ones((3, 4)),
@@ -468,6 +474,7 @@ def test_standard_weights_unrecognised():
 # ---------------------------------------------------------------------------
 # groupby_time
 # ---------------------------------------------------------------------------
+
 
 def _make_monthly_da():
     time = pd.date_range("2020-01-01", periods=24, freq="MS")
@@ -501,6 +508,7 @@ def test_groupby_time_invalid_frequency():
 # ---------------------------------------------------------------------------
 # groupby_bins
 # ---------------------------------------------------------------------------
+
 
 def test_groupby_bins_int_bin_widths():
     time = pd.date_range("2020-01-01", periods=12, freq="MS")

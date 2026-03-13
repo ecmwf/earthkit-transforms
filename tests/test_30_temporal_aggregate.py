@@ -43,7 +43,6 @@ def test_temporal_reduce(in_data, expected_return_type):
         assert "2t_mean" in reduced_data
 
 
-
 def test_standardise_time_basic():
     data = get_data().to_xarray()
     original_time = data.forecast_reference_time
@@ -239,6 +238,7 @@ def test_temporal_monthly_reduce_extra_reduce_dims():
 # Local (synthetic-data) tests — no network required
 # ---------------------------------------------------------------------------
 
+
 def _make_hourly_da(n_hours=48, start="2020-01-01"):
     """Two days of hourly data starting at `start`."""
     time = pd.date_range(start, periods=n_hours, freq="h")
@@ -261,6 +261,7 @@ def _make_monthly_da_local(n_months=36, start="2020-01-01"):
 
 
 # --- temporal.reduce (local) ------------------------------------------------
+
 
 def test_temporal_reduce_local_mean():
     da = _make_hourly_da()
@@ -287,6 +288,7 @@ def test_temporal_reduce_local_frequency_resample():
 
 # --- temporal.standardise_time (local) -------------------------------------
 
+
 def test_standardise_time_local_preserves_values():
     da = _make_monthly_da_local()
     result = temporal.standardise_time(da)
@@ -302,6 +304,7 @@ def test_standardise_time_local_monthly_format():
 
 
 # --- temporal.daily_reduce (local) -----------------------------------------
+
 
 @pytest.mark.parametrize("how", ("mean", "min", "max", "std", "sum"))
 def test_daily_reduce_local(how):
@@ -320,6 +323,7 @@ def test_daily_reduce_local_returns_correct_mean():
 
 
 # --- temporal.monthly_reduce (local) ---------------------------------------
+
 
 @pytest.mark.parametrize("how", ("mean", "min", "max", "std", "sum"))
 def test_monthly_reduce_local(how):
@@ -340,6 +344,7 @@ def test_monthly_reduce_local_returns_correct_mean():
 
 
 # --- temporal.rolling_reduce (local) ----------------------------------------
+
 
 def test_rolling_reduce_local():
     da = _make_daily_da(n_days=10)

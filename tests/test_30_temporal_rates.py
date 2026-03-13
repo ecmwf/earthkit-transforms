@@ -465,8 +465,8 @@ def test_accumulation_to_rate_start_of_day_from_first_step_first_step_midnight()
 # Local (synthetic-data) tests — no network required
 # ---------------------------------------------------------------------------
 
+
 def _make_accum_da(name="tp", n=5, step_hours=1, units="m"):
-    """Simple hourly accumulation DataArray: values [1, 2, 3, 4, 5]."""
     time = pd.date_range("2020-01-01", periods=n, freq=f"{step_hours}h")
     data = np.arange(1.0, n + 1)
     return xr.DataArray(
@@ -533,7 +533,7 @@ def test_accumulation_to_rate_rate_units_local(rate_units, expected_suffix):
 
 
 def test_deaccumulate_local():
-    """deaccumulate is equivalent to accumulation_to_rate with rate_units='step_length'."""
+    """Deaccumulate is equivalent to accumulation_to_rate with rate_units='step_length'."""
     da = _make_accum_da()
     deaccum = temporal.deaccumulate(da, from_first_step=True)
     a2r = temporal.accumulation_to_rate(
