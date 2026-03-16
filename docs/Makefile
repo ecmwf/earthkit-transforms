@@ -5,7 +5,7 @@
 # from the environment for the first two.
 SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
-SOURCEDIR     = .
+SOURCEDIR     = source
 BUILDDIR      = _build
 
 # Put it first so that "make" without argument is like "make help".
@@ -23,7 +23,7 @@ autodocs:
 	sphinx-apidoc --implicit-namespaces --separate -o ./$(SOURCEDIR)/autodocs ../src/earthkit/
 	@rm ./$(SOURCEDIR)/autodocs/earthkit.rst
 	@rm ./$(SOURCEDIR)/autodocs/modules.rst
-	python clean_autodocs.py
+	python ./$(SOURCEDIR)/clean_autodocs.py
 
 # Build HTML documentation (depends on autodocs)
 html: autodocs

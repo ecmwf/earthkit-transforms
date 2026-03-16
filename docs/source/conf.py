@@ -27,7 +27,7 @@ if rtd_version_type in ("branch", "tag"):
 else:
     source_branch = "main"
 
-sys.path.insert(0, os.path.abspath("../src"))
+sys.path.insert(0, os.path.abspath("../../src"))
 
 project = "earthkit-transforms"
 
@@ -46,10 +46,12 @@ extensions = [
     "sphinx.ext.mathjax",
     # Option to click viewcode
     "sphinx.ext.viewcode",
-    # Links to the documentation of other projects via cross-references
+    # Links to the documentation of other projects via cross-references (see list below)
     "sphinx.ext.intersphinx",
     # Generates summary tables for modules/classes/functions
     # "sphinx.ext.autosummary",
+    # Allows citing BibTeX bibliographic entries in reStructuredText
+    # "sphinxcontrib.bibtex",
     # Tests snippets in documentation by running embedded Python examples
     # "sphinx.ext.doctest",
     # Checks documentation coverage of the codebase
@@ -72,7 +74,6 @@ extensions = [
     "sphinx_design",
 ]
 
-autodoc_typehints = "none"
 autodoc_inherit_docstrings = True
 autodoc_default_options = {
     "members": True,
@@ -87,11 +88,7 @@ extlinks = {
     "issue": ("https://github.com/ecmwf/earthkit-transforms/issues/%s", "Issue #%s"),
 }
 
-nbsphinx_thumbnails = {
-    "examples/examples/string-formatting-units": "_static/string-formatting-units.png",
-}
-
-# intersphinx configuration
+# intersphinx configuration, to automatically link to upstream documentation.
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
@@ -116,7 +113,7 @@ autodocs_hidden_modules = [
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+exclude_patterns = []
 
 
 # -- Options for HTML output -------------------------------------------------
