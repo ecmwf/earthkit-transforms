@@ -87,9 +87,6 @@ select = [
   "D",  # pydocstyle
 ]
 
-[tool.ruff.lint.isort]
-force-single-line = true
-
 [tool.setuptools.packages.find]
 include = ["earthkit.transforms"]
 where = ["src/"]
