@@ -35,9 +35,7 @@ def dummy_func2(dataarray, *args, time_dim=None, **kwargs):
 # Test case for the decorator when time_shift is provided
 def test_time_dim_decorator_time_shift_provided():
     # Prepare test data
-    dataarray = xr.DataArray(
-        [1, 2, 3], dims=["time"], coords={"time": pd.date_range("2000-01-01", periods=3)}
-    )
+    dataarray = xr.DataArray([1, 2, 3], dims=["time"], coords={"time": pd.date_range("2000-01-01", periods=3)})
 
     # Call the decorated function with time_shift provided
     result, result_time_dim = time_dim_decorator(dummy_func)(dataarray, time_shift={"days": 1})
@@ -52,14 +50,10 @@ def test_time_dim_decorator_time_shift_provided():
 # Test case for the decorator when both time_dim and time_shift are provided
 def test_time_dim_decorator_time_dim_and_time_shift_provided():
     # Prepare test data
-    dataarray = xr.DataArray(
-        [1, 2, 3], dims=["dummy"], coords={"dummy": pd.date_range("2000-01-01", periods=3)}
-    )
+    dataarray = xr.DataArray([1, 2, 3], dims=["dummy"], coords={"dummy": pd.date_range("2000-01-01", periods=3)})
 
     # Call the decorated function with both time_dim and time_shift provided
-    result, result_time_dim = time_dim_decorator(dummy_func)(
-        dataarray, time_dim="dummy", time_shift={"days": 1}
-    )
+    result, result_time_dim = time_dim_decorator(dummy_func)(dataarray, time_dim="dummy", time_shift={"days": 1})
 
     # Check if the time dimension remains unchanged
     assert result_time_dim == "dummy"
@@ -81,9 +75,7 @@ def test_time_dim_decorator_not_found_error():
 # Test case for the decorator when time_shift is provided and remove_partial_periods=True
 def test_time_dim_decorator_time_shift_provided_trim_shifted():
     # Prepare test data
-    dataarray = xr.DataArray(
-        [1, 2, 3], dims=["time"], coords={"time": pd.date_range("2000-01-01", periods=3)}
-    )
+    dataarray = xr.DataArray([1, 2, 3], dims=["time"], coords={"time": pd.date_range("2000-01-01", periods=3)})
 
     # Call the decorated function with time_shift provided
     result = time_dim_decorator(dummy_func2)(dataarray, time_shift={"days": 1}, remove_partial_periods=True)
@@ -114,9 +106,7 @@ def test_groupby_kwargs_decorator_provided():
     other_kwargs = {"method": "linear", "fill_value": 0}
 
     # Call the decorated function with groupby_kwargs provided
-    result_groupby_kwargs, result_kwargs = groupby_kwargs_decorator(gb_dummy_func)(
-        **groupby_kwargs, **other_kwargs
-    )
+    result_groupby_kwargs, result_kwargs = groupby_kwargs_decorator(gb_dummy_func)(**groupby_kwargs, **other_kwargs)
 
     assert result_groupby_kwargs == groupby_kwargs
     assert result_kwargs == other_kwargs
@@ -129,9 +119,7 @@ def test_groupby_kwargs_decorator_partial_provided():
     other_kwargs = {"method": "linear"}
 
     # Call the decorated function with some groupby_kwargs provided as keyword arguments
-    result_groupby_kwargs, result_kwargs = groupby_kwargs_decorator(gb_dummy_func)(
-        **groupby_kwargs, **other_kwargs
-    )
+    result_groupby_kwargs, result_kwargs = groupby_kwargs_decorator(gb_dummy_func)(**groupby_kwargs, **other_kwargs)
 
     assert result_groupby_kwargs == groupby_kwargs
     assert result_kwargs == other_kwargs
@@ -209,9 +197,7 @@ def test_get_how_xp_np():
     "data_object",
     (
         xr.DataArray(np.random.rand(10, 10), dims=["x", "y"]),
-        xr.Dataset(
-            {"var": (["x", "y"], np.random.rand(10, 10))}, coords={"x": np.arange(10), "y": np.arange(10)}
-        ),
+        xr.Dataset({"var": (["x", "y"], np.random.rand(10, 10))}, coords={"x": np.arange(10), "y": np.arange(10)}),
         np.random.rand(10, 10),
     ),
 )

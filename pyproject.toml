@@ -84,7 +84,7 @@ select = [
   "E",  # pycodestyle
   "W",  # pycodestyle warnings
   "I",  # isort
-  "D",  # pydocstyle
+  "D"  # pydocstyle
 ]
 
 [tool.setuptools.packages.find]

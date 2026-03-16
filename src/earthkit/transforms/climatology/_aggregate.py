@@ -777,9 +777,7 @@ def _anomaly_dataarray(
     anomaly_array = groupby_time(dataarray, time_dim=time_dim, **groupby_kwargs) - climatology_da
 
     if relative:
-        anomaly_array = (
-            groupby_time(anomaly_array, time_dim=time_dim, **groupby_kwargs) / climatology_da
-        ) * 100.0
+        anomaly_array = (groupby_time(anomaly_array, time_dim=time_dim, **groupby_kwargs) / climatology_da) * 100.0
         name_tag = "relative anomaly"
         update_attrs = {"units": "%"}
     else:
@@ -788,9 +786,7 @@ def _anomaly_dataarray(
 
     anomaly_array = resample(anomaly_array, how="mean", **reduce_kwargs, **groupby_kwargs, dim=time_dim)
 
-    return _update_anomaly_array(
-        anomaly_array, dataarray, var_name, name_tag, update_attrs, how_label=how_label
-    )
+    return _update_anomaly_array(anomaly_array, dataarray, var_name, name_tag, update_attrs, how_label=how_label)
 
 
 def _update_anomaly_array(anomaly_array, original_array, var_name, name_tag, update_attrs, how_label=None):
