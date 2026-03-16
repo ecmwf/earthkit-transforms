@@ -31,10 +31,13 @@ repos:
   rev: 1.0.0
   hooks:
   - id: mdformat
-- repo: https://github.com/google/yamlfmt
-  rev: v0.13.0
+- repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+  rev: v2.16.0
   hooks:
-  - id: yamlfmt
+  - id: pretty-format-yaml
+    args: [--autofix, --preserve-quotes]
+  - id: pretty-format-toml
+    args: [--autofix]
 - repo: https://github.com/gitleaks/gitleaks
   rev: v8.30.0
   hooks:
