@@ -62,36 +62,17 @@ exclude = '^tests/legacy-api/'
 ignore_missing_imports = true
 
 [tool.ruff]
-# Black line length is 88, but black does not format comments.
-line-length = 110
-select = [
-  # pyflakes
-  "F",
-  # pycodestyle
-  "E",
-  "W",
-  # isort
-  "I",
-  # pydocstyle
-  "D"
-]
+line-length = 120
 
 [tool.ruff.lint]
 ignore = [
   # pydocstyle: Missing Docstrings
   "D1"
 ]
-select = [
-  # pyflakes
-  "F",
-  # pycodestyle
-  "E",
-  "W",
-  # isort
-  "I",
-  # pydocstyle
-  "D"
-]
+select = [ "E", "F", "I" ]
+
+[tool.ruff.lint.isort]
+force-single-line = true
 
 [tool.setuptools.packages.find]
 include = ["earthkit.transforms"]
