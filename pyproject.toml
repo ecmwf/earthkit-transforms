@@ -66,10 +66,26 @@ line-length = 120
 
 [tool.ruff.lint]
 ignore = [
-  # pydocstyle: Missing Docstrings
-  "D1"
+  "D1",  # pydocstyle: Missing Docstrings
+  "D107",  # pydocstyle: numpy convention
+  "D203",
+  "D205",
+  "D212",
+  "D213",
+  "D401",
+  "D402",
+  "D413",
+  "D415",
+  "D416",
+  "D417"
 ]
-select = [ "E", "F", "I" ]
+select = [
+  "F",  # pyflakes
+  "E",  # pycodestyle
+  "W",  # pycodestyle warnings
+  "I",  # isort
+  "D",  # pydocstyle
+]
 
 [tool.ruff.lint.isort]
 force-single-line = true
