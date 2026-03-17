@@ -7,7 +7,7 @@ This includes aggregating the data in time dimension to a single value,
 daily values, or monthly values and calculating rates from accumulated data.
 
 Aggregation methods
---------------------
+^^^^^^^^^^^^^^^^^^^
 
 To aggregate the data in time dimension to a single value you can use the `temporal.reduce`,
 `temporal.mean`, `temporal.sum`, `temporal.min`, `temporal.max` functions. These functions
@@ -59,7 +59,7 @@ in the API reference guide: :doc:`../autodocs/earthkit.transforms.temporal`:
 
 
 Rate calculations
-^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^
 
 To calculate rates from accumulated data you can use the `temporal.accumulation_to_rate` function.
 This function takes an xarray data object and returns the rate of change of the data. The time dimension
