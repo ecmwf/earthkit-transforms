@@ -9,8 +9,10 @@ The API follows a similar pattern to the temporal aggregation methods, where the
 convenience methods which wrap the `climatology.reduce` method and set the `how` parameter
 and/or the `frequency` parameter.
 
-.. autofunction:: earthkit.transforms.climatology.reduce
-   :no-index:
+.. dropdown:: Show API documentation for ``reduce``
+
+   .. autofunction:: earthkit.transforms.climatology.reduce
+      :no-index:
 
 
 The convenience methods are all documented in the API reference guide:

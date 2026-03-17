@@ -7,7 +7,7 @@ This includes aggregating the data in time dimension to a single value,
 daily values, or monthly values and calculating rates from accumulated data.
 
 Aggregation methods
-^^^^^^^^^^^^^^^^^^^^^^
+--------------------
 
 To aggregate the data in time dimension to a single value you can use the `temporal.reduce`,
 `temporal.mean`, `temporal.sum`, `temporal.min`, `temporal.max` functions. These functions
@@ -15,15 +15,28 @@ take an xarray data object and return the aggregated value of the data. The time
 is automatically detected based on the metadata of the data object, to override this you can
 use the `time_dim` parameter.
 
+.. dropdown:: Show API documentation for ``reduce``
+
+   .. autofunction:: earthkit.transforms.temporal.reduce
+      :no-index:
+
+
+**Daily and monthly aggregations**
+
 To calculate calculate daily/monthly values you can use the `temporal.daily_reduce` or
 `temporal.monthly_reduce` functions. These functions reduce the data in time dimension to
 daily or monthly values respectively. The `how` parameter can be used to specify the aggregation
 method. The default is `mean`.
 
-.. autofunction:: earthkit.transforms.temporal.daily_reduce
-   :no-index:
-.. autofunction:: earthkit.transforms.temporal.monthly_reduce
-   :no-index:
+.. dropdown:: Show API documentation for ``daily_reduce``
+
+   .. autofunction:: earthkit.transforms.temporal.daily_reduce
+      :no-index:
+
+.. dropdown:: Show API documentation for ``monthly_reduce``
+
+   .. autofunction:: earthkit.transforms.temporal.monthly_reduce
+      :no-index:
 
 
 In addition to the `XXX_reduce` functions, the temporal module also includes several methods
@@ -70,5 +83,7 @@ The options are:
 - "start_of_forecast": accumulation restarts at the beginning of each forecast, e.g. Seeason forecasts.
 - "start_of_day": accumulation restarts at the beginning of each day, e.g. ERA5-land.
 
-.. autofunction:: earthkit.transforms.temporal.accumulation_to_rate
-   :no-index:
+.. dropdown:: Show API documentation for ``accumulation_to_rate``
+
+   .. autofunction:: earthkit.transforms.temporal.accumulation_to_rate
+      :no-index:

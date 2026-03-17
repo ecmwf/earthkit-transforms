@@ -8,8 +8,10 @@ To mask data you can use the :func:`mask` function. This function takes an xarra
 data object and a geometry object and returns the data object with the values
 outside the geometry masked.
 
-.. autofunction:: earthkit.transforms.spatial.mask
-   :no-index:
+.. dropdown:: Show API documentation for ``mask``
+
+   .. autofunction:: earthkit.transforms.spatial.mask
+      :no-index:
 
 
 To calculate an aggregated value for the data within a geometry you can use the
@@ -17,8 +19,10 @@ To calculate an aggregated value for the data within a geometry you can use the
 object and returns the aggregated value of the data within the geometry. The `how`
 parameter can be used to specify the aggregation method. The default is `mean`.
 
-.. autofunction:: earthkit.transforms.spatial.reduce
-   :no-index:
+.. dropdown:: Show API documentation for ``reduce``
+
+   .. autofunction:: earthkit.transforms.spatial.reduce
+      :no-index:
 
 
 In addition to the above functions, the spatial module also includes several methods
