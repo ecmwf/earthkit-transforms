@@ -18,7 +18,7 @@ dependencies = [
   "array-api-compat",
   "xarray>=2022.3.0",
   "numpy>=1.18",
-  "earthkit-data>=0.11.2",
+  "earthkit-data",
   "earthkit-utils",
   "geopandas"
 ]
@@ -31,7 +31,7 @@ readme = "README.md"
 [project.optional-dependencies]
 all = [
   # Additional, heavy, dependencies required by the complete package
-  "earthkit-data[all]>=0.11.2",
+  "earthkit-data[all] @ git+https://github.com/ecmwf/earthkit-data@release/1.0.0rc0",
   "rasterio"  # Requires GDAL
 ]
 docs = [
@@ -39,16 +39,21 @@ docs = [
   "docutils",
   "Pygments>=2.6.1",
   "Sphinx",
-  "sphinx-rtd-theme",
+  "furo",
+  "sphinx-design",
   "nbsphinx",
-  "nbconvert",
-  "sphinx-autoapi",
-  "filelock",
   "myst-parser",
+  "setuptools",
+  "entrypoints",
+  "pandas",
+  "tqdm",
+  "xarray",
+  "filelock",
   "statsmodels",
+  "reverse-geocode",
   "matplotlib",
-  "earthkit-plots",
-  "rasterio"
+  "rasterio",
+  "earthkit-plots"
 ]
 rasterio = [
   "rasterio"  # Requires GDAL

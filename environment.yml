@@ -6,15 +6,14 @@ dependencies:
 - mypy
 - myst-parser
 - pre-commit
-- sphinx-rtd-theme
+- furo
 - pytest
 - pytest-cov
 - sphinx
-- sphinx-autoapi
 - nbsphinx
 - array-api-compat
 - numpy
 - xarray
 - geopandas
-- earthkit-data[all]
-- earthkit-utils
+# - earthkit-data[all]
+# - earthkit-utils
