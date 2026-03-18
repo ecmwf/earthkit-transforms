@@ -799,17 +799,42 @@ def _anomaly_dataarray(
 
     # If frequency not defined, it is deduced from the climatology.
     # This is somewhat hardcoded, but it is best practice, so for now it can stay here
+    for clim_freq in _tools.VALID_CLIMATOLOGY_FREQUENCIES:
+        if clim_freq in climatology_da.dims:
+            break
+    else:
+        clim_freq = "year"
+
     groupby_kwargs = groupby_kwargs or {}
-    if groupby_kwargs.get("frequency") is None:
-        for freq in _tools.VALID_CLIMATOLOGY_FREQUENCIES:
-            if freq in climatology_da.dims:
-                groupby_kwargs["frequency"] = freq
-                break
-        else:
-            groupby_kwargs["frequency"] = "year"
+    if groupby_kwargs.get("frequency") == "climatology":
+        groupby_kwargs["frequency"] = clim_freq
 
     # Annual anomalies are simpler and do not need to be subtracted from before resampling
-    if groupby_kwargs["frequency"] == "year":
+    frequency = groupby_kwargs.get("frequency")
+    if frequency is None:
+        if clim_freq == "year":
+            # If frequency is None, and clim frequency is year, then we can just take the difference
+            anomaly_array = dataarray - climatology_da
+            if relative:
+                anomaly_array = (anomaly_array / climatology_da) * 100.0
+        else:
+            # If clim_freq is not year, then we need to groupby the dataarray before taking
+            # the difference
+            anomaly_array = (
+                groupby_time(dataarray, time_dim=time_dim, frequency=clim_freq, **groupby_kwargs) - climatology_da
+            )
+            if relative:
+                anomaly_array = (
+                    (
+                        groupby_time(anomaly_array, time_dim=time_dim, frequency=clim_freq, **groupby_kwargs)
+                        - climatology_da
+                    )
+                    / climatology_da
+                    * 100.0
+                )
+            anomaly_array = anomaly_array.broadcast_like(dataarray)
+
+    elif groupby_kwargs["frequency"] == "year":
         anomaly_array = (
             _temporal_reduce(dataarray, time_dim=time_dim, **groupby_kwargs, **reduce_kwargs) - climatology_da
         )
