@@ -67,8 +67,7 @@ def reduce(
             start, end = climatology_range  # expect exactly two items
         except (TypeError, ValueError) as exc:
             raise ValueError(
-                "climatology_range must be a sequence of exactly two items "
-                "(start, end), or None."
+                "climatology_range must be a sequence of exactly two items (start, end), or None."
             ) from exc
         climatology_range = (start, end)
 
