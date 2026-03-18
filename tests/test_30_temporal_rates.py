@@ -136,9 +136,7 @@ def test_accumulation_to_rate_start_of_step_rate_units(rate_units, expected_unit
     numeric_test_sample = rate_data.isel(latitude=5, longitude=5, **{accum_time_dim: slice(0, 5)})
     assert not np.all(np.isnan(numeric_test_sample.values)), "Sample array contains only NaN values"
     assert not np.all(numeric_test_sample.values == 0), "Sample array contains only zero values"
-    expected_sample = (data.isel(latitude=5, longitude=5, **{accum_time_dim: slice(0, 5)}).values) / (
-        sample_sf
-    )
+    expected_sample = (data.isel(latitude=5, longitude=5, **{accum_time_dim: slice(0, 5)}).values) / (sample_sf)
     np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
     assert not np.all(np.isnan(numeric_test_sample.values)), "Array contains only NaN values"
 
@@ -170,9 +168,7 @@ def test_accumulation_to_rate_start_of_forecast(time_dim_mode):
     np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
 
     # Check the from_first_step=True option, should preserve first timestep
-    rate_data = temporal.accumulation_to_rate(
-        data, accumulation_type="start_of_forecast", from_first_step=True
-    )
+    rate_data = temporal.accumulation_to_rate(data, accumulation_type="start_of_forecast", from_first_step=True)
     assert "tp_rate" == rate_data.name
     assert original_units + " s^-1" == rate_data.attrs["units"]
     assert "standard_name" not in rate_data.attrs
@@ -202,18 +198,14 @@ def test_accumulation_to_rate_start_of_forecast(time_dim_mode):
         ("step_length", "", 1.0),
     ],
 )
-def test_accumulation_to_rate_start_of_forecast_rate_units(
-    rate_units, expected_units, sample_sf, time_dim_mode
-):
+def test_accumulation_to_rate_start_of_forecast_rate_units(rate_units, expected_units, sample_sf, time_dim_mode):
     test_file = "seas5-precip-3deg-202401.grib"
     accumulation_type = "start_of_forecast"
     accum_time_dim = ACCUM_TIME_DIM.get(time_dim_mode, time_dim_mode)
     data = get_data(test_file).to_xarray(**TO_XARRAY_KWARGS[time_dim_mode])["tp"]
     original_units = data.attrs["units"]
 
-    rate_data = temporal.accumulation_to_rate(
-        data, accumulation_type=accumulation_type, rate_units=rate_units
-    )
+    rate_data = temporal.accumulation_to_rate(data, accumulation_type=accumulation_type, rate_units=rate_units)
     assert f"tp_{RATE_SUFFIX.get(rate_units, 'rate')}" == rate_data.name
     assert original_units + expected_units == rate_data.attrs["units"]
     assert rate_data.attrs["long_name"].endswith(f" {RATE_SUFFIX.get(rate_units, 'rate').replace('_', ' ')}")
@@ -248,9 +240,7 @@ def test_accumulation_to_rate_start_of_day(time_dim_mode):
     assert rate_data[accum_time_dim][0].values == data[accum_time_dim][1].values
 
     isel_kwargs = {k: 1 for k in data.dims if k not in (accum_time_dim, "latitude", "longitude")}
-    numeric_test_sample = rate_data.isel(
-        **ERA5_LAND_TEST_POINT, **{accum_time_dim: slice(2, 22)}, **isel_kwargs
-    )
+    numeric_test_sample = rate_data.isel(**ERA5_LAND_TEST_POINT, **{accum_time_dim: slice(2, 22)}, **isel_kwargs)
     assert not np.all(np.isnan(numeric_test_sample.values)), "Sample array contains only NaN values"
     assert not np.all(numeric_test_sample.values == 0), "Sample array contains only zero values"
     expected_sample = (
@@ -275,15 +265,11 @@ def test_accumulation_to_rate_start_of_day(time_dim_mode):
         numeric_test_sample = rate_data.isel(**ERA5_LAND_TEST_POINT, **{accum_time_dim: 25}, **isel_kwargs)
         assert not np.all(np.isnan(numeric_test_sample.values)), "Sample array contains only NaN values"
         assert not np.all(numeric_test_sample.values == 0), "Sample array contains only zero values"
-        expected_sample = (
-            data.isel(**ERA5_LAND_TEST_POINT, **{accum_time_dim: 25}, **isel_kwargs).values
-        ) / 3600.0
+        expected_sample = (data.isel(**ERA5_LAND_TEST_POINT, **{accum_time_dim: 25}, **isel_kwargs).values) / 3600.0
         np.testing.assert_allclose(numeric_test_sample.values, expected_sample)
 
         # Check a period that is not the first day
-        numeric_test_sample = rate_data.isel(
-            **ERA5_LAND_TEST_POINT, **{accum_time_dim: slice(26, 31)}, **isel_kwargs
-        )
+        numeric_test_sample = rate_data.isel(**ERA5_LAND_TEST_POINT, **{accum_time_dim: slice(26, 31)}, **isel_kwargs)
         assert not np.all(np.isnan(numeric_test_sample.values)), "Sample array contains only NaN values"
         assert not np.all(numeric_test_sample.values == 0), "Sample array contains only zero values"
         expected_sample = (
@@ -314,18 +300,14 @@ def test_accumulation_to_rate_start_of_day_rate_units(time_dim_mode, rate_units,
     data = get_data(test_file).to_xarray(**TO_XARRAY_KWARGS[time_dim_mode])["tp"]
 
     original_units = data.attrs["units"]
-    rate_data = temporal.accumulation_to_rate(
-        data, accumulation_type=accumulation_type, rate_units=rate_units
-    )
+    rate_data = temporal.accumulation_to_rate(data, accumulation_type=accumulation_type, rate_units=rate_units)
     assert f"tp_{RATE_SUFFIX.get(rate_units, 'rate')}" == rate_data.name
     assert original_units + expected_units == rate_data.attrs["units"]
     assert rate_data.attrs["long_name"].endswith(f" {RATE_SUFFIX.get(rate_units, 'rate').replace('_', ' ')}")
     assert "standard_name" not in rate_data.attrs
     assert rate_data[accum_time_dim][0].values == data[accum_time_dim][1].values
     isel_kwargs = {k: 1 for k in data.dims if k not in (accum_time_dim, "latitude", "longitude")}
-    numeric_test_sample = rate_data.isel(
-        **ERA5_LAND_TEST_POINT, **{accum_time_dim: slice(6, 11)}, **isel_kwargs
-    )
+    numeric_test_sample = rate_data.isel(**ERA5_LAND_TEST_POINT, **{accum_time_dim: slice(6, 11)}, **isel_kwargs)
     assert not np.all(np.isnan(numeric_test_sample.values)), "Sample array contains only NaN values"
     assert not np.all(numeric_test_sample.values == 0), "Sample array contains only zero values"
     expected_sample = (
@@ -378,15 +360,11 @@ def test_deaccumulate(time_dim_mode):
     assert "standard_name" not in deaccum_data.attrs
 
     # Check first timestep is unchanged
-    np.testing.assert_allclose(
-        deaccum_data.isel(**{accum_time_dim: 0}).values, data.isel(**{accum_time_dim: 0}).values
-    )
+    np.testing.assert_allclose(deaccum_data.isel(**{accum_time_dim: 0}).values, data.isel(**{accum_time_dim: 0}).values)
 
     isel_kwargs = {k: 0 for k in data.dims if k not in (accum_time_dim, "latitude", "longitude")}
 
-    numeric_test_sample = deaccum_data.isel(
-        **{accum_time_dim: slice(1, 5)}, **SEAS5_TEST_POINT, **isel_kwargs
-    )
+    numeric_test_sample = deaccum_data.isel(**{accum_time_dim: slice(1, 5)}, **SEAS5_TEST_POINT, **isel_kwargs)
     assert not np.all(np.isnan(numeric_test_sample.values)), "Sample array contains only NaN values"
     assert not np.all(numeric_test_sample.values == 0), "Sample array contains only zero values"
     expected_sample = (
@@ -403,9 +381,7 @@ def test_deaccumulate(time_dim_mode):
 
     isel_kwargs = {k: 0 for k in data.dims if k not in (accum_time_dim, "latitude", "longitude")}
 
-    numeric_test_sample = deaccum_data.isel(
-        **{accum_time_dim: slice(1, 5)}, **SEAS5_TEST_POINT, **isel_kwargs
-    )
+    numeric_test_sample = deaccum_data.isel(**{accum_time_dim: slice(1, 5)}, **SEAS5_TEST_POINT, **isel_kwargs)
     assert not np.all(np.isnan(numeric_test_sample.values)), "Sample array contains only NaN values"
     assert not np.all(numeric_test_sample.values == 0), "Sample array contains only zero values"
     expected_sample = (

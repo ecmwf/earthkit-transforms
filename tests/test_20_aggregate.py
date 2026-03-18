@@ -141,9 +141,7 @@ def create_dataarray_rolling(weights=None):
 # Test case for reducing without weights using built-in method
 def test_rolling_reduce_dataarray(how, expected_result):
     dataarray = create_dataarray_rolling()
-    result = _rolling_reduce_dataarray(
-        dataarray, how_reduce=how, x=2, center=True, chunk=False, how_dropna="any"
-    )
+    result = _rolling_reduce_dataarray(dataarray, how_reduce=how, x=2, center=True, chunk=False, how_dropna="any")
     assert isinstance(result, xr.DataArray)
     assert result.shape == (4, 5)
     assert result.values[0, 0] == expected_result

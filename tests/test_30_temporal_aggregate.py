@@ -53,10 +53,7 @@ def test_standardise_time_basic():
 def test_standardise_time_monthly():
     data = get_data().to_xarray()
     data_standardised = temporal.standardise_time(data, target_format="%Y-%m-15")
-    assert all(
-        pd.to_datetime(time_value).day == 15
-        for time_value in data_standardised.forecast_reference_time.values
-    )
+    assert all(pd.to_datetime(time_value).day == 15 for time_value in data_standardised.forecast_reference_time.values)
 
 
 @pytest.mark.parametrize(

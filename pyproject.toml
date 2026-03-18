@@ -62,35 +62,29 @@ exclude = '^tests/legacy-api/'
 ignore_missing_imports = true
 
 [tool.ruff]
-# Black line length is 88, but black does not format comments.
-line-length = 110
-select = [
-  # pyflakes
-  "F",
-  # pycodestyle
-  "E",
-  "W",
-  # isort
-  "I",
-  # pydocstyle
-  "D"
-]
+line-length = 120
 
 [tool.ruff.lint]
 ignore = [
-  # pydocstyle: Missing Docstrings
-  "D1"
+  "D1",  # pydocstyle: Missing Docstrings
+  "D107",  # pydocstyle: numpy convention
+  "D203",
+  "D205",
+  "D212",
+  "D213",
+  "D401",
+  "D402",
+  "D413",
+  "D415",
+  "D416",
+  "D417"
 ]
 select = [
-  # pyflakes
-  "F",
-  # pycodestyle
-  "E",
-  "W",
-  # isort
-  "I",
-  # pydocstyle
-  "D"
+  "F",  # pyflakes
+  "E",  # pycodestyle
+  "W",  # pycodestyle warnings
+  "I",  # isort
+  "D"  # pydocstyle
 ]
 
 [tool.setuptools.packages.find]

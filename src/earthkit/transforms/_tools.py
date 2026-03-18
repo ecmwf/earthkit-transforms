@@ -248,9 +248,7 @@ def latitude_weights(dataarray: xr.DataArray, lat_key: str | None = None):
         xp = array_namespace_from_object(lat_array[lat_key])
         return xp.cos(xp.radians(lat_array[lat_key]))
 
-    raise KeyError(
-        "Latitude variable name not detected or found in the dataarray. Please provide the correct key."
-    )
+    raise KeyError("Latitude variable name not detected or found in the dataarray. Please provide the correct key.")
 
 
 HOW_METHODS = {
@@ -495,9 +493,7 @@ def get_dim_key(
 
     # We have not been able to detect, so raise an error
     if raise_error:
-        raise ValueError(
-            f"Unable to find dimension key for axis '{axis}' in dataarray with dims: {dataarray.dims}."
-        )
+        raise ValueError(f"Unable to find dimension key for axis '{axis}' in dataarray with dims: {dataarray.dims}.")
 
     return axis
 
@@ -570,8 +566,7 @@ def groupby_time(
             grouped_data = dataarray.groupby(f"{time_dim}.{frequency}")
         except AttributeError:
             raise ValueError(
-                f"Invalid frequency '{frequency}' - see xarray documentation for "
-                f"a full list of valid frequencies."
+                f"Invalid frequency '{frequency}' - see xarray documentation for a full list of valid frequencies."
             )
 
     return grouped_data
@@ -590,8 +585,7 @@ def groupby_bins(
         grouped_data = dataarray.groupby_bins(f"{time_dim}.{frequency}", bin_widths)
     except AttributeError:
         raise ValueError(
-            f"Invalid frequency '{frequency}' - see xarray documentation for "
-            f"a full list of valid frequencies."
+            f"Invalid frequency '{frequency}' - see xarray documentation for a full list of valid frequencies."
         )
     return grouped_data
 
@@ -638,9 +632,7 @@ def transform_inputs_decorator(
                     _convert_types = {key: _convert_types for key in convert_kwargs}
 
                 convert_kwargs = [
-                    k
-                    for k in convert_kwargs
-                    if isinstance(kwargs[k], _ensure_tuple(_convert_types.get(k, ())))
+                    k for k in convert_kwargs if isinstance(kwargs[k], _ensure_tuple(_convert_types.get(k, ())))
                 ]
 
             # Transform args/kwargs
