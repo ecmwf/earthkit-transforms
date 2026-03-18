@@ -252,9 +252,7 @@ def test_reduce_invalid_how():
 
 def test_reduce_with_mask():
     dataarray = create_test_dataarray()
-    mask = xr.DataArray(
-        np.random.randint(0, 2, size=dataarray.shape), coords=dataarray.coords, dims=dataarray.dims
-    )
+    mask = xr.DataArray(np.random.randint(0, 2, size=dataarray.shape), coords=dataarray.coords, dims=dataarray.dims)
     result = _spatial._reduce_dataarray_as_xarray(dataarray, mask_arrays=[mask], how="sum")
     assert isinstance(result, xr.DataArray)
 
@@ -262,9 +260,7 @@ def test_reduce_with_mask():
 def test_return_geometry_as_coord():
     dataarray = create_test_dataarray()
     geodataframe = create_test_geodataframe()
-    result = _spatial._reduce_dataarray_as_xarray(
-        dataarray, geodataframe=geodataframe, return_geometry_as_coord=True
-    )
+    result = _spatial._reduce_dataarray_as_xarray(dataarray, geodataframe=geodataframe, return_geometry_as_coord=True)
     assert "geometry" in result.coords
     assert len(result.coords["geometry"].values) == len(geodataframe)
 
@@ -286,9 +282,7 @@ def test_reduce_as_pandas_with_geodataframe():
 def test_reduce_as_pandas_compact():
     dataarray = create_test_dataarray()
     geodataframe = create_test_geodataframe()
-    result = _spatial._reduce_dataarray_as_pandas(
-        dataarray, geodataframe=geodataframe, compact=True, how="mean"
-    )
+    result = _spatial._reduce_dataarray_as_pandas(dataarray, geodataframe=geodataframe, compact=True, how="mean")
     assert isinstance(result, pd.DataFrame)
     assert f"{dataarray.name}" in result.columns
 

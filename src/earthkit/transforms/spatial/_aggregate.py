@@ -470,9 +470,7 @@ def reduce(
         else:
             raise TypeError("Return as type not recognised or incompatible with inputs")
     else:
-        return _reduce_dataarray_as_xarray(
-            dataarray, geodataframe=geodataframe, mask_arrays=_mask_arrays, **kwargs
-        )
+        return _reduce_dataarray_as_xarray(dataarray, geodataframe=geodataframe, mask_arrays=_mask_arrays, **kwargs)
 
 
 def _reduce_dataarray_as_xarray(
@@ -712,8 +710,7 @@ def _reduce_dataarray_as_pandas(
         out_dims = {dim: dataarray[dim].data for dim in _out_dims}
         reduce_attrs[f"{out_xr.name}"].update({"dims": out_dims})
         reduced_list = [
-            out_xr.sel(**{mask_dim_name: mask_dim_value}).data
-            for mask_dim_value in out_xr[mask_dim_name].data
+            out_xr.sel(**{mask_dim_name: mask_dim_value}).data for mask_dim_value in out_xr[mask_dim_name].data
         ]
         out = out.assign(**{f"{out_xr.name}": reduced_list})
 

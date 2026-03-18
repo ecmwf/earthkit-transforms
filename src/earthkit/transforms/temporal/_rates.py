@@ -380,19 +380,14 @@ def _accumulation_to_rate_dataarray(
     if "units" in dataarray.attrs:
         output.attrs.update({"units": dataarray.attrs["units"] + rate_units_str})
     if "long_name" in dataarray.attrs:
-        output.attrs["long_name"] = " ".join(
-            filter(None, [dataarray.attrs["long_name"], rate_label.replace("_", " ")])
-        )
+        output.attrs["long_name"] = " ".join(filter(None, [dataarray.attrs["long_name"], rate_label.replace("_", " ")]))
     if provenance or "history" in dataarray.attrs:
         output.attrs["history"] = "\n".join(
             filter(
                 None,
                 [
                     dataarray.attrs.get("history", ""),
-                    (
-                        "Converted from accumulation to rate using "
-                        "earthkit.transforms.temporal.accumulation_to_rate."
-                    ),
+                    ("Converted from accumulation to rate using earthkit.transforms.temporal.accumulation_to_rate."),
                 ],
             )
         )

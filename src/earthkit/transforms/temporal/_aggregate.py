@@ -53,13 +53,9 @@ def standardise_time(
     try:
         source_times = [time_value.strftime(target_format) for time_value in dataarray[time_dim].data]
     except AttributeError:
-        source_times = [
-            pd.to_datetime(time_value).strftime(target_format) for time_value in dataarray[time_dim].data
-        ]
+        source_times = [pd.to_datetime(time_value).strftime(target_format) for time_value in dataarray[time_dim].data]
 
-    standardised_times = np.array(
-        [pd.to_datetime(time_string).to_datetime64() for time_string in source_times]
-    )
+    standardised_times = np.array([pd.to_datetime(time_string).to_datetime64() for time_string in source_times])
 
     dataarray = dataarray.assign_coords({time_dim: standardised_times})
 
