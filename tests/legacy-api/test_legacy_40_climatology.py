@@ -2,7 +2,7 @@ import pytest
 
 # from earthkit.data.core.temporary import temp_directory
 import xarray as xr
-from earthkit.data.utils.testing import earthkit_remote_test_data_file
+from earthkit.data.testing import earthkit_remote_test_data_file
 
 from earthkit import data as ek_data
 from earthkit.transforms.aggregate import climatology

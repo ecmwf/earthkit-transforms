@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
-from earthkit.data.utils.testing import earthkit_remote_test_data_file
+from earthkit.data.testing import earthkit_remote_test_data_file
 
 # from earthkit.data.core.temporary import temp_directory
 from earthkit import data as ek_data
