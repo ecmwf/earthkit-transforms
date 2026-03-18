@@ -7,7 +7,7 @@ from earthkit.data.testing import earthkit_remote_test_data_file
 from shapely.geometry import Polygon
 
 # from earthkit.data.core.temporary import temp_directory
-from earthkit import data as ek_data
+from earthkit import data as ekd
 from earthkit.transforms import spatial
 from earthkit.transforms.spatial import _aggregate as _spatial
 
@@ -19,7 +19,7 @@ except ImportError:
     rasterio_available = False
 
 # Use caching for speedy repeats
-ek_data.settings.set("cache-policy", "user")
+ekd.settings.set("cache-policy", "user")
 
 
 SAMPLE_ARRAY = xr.DataArray(
@@ -44,13 +44,13 @@ class dummy_class:
 
 def get_grid_data():
     remote_era5_file = earthkit_remote_test_data_file("era5_temperature_europe_20150101.grib")
-    return ek_data.from_source("url", remote_era5_file)
+    return ekd.from_source("url", remote_era5_file)
 
 
 def get_shape_data():
     if rasterio_available:
         remote_nuts_url = earthkit_remote_test_data_file("NUTS_RG_60M_2021_4326_LEVL_0.geojson")
-        return ek_data.from_source("url", remote_nuts_url)
+        return ekd.from_source("url", remote_nuts_url)
     return dummy_class()
 
 
@@ -81,7 +81,8 @@ def test_spatial_masks_with_ek_objects(era5_data, nuts_data, expected_result_typ
     masked_data = spatial.mask(era5_data, nuts_data)
     assert isinstance(masked_data, expected_result_type)
     assert "index" in masked_data.dims
-    assert len(masked_data["index"]) == len(nuts_data)
+    nuts_pandas = ekd.from_object(nuts_data).to_pandas()
+    assert len(masked_data["index"]) == len(nuts_pandas)
 
 
 @pytest.mark.parametrize(
@@ -124,7 +125,8 @@ def test_spatial_reduce_with_geometry(era5_data, nuts_data, expected_result_type
     reduced_data = spatial.reduce(era5_data, nuts_data)
     assert isinstance(reduced_data, expected_result_type)
     assert all([dim in ["forecast_reference_time", "index"] for dim in reduced_data.dims])
-    assert len(reduced_data["index"]) == len(nuts_data)
+    nuts_pandas = ekd.from_object(nuts_data).to_pandas()
+    assert len(reduced_data["index"]) == len(nuts_pandas)
 
 
 @pytest.mark.skipif(
@@ -290,3 +292,36 @@ def test_reduce_as_pandas_without_geodataframe():
     result = _spatial._reduce_dataarray_as_pandas(dataarray, how="sum")
     assert isinstance(result, pd.DataFrame)
     assert not result.empty
+
+
+# ---------------------------------------------------------------------------
+# Local (synthetic-data) tests — no network required
+# ---------------------------------------------------------------------------
+
+
+def test_spatial_reduce_dataset_local():
+    """spatial.reduce on a Dataset should return a Dataset."""
+    ds = xr.Dataset({"var": SAMPLE_ARRAY})
+    result = spatial.reduce(ds)
+    assert isinstance(result, xr.Dataset)
+    assert "var" in result
+
+
+@pytest.mark.parametrize("how", ("min", "max", "sum", "std"))
+def test_spatial_reduce_how_options_local(how):
+    """spatial.reduce should accept common how strings on SAMPLE_ARRAY."""
+    result = spatial.reduce(SAMPLE_ARRAY, how=how)
+    assert isinstance(result, xr.DataArray)
+    assert result.dims == ()
+
+
+@pytest.mark.skipif(
+    not rasterio_available,
+    reason="rasterio is not available",
+)
+def test_spatial_reduce_with_shapely_geodataframe_local():
+    """spatial.reduce with a simple shapely GeoDataFrame returns 'index' dim."""
+    geodataframe = create_test_geodataframe()
+    result = _spatial._reduce_dataarray_as_xarray(create_test_dataarray(), geodataframe=geodataframe, how="mean")
+    assert isinstance(result, xr.DataArray)
+    assert "index" in result.dims

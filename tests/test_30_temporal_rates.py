@@ -435,3 +435,92 @@ def test_accumulation_to_rate_start_of_day_from_first_step_first_step_midnight()
         from_first_step=True,
     )
     assert np.isnan(out[0].item())
+
+
+# ---------------------------------------------------------------------------
+# Local (synthetic-data) tests — no network required
+# ---------------------------------------------------------------------------
+
+
+def _make_accum_da(name="tp", n=5, step_hours=1, units="m"):
+    time = pd.date_range("2020-01-01", periods=n, freq=f"{step_hours}h")
+    data = np.arange(1.0, n + 1)
+    return xr.DataArray(
+        data,
+        dims=["time"],
+        coords={"time": time},
+        name=name,
+        attrs={"units": units, "long_name": "total precipitation"},
+    )
+
+
+def test_accumulation_to_rate_start_of_step_local():
+    """start_of_step: rate = value / step_seconds."""
+    da = _make_accum_da()
+    result = temporal.accumulation_to_rate(da, accumulation_type="start_of_step")
+    assert result.name == "tp_rate"
+    assert result.attrs["units"] == "m s^-1"
+    expected = da.values / 3600.0
+    np.testing.assert_allclose(result.values, expected)
+
+
+def test_accumulation_to_rate_start_of_forecast_local():
+    """start_of_forecast: rate = forward-diff / step_seconds (first step dropped)."""
+    da = _make_accum_da()
+    result = temporal.accumulation_to_rate(da, accumulation_type="start_of_forecast")
+    # Without from_first_step, first step is dropped
+    assert result.name == "tp_rate"
+    assert len(result) == len(da) - 1
+    expected_diff = np.diff(da.values) / 3600.0
+    np.testing.assert_allclose(result.values, expected_diff)
+
+
+def test_accumulation_to_rate_start_of_forecast_from_first_step_local():
+    """from_first_step=True should preserve the first timestep."""
+    da = _make_accum_da()
+    result = temporal.accumulation_to_rate(da, accumulation_type="start_of_forecast", from_first_step=True)
+    assert len(result) == len(da)
+    # First element: da[0] / step; rest: diff / step
+    assert result.coords["time"][0].values == da.coords["time"][0].values
+
+
+def test_accumulation_to_rate_dataset_local():
+    """Dataset input should return a Dataset."""
+    da = _make_accum_da()
+    ds = xr.Dataset({"tp": da})
+    result = temporal.accumulation_to_rate(ds)
+    assert isinstance(result, xr.Dataset)
+    assert "tp_rate" in result
+
+
+@pytest.mark.parametrize(
+    "rate_units, expected_suffix",
+    [
+        ("seconds", " s^-1"),
+        ("minutes", " min^-1"),
+        ("hours", " hours^-1"),
+        ("step_length", ""),
+    ],
+)
+def test_accumulation_to_rate_rate_units_local(rate_units, expected_suffix):
+    da = _make_accum_da()
+    result = temporal.accumulation_to_rate(da, accumulation_type="start_of_step", rate_units=rate_units)
+    assert result.attrs["units"] == "m" + expected_suffix
+
+
+def test_deaccumulate_local():
+    """Deaccumulate is equivalent to accumulation_to_rate with rate_units='step_length'."""
+    da = _make_accum_da()
+    deaccum = temporal.deaccumulate(da, from_first_step=True)
+    a2r = temporal.accumulation_to_rate(
+        da, accumulation_type="start_of_forecast", rate_units="step_length", from_first_step=True
+    )
+    assert deaccum.name == da.name  # deaccumulate preserves original name
+    np.testing.assert_allclose(deaccum.values, a2r.values)
+
+
+def test_accumulation_to_rate_invalid_type_local():
+    """Unknown accumulation_type should raise ValueError."""
+    da = _make_accum_da()
+    with pytest.raises(ValueError, match="Unknown accumulation_type"):
+        temporal.accumulation_to_rate(da, accumulation_type="unknown_type")

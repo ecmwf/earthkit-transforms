@@ -92,7 +92,7 @@ def gb_dummy_func(*args, groupby_kwargs=None, **kwargs):
 # Test case for the decorator when groupby_kwargs is None
 def test_groupby_kwargs_decorator_none():
     # Call the decorated function with no groupby_kwargs
-    result_groupby_kwargs, result_kwargs = groupby_kwargs_decorator(gb_dummy_func)()
+    result_groupby_kwargs, result_kwargs = groupby_kwargs_decorator()(gb_dummy_func)()
 
     # Check if groupby_kwargs is None and other kwargs are empty
     assert result_groupby_kwargs == {}
@@ -134,7 +134,7 @@ def test_groupby_kwargs_decorator_override():
     override_groupby_kwargs = {"frequency": "hour"}
 
     # Call the decorated function with groupby_kwargs provided
-    result_groupby_kwargs, result_kwargs = groupby_kwargs_decorator(gb_dummy_func)(
+    result_groupby_kwargs, result_kwargs = groupby_kwargs_decorator()(gb_dummy_func)(
         groupby_kwargs=override_groupby_kwargs, **groupby_kwargs, **other_kwargs
     )
 

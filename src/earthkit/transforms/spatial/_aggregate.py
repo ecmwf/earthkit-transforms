@@ -454,11 +454,6 @@ def reduce(
                 out_ds[out_da.name] = out_da
             return out_ds
         elif "pandas" in return_as:
-            logger.warning(
-                "Returning reduced data in pandas format is considered "
-                "experimental and may change in future"
-                "versions of earthkit"
-            )
             if geodataframe is not None:
                 out = geodataframe
                 for var in dataarray.data_vars:
