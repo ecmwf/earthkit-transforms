@@ -37,12 +37,14 @@ def reduce(
         Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
         to return the result of reducing an array over an integer valued axis
     frequency : str (optional)
-        Valid options are `day`, `week` and `month`. If not provided the climatology is
-        calculated for the period.
+        Frequency used for grouping the data in climatology mode. Typical values include
+        `dayofyear`, `weekofyear`, `month`, `year`, etc. The full set of accepted options
+        matches those supported by `earthkit.transforms._tools.groupby_time`. If not
+        provided, the climatology is calculated over the entire period.
     bin_widths : int or list (optional)
-        If `bin_widths` is an `int`, it defines the width of each group bin on
-        the frequency provided by `frequency`. If `bin_widths` is a sequence
-        it defines the edges of each bin, allowing for non-uniform bin widths.
+        If `bin_widths` is an `int`, it defines the width of each group bin on the
+        frequency provided by `frequency`. If `bin_widths` is a sequence it defines the
+        edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
         Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
