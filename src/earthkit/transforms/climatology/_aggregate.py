@@ -825,10 +825,7 @@ def _anomaly_dataarray(
             )
             if relative:
                 anomaly_array = (
-                    (
-                        groupby_time(anomaly_array, time_dim=time_dim, frequency=clim_freq, **groupby_kwargs)
-                        - climatology_da
-                    )
+                    groupby_time(anomaly_array, time_dim=time_dim, frequency=clim_freq, **groupby_kwargs)
                     / climatology_da
                     * 100.0
                 )
