@@ -59,6 +59,17 @@ def reduce(
     xr.DataArray
 
     """
+    # Validate and normalize climatology_range if provided
+    if climatology_range is not None:
+        try:
+            start, end = climatology_range  # expect exactly two items
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                "climatology_range must be a sequence of exactly two items "
+                "(start, end), or None."
+            ) from exc
+        climatology_range = (start, end)
+
     # If climate range is defined, use it
     if climatology_range is not None and all(c_r is not None for c_r in climatology_range):
         selection = dataarray.sel({time_dim: slice(*climatology_range)})
