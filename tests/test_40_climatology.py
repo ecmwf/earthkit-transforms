@@ -18,6 +18,24 @@ def get_data():
     return ek_data.from_source("url", remote_era5_file)
 
 
+@pytest.fixture(scope="session")
+def era5_dataset():
+    """Session-scoped computed xarray.Dataset for ERA5 test data."""
+    return get_data().to_xarray().compute()
+
+
+@pytest.fixture(scope="session")
+def era5_da_2t(era5_dataset):
+    """Session-scoped DataArray for the '2t' variable from ERA5 dataset."""
+    return era5_dataset["2t"]
+
+
+@pytest.fixture
+def in_data(request):
+    """Indirect fixture to select between dataset and dataarray variants."""
+    return request.getfixturevalue(request.param)
+
+
 @pytest.mark.parametrize(
     "method",
     (
@@ -31,10 +49,10 @@ def get_data():
 @pytest.mark.parametrize(
     "in_data, expected_return_type",
     (
-        # [get_data(), xr.Dataset],
-        [get_data().to_xarray().compute(), xr.Dataset],
-        [get_data().to_xarray().compute()["2t"], xr.DataArray],
+        pytest.param("era5_dataset", xr.Dataset, id="dataset"),
+        pytest.param("era5_da_2t", xr.DataArray, id="dataarray"),
     ),
+    indirect=["in_data"],
 )
 def test_climatology_base(in_data, expected_return_type, method):
     clim = method(in_data)
