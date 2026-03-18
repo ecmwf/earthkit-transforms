@@ -114,10 +114,13 @@ _INVALID_CLIMATOLOGY_FREQUENCIES = ["day"]
 VALID_CLIMATOLOGY_FREQUENCIES = ["dayofyear", "week", "weekofyear", "month"]
 
 
-def groupby_kwargs_decorator(*, climatology: bool = False):
+def groupby_kwargs_decorator(func: T.Callable | None = None, *, climatology: bool = False):
     """Collect groupby kwargs and optionally validates climatology frequencies.
 
-    Must always be called with parentheses::
+    Can be used either as a simple decorator or as a decorator factory::
+
+        @groupby_kwargs_decorator
+        def f(...): ...
 
         @groupby_kwargs_decorator()
         def f(...): ...
@@ -155,7 +158,12 @@ def groupby_kwargs_decorator(*, climatology: bool = False):
 
         return wrapper
 
-    return decorator
+    if func is None:
+        # Called as a decorator factory: @groupby_kwargs_decorator(...) or groupby_kwargs_decorator(...)(func)
+        return decorator
+
+    # Called directly as a decorator: @groupby_kwargs_decorator or groupby_kwargs_decorator(func)
+    return decorator(func)
 
 
 def season_order_decorator(func):
