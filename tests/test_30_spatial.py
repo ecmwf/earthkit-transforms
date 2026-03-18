@@ -322,8 +322,6 @@ def test_spatial_reduce_how_options_local(how):
 def test_spatial_reduce_with_shapely_geodataframe_local():
     """spatial.reduce with a simple shapely GeoDataFrame returns 'index' dim."""
     geodataframe = create_test_geodataframe()
-    result = _spatial._reduce_dataarray_as_xarray(
-        create_test_dataarray(), geodataframe=geodataframe, how="mean"
-    )
+    result = _spatial._reduce_dataarray_as_xarray(create_test_dataarray(), geodataframe=geodataframe, how="mean")
     assert isinstance(result, xr.DataArray)
     assert "index" in result.dims

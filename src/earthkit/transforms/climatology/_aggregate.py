@@ -809,9 +809,7 @@ def _anomaly_dataarray(
         anomaly_array = groupby_time(dataarray, time_dim=time_dim, **groupby_kwargs) - climatology_da
 
         if relative:
-            anomaly_array = (
-                groupby_time(anomaly_array, time_dim=time_dim, **groupby_kwargs) / climatology_da
-            ) * 100.0
+            anomaly_array = (groupby_time(anomaly_array, time_dim=time_dim, **groupby_kwargs) / climatology_da) * 100.0
         anomaly_array = resample(anomaly_array, **reduce_kwargs, **groupby_kwargs, dim=time_dim)
 
     if relative:
@@ -821,9 +819,7 @@ def _anomaly_dataarray(
         name_tag = "anomaly"
         update_attrs = {}
 
-    return _update_anomaly_array(
-        anomaly_array, dataarray, var_name, name_tag, update_attrs, how_label=how_label
-    )
+    return _update_anomaly_array(anomaly_array, dataarray, var_name, name_tag, update_attrs, how_label=how_label)
 
 
 def _update_anomaly_array(anomaly_array, original_array, var_name, name_tag, update_attrs, how_label=None):
@@ -924,8 +920,6 @@ def auto_anomaly(
 
     """
     clim_kwargs = {k: v for k, v in _kwargs.items() if k not in ["how"]}
-    climatology = reduce(
-        dataarray, *_args, how=climatology_how, climatology_range=climatology_range, **clim_kwargs
-    )
+    climatology = reduce(dataarray, *_args, how=climatology_how, climatology_range=climatology_range, **clim_kwargs)
 
     return anomaly(dataarray, climatology, *_args, relative=relative, **_kwargs)
