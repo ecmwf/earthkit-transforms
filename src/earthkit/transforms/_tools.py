@@ -10,8 +10,8 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from earthkit.data import transform
+from earthkit.data.data.wrappers import ObjectWrapperData as Wrapper
 from earthkit.data.utils.module_inputs_wrapper import _ensure_iterable, _ensure_tuple, signature_mapping
-from earthkit.data.wrappers import Wrapper
 from earthkit.utils.array import array_namespace
 
 logger = logging.getLogger(__name__)
@@ -24,10 +24,15 @@ _PANDAS_FREQUENCIES = {
     "ME": "month",
     "MS": "month",
     "H": "hour",
+    "YE": "year",
 }
 # Note this is not 100% reversible, 3 pandas freqs map to xarray's "month",
 # but "month" will only map to "MS"
-_PANDAS_FREQUENCIES_R = {v: k for k, v in _PANDAS_FREQUENCIES.items()}
+_PANDAS_FREQUENCIES_R = {
+    **{v: k for k, v in _PANDAS_FREQUENCIES.items()},
+    # Add some additional aliases for reverse mapping
+    **{"month_start": "MS", "month_end": "ME", "week": "W", "day": "D"},
+}
 
 #: The maximum limit of climatology time groups
 _BIN_MAXES = {
@@ -36,6 +41,7 @@ _BIN_MAXES = {
     "weekofyear": 53,
     "month": 12,
     "season": 4,
+    "year": 1,
 }
 
 
@@ -104,20 +110,52 @@ def time_dim_decorator(func):
 
 GROUPBY_KWARGS = ["frequency", "bin_widths"]
 
+_INVALID_CLIMATOLOGY_FREQUENCIES = ["day"]
+VALID_CLIMATOLOGY_FREQUENCIES = ["dayofyear", "week", "weekofyear", "month"]
 
-def groupby_kwargs_decorator(func):
-    @functools.wraps(func)
-    def wrapper(*args, groupby_kwargs: dict | None = None, **kwargs):
-        groupby_kwargs = groupby_kwargs or {}
-        new_kwargs = {}
-        for k, v in kwargs.copy().items():
-            if k in GROUPBY_KWARGS:
-                groupby_kwargs.setdefault(k, v)
-            else:
-                new_kwargs[k] = v
-        return func(*args, groupby_kwargs=groupby_kwargs, **new_kwargs)
 
-    return wrapper
+def groupby_kwargs_decorator(*, climatology: bool = False):
+    """Collect groupby kwargs and optionally validates climatology frequencies.
+
+    Must always be called with parentheses::
+
+        @groupby_kwargs_decorator()
+        def f(...): ...
+
+        @groupby_kwargs_decorator(climatology=True)
+        def f(...): ...
+
+    Parameters
+    ----------
+    climatology : bool
+        When True, raises a ValueError if the resolved ``frequency`` value is
+        listed in ``_INVALID_CLIMATOLOGY_FREQUENCIES``.
+
+    """
+
+    def decorator(f):
+        @functools.wraps(f)
+        def wrapper(*args, groupby_kwargs: dict | None = None, **kwargs):
+            groupby_kwargs = groupby_kwargs or {}
+            new_kwargs = {}
+            for k, v in kwargs.copy().items():
+                if k in GROUPBY_KWARGS:
+                    groupby_kwargs.setdefault(k, v)
+                else:
+                    new_kwargs[k] = v
+            if climatology:
+                freq = groupby_kwargs.get("frequency")
+                if freq in _INVALID_CLIMATOLOGY_FREQUENCIES:
+                    valid = VALID_CLIMATOLOGY_FREQUENCIES + [None]
+                    raise ValueError(
+                        f"frequency={freq!r} is not accepted for climatology calculations. "
+                        f"Please select one of: {valid}"
+                    )
+            return f(*args, groupby_kwargs=groupby_kwargs, **new_kwargs)
+
+        return wrapper
+
+    return decorator
 
 
 def season_order_decorator(func):
@@ -125,7 +163,7 @@ def season_order_decorator(func):
     def wrapper(*args, **kwargs):
         result = func(*args, **kwargs)
         if kwargs.get("frequency", "NOTseason") in ["season"]:
-            result.reindex(season=["DJF", "MAM", "JJA", "SON"])
+            result = result.reindex(season=["DJF", "MAM", "JJA", "SON"])
         return result
 
     return wrapper
@@ -538,7 +576,8 @@ def _pandas_frequency_and_bins(
     frequency: str,
 ) -> tuple[str, int | None]:
     freq = frequency.lstrip("0123456789")
-    bins = int(frequency[: -len(freq)]) or None
+    prefix = frequency[: -len(freq)] if len(freq) < len(frequency) else ""
+    bins = int(prefix) if prefix else None
     freq = _PANDAS_FREQUENCIES.get(freq.lstrip(" "), frequency)
     return freq, bins
 
@@ -558,12 +597,12 @@ def groupby_time(
             )
         frequency, possible_bins = _pandas_frequency_and_bins(frequency)
         bin_widths = bin_widths or possible_bins
-
+    _frequency = _PANDAS_FREQUENCIES.get(frequency, frequency)
     if bin_widths is not None:
-        grouped_data = groupby_bins(dataarray, frequency, bin_widths, time_dim=time_dim)
+        grouped_data = groupby_bins(dataarray, _frequency, bin_widths, time_dim=time_dim)
     else:
         try:
-            grouped_data = dataarray.groupby(f"{time_dim}.{frequency}")
+            grouped_data = dataarray.groupby(f"{time_dim}.{_frequency}")
         except AttributeError:
             raise ValueError(
                 f"Invalid frequency '{frequency}' - see xarray documentation for a full list of valid frequencies."
