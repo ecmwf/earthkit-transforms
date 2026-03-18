@@ -323,7 +323,6 @@ def test_temporal_reduce_local_frequency_resample(freq, expected_length):
         ("3MS", 1),
         ("month", 3),
         ("YE", 1),
-        ("YE", 1),
         ("year", 1),
     ),
 )
