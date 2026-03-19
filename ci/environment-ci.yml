@@ -22,3 +22,7 @@ dependencies:
 - multiurl
 # Required for notebook example
 - statsmodels
+# TODO: Remove when mergin to main
+- pip
+- pip:
+  - earthkit-utils @ git+https://github.com/ecmwf/earthkit-utils@develop"
