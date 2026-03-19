@@ -21,9 +21,3 @@ dependencies:
 # Dependencies for units tests
 - pytest
 - pytest-cov
-- xarray
-- rasterio
-- pip
-- pip:
-  - earthkit-data[all]
-  - earthkit-plots
