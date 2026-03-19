@@ -25,4 +25,4 @@ dependencies:
 # TODO: Remove when mergin to main
 - pip
 - pip:
-  - earthkit-utils @ git+https://github.com/ecmwf/earthkit-utils@develop"
+  - "earthkit-utils @ git+https://github.com/ecmwf/earthkit-utils@develop"
