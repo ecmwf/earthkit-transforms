@@ -15,12 +15,9 @@ classifiers = [
   "Topic :: Scientific/Engineering"
 ]
 dependencies = [
-  "array-api-compat",
   "xarray>=2022.3.0",
   "numpy>=1.18",
-  "earthkit-data",
-  "earthkit-utils",
-  "geopandas"
+  "earthkit-utils"
 ]
 description = "Aggregation tools for meteorological and climate data."
 dynamic = ["version"]
@@ -30,8 +27,8 @@ readme = "README.md"
 
 [project.optional-dependencies]
 all = [
-  # Additional, heavy, dependencies required by the complete package
-  "earthkit-data[all] @ git+https://github.com/ecmwf/earthkit-data@release/1.0.0rc0",
+  "earthkit-data[all]",
+  "geopandas",
   "rasterio"  # Requires GDAL
 ]
 docs = [
@@ -53,7 +50,8 @@ docs = [
   "reverse-geocode",
   "matplotlib",
   "rasterio",
-  "earthkit-plots"
+  "earthkit-plots",
+  "earthkit-data"
 ]
 rasterio = [
   "rasterio"  # Requires GDAL

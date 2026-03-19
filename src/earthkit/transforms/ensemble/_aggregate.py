@@ -10,12 +10,13 @@
 from typing import Any, Callable, Optional, Union
 
 import xarray as xr
+from earthkit.utils.decorators import format_handler
 
 from earthkit.transforms import _tools
 from earthkit.transforms._aggregate import reduce as _reduce
 
 
-@_tools.transform_inputs_decorator()
+@format_handler()
 def reduce(
     dataarray: xr.DataArray | xr.Dataset,
     how: Union[str, Callable] = "mean",
