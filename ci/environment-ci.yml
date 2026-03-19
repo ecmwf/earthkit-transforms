@@ -3,26 +3,23 @@ channels:
 - conda-forge
 - nodefaults
 dependencies:
-- make
-- mypy
-- myst-parser
+# Dependencies for general development
 - pre-commit
+- make
+# Dependencies for documentation
 - furo
-- pytest
-- pytest-cov
+- myst-parser
+- sphinx-rtd-theme
 - sphinx
 - sphinx-design
 - nbsphinx
-- pandas-stubs
+- sphinx-design
 - ipykernel
-# Deps required for geometry operations in tests and examples
-- rasterio
-# Both of these are required for earthkit-data when installing from conda-forge:
-- array-api-compat
-- multiurl
 # Required for notebook example
 - statsmodels
-- reverse-geocode
-- pip
-- pip:
-  - git+https://github.com/ecmwf/earthkit-plots@release/1.0.0rc0
+# Dependencies for type checking
+- mypy
+- pandas-stubs
+# Dependencies for units tests
+- pytest
+- pytest-cov

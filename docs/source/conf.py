@@ -113,8 +113,10 @@ autodocs_hidden_modules = [
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns: list[str] = []
 
+# TODO: remove for version 1.0
+nbsphinx_allow_errors = True
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
@@ -127,9 +129,7 @@ html_css_files = [
     "custom.css",
 ]
 
-html_favicon = (
-    "https://raw.githubusercontent.com/ecmwf/logos/refs/heads/main/logos/earthkit/earthkit-logo-only.svg"
-)
+html_favicon = "https://raw.githubusercontent.com/ecmwf/logos/refs/heads/main/logos/earthkit/earthkit-logo-only.svg"
 
 d_thing = (
     "M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1."

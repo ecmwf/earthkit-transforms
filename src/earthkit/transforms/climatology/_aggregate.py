@@ -1,6 +1,7 @@
 import typing as T
 
 import xarray as xr
+from earthkit.utils.decorators import format_handler
 
 from earthkit.transforms import _tools
 from earthkit.transforms._aggregate import reduce as _reduce
@@ -9,7 +10,7 @@ from earthkit.transforms._tools import groupby_time
 from earthkit.transforms.temporal import reduce as _temporal_reduce
 
 
-@_tools.transform_inputs_decorator()
+@format_handler()
 @_tools.time_dim_decorator
 @_tools.groupby_kwargs_decorator(climatology=True)
 @_tools.season_order_decorator
@@ -37,12 +38,14 @@ def reduce(
         Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
         to return the result of reducing an array over an integer valued axis
     frequency : str (optional)
-        Valid options are `day`, `week` and `month`. If not provided the climatology is
-        calculated for the period.
+        Frequency used for grouping the data in climatology mode. Typical values include
+        `dayofyear`, `weekofyear`, `month`, `year`, etc. The full set of accepted options
+        matches those supported by `earthkit.transforms._tools.groupby_time`. If not
+        provided, the climatology is calculated over the entire period.
     bin_widths : int or list (optional)
-        If `bin_widths` is an `int`, it defines the width of each group bin on
-        the frequency provided by `frequency`. If `bin_widths` is a sequence
-        it defines the edges of each bin, allowing for non-uniform bin widths.
+        If `bin_widths` is an `int`, it defines the width of each group bin on the
+        frequency provided by `frequency`. If `bin_widths` is a sequence it defines the
+        edges of each bin, allowing for non-uniform bin widths.
     time_dim : str (optional)
         Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
@@ -59,6 +62,16 @@ def reduce(
     xr.DataArray
 
     """
+    # Validate and normalize climatology_range if provided
+    if climatology_range is not None:
+        try:
+            start, end = climatology_range  # expect exactly two items
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                "climatology_range must be a sequence of exactly two items (start, end), or None."
+            ) from exc
+        climatology_range = (start, end)
+
     # If climate range is defined, use it
     if climatology_range is not None and all(c_r is not None for c_r in climatology_range):
         selection = dataarray.sel({time_dim: slice(*climatology_range)})
@@ -565,7 +578,7 @@ def monthly_std(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     return monthly_reduce(*_args, **_kwargs)
 
 
-@_tools.transform_inputs_decorator()
+@format_handler()
 @_tools.time_dim_decorator
 @_tools.groupby_kwargs_decorator(climatology=True)
 @_tools.season_order_decorator
@@ -667,7 +680,7 @@ def percentiles(
     return result
 
 
-@_tools.transform_inputs_decorator()
+@format_handler()
 def anomaly(
     dataarray: xr.Dataset | xr.DataArray,
     climatology: xr.Dataset | xr.DataArray,
@@ -809,9 +822,7 @@ def _anomaly_dataarray(
         anomaly_array = groupby_time(dataarray, time_dim=time_dim, **groupby_kwargs) - climatology_da
 
         if relative:
-            anomaly_array = (
-                groupby_time(anomaly_array, time_dim=time_dim, **groupby_kwargs) / climatology_da
-            ) * 100.0
+            anomaly_array = (groupby_time(anomaly_array, time_dim=time_dim, **groupby_kwargs) / climatology_da) * 100.0
         anomaly_array = resample(anomaly_array, **reduce_kwargs, **groupby_kwargs, dim=time_dim)
 
     if relative:
@@ -821,9 +832,7 @@ def _anomaly_dataarray(
         name_tag = "anomaly"
         update_attrs = {}
 
-    return _update_anomaly_array(
-        anomaly_array, dataarray, var_name, name_tag, update_attrs, how_label=how_label
-    )
+    return _update_anomaly_array(anomaly_array, dataarray, var_name, name_tag, update_attrs, how_label=how_label)
 
 
 def _update_anomaly_array(anomaly_array, original_array, var_name, name_tag, update_attrs, how_label=None):
@@ -880,7 +889,7 @@ def relative_anomaly(*_args, **_kwargs):
 
 @_tools.time_dim_decorator
 @_tools.groupby_kwargs_decorator(climatology=True)
-@_tools.transform_inputs_decorator()
+@format_handler()
 def auto_anomaly(
     dataarray: xr.Dataset | xr.DataArray,
     *_args,
@@ -924,8 +933,6 @@ def auto_anomaly(
 
     """
     clim_kwargs = {k: v for k, v in _kwargs.items() if k not in ["how"]}
-    climatology = reduce(
-        dataarray, *_args, how=climatology_how, climatology_range=climatology_range, **clim_kwargs
-    )
+    climatology = reduce(dataarray, *_args, how=climatology_how, climatology_range=climatology_range, **clim_kwargs)
 
     return anomaly(dataarray, climatology, *_args, relative=relative, **_kwargs)

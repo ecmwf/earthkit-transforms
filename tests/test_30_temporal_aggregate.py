@@ -4,10 +4,10 @@ import pytest
 
 # from earthkit.data.core.temporary import temp_directory
 import xarray as xr
-from earthkit.data.utils.testing import earthkit_remote_test_data_file
 
 from earthkit import data as ek_data
 from earthkit.transforms import temporal
+from earthkit.transforms._tools import earthkit_remote_test_data_file
 
 # Use caching for speedy repeats
 ek_data.settings.set("cache-policy", "user")
@@ -287,7 +287,6 @@ def test_temporal_reduce_local_how_label():
         ("3MS", 1),
         ("month", 3),
         ("YE", 1),
-        ("YE", 1),
         ("year", 1),
     ),
 )
@@ -323,7 +322,6 @@ def test_temporal_reduce_local_frequency_resample(freq, expected_length):
         ("ME", 3),
         ("3MS", 1),
         ("month", 3),
-        ("YE", 1),
         ("YE", 1),
         ("year", 1),
     ),

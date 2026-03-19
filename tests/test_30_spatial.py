@@ -3,12 +3,12 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
-from earthkit.data.utils.testing import earthkit_remote_test_data_file
 from shapely.geometry import Polygon
 
 # from earthkit.data.core.temporary import temp_directory
 from earthkit import data as ekd
 from earthkit.transforms import spatial
+from earthkit.transforms._tools import earthkit_remote_test_data_file
 from earthkit.transforms.spatial import _aggregate as _spatial
 
 try:
@@ -322,8 +322,6 @@ def test_spatial_reduce_how_options_local(how):
 def test_spatial_reduce_with_shapely_geodataframe_local():
     """spatial.reduce with a simple shapely GeoDataFrame returns 'index' dim."""
     geodataframe = create_test_geodataframe()
-    result = _spatial._reduce_dataarray_as_xarray(
-        create_test_dataarray(), geodataframe=geodataframe, how="mean"
-    )
+    result = _spatial._reduce_dataarray_as_xarray(create_test_dataarray(), geodataframe=geodataframe, how="mean")
     assert isinstance(result, xr.DataArray)
     assert "index" in result.dims
