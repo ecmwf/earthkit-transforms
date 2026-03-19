@@ -16,6 +16,7 @@ import typing as T
 
 import pandas as pd
 import xarray as xr
+from earthkit.utils.decorators import format_handler
 
 from earthkit.transforms import _tools
 
@@ -78,7 +79,7 @@ def deaccumulate(
 
 
 @_tools.time_dim_decorator
-@_tools.transform_inputs_decorator()
+@format_handler()
 def accumulation_to_rate(
     dataarray: xr.Dataset | xr.DataArray,
     *_args,
