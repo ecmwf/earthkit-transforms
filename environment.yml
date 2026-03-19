@@ -2,18 +2,14 @@ channels:
 - conda-forge
 - nodefaults
 dependencies:
-- make
-- mypy
-- myst-parser
-- pre-commit
-- furo
-- pytest
-- pytest-cov
-- sphinx
-- nbsphinx
-- array-api-compat
-- numpy
+# Dependencies for the earthkit-transforms modules
 - xarray
-- geopandas
-# - earthkit-data[all]
-# - earthkit-utils
+- numpy
+- rasterio
+- pip
+- pip:
+  - earthkit-data[all]
+  - earthkit-plots
+  # TODO: Revert to PyPi when available
+  - "earthkit-utils @ git+https://github.com/ecmwf/earthkit-utils@develop"
+  # - earthkit-utils
