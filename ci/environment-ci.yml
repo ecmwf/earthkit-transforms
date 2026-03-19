@@ -13,6 +13,8 @@ dependencies:
 - sphinx
 - sphinx-autoapi
 - nbsphinx
+- sphinx-design
+- ipykernel
 # Required for notebook example
 - statsmodels
 # Dependencies for type checking
