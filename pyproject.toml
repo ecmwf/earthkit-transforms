@@ -50,7 +50,8 @@ docs = [
   "reverse-geocode",
   "matplotlib",
   "rasterio",
-  "earthkit-plots"
+  "earthkit-plots",
+  "earthkit-data"
 ]
 rasterio = [
   "rasterio"  # Requires GDAL

@@ -1,7 +1,6 @@
 import functools
 import importlib
 import logging
-import os
 import posixpath
 import types
 import typing as T

@@ -5,6 +5,7 @@ from copy import deepcopy
 try:
     import geopandas as gpd
 except ImportError:  # pragma: no cover - simple optional dependency guard
+
     class _GeoPandasProxy:
         """Proxy for geopandas that raises a clear error when used.
 
