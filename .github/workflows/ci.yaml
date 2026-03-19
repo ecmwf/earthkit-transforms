@@ -1,6 +1,18 @@
 name: Internal CI
 
 on:
+  push:
+    branches:
+    - develop
+    tags-ignore:
+    - '**'
+    paths-ignore:
+    - "README.md"
+    - "LICENCE"
+    - ".gitignore"
+  pull_request:
+    branches:
+    - develop
   workflow_call:
 
   workflow_dispatch:
