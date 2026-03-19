@@ -962,6 +962,7 @@ def auto_anomaly(
 
     """
     clim_kwargs = {k: v for k, v in _kwargs.items() if k not in ["how", "frequency"]}
+    climatology_frequency = climatology_frequency or _kwargs.get("frequency")
     climatology = reduce(
         dataarray, *_args,
         how=climatology_how, climatology_range=climatology_range, frequency=climatology_frequency,
