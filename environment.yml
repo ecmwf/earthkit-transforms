@@ -10,6 +10,7 @@ dependencies:
 - pip:
   - earthkit-data[all]
   - earthkit-plots
+  # - earthkit-utils
   # TODO: Revert to PyPi when available
   - "earthkit-utils @ git+https://github.com/ecmwf/earthkit-utils@develop"
-  # - earthkit-utils
+  # - "earthkit-plots @ git+https://github.com/ecmwf/earthkit-plots@release/1.0.0rc0"
