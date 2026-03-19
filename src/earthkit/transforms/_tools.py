@@ -2,6 +2,7 @@ import functools
 import importlib
 import logging
 import os
+import posixpath
 import types
 import typing as T
 
@@ -18,7 +19,10 @@ _REMOTE_TEST_DATA_URL = "https://sites.ecmwf.int/repository/earthkit-data/test-d
 
 
 def earthkit_remote_test_data_file(*args):
-    return os.path.join(_REMOTE_TEST_DATA_URL, *args)
+    # Use POSIX-style joining to build URLs safely across platforms.
+    # Strip leading slashes so that no argument is treated as absolute.
+    parts = [str(a).lstrip("/") for a in args]
+    return posixpath.join(_REMOTE_TEST_DATA_URL, *parts)
 
 
 #: Mapping from pandas frequency strings to xarray time groups
