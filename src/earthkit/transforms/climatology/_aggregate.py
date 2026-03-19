@@ -1,6 +1,7 @@
 import typing as T
 
 import xarray as xr
+from earthkit.utils.decorators import format_handler
 
 from earthkit.transforms import _tools
 from earthkit.transforms._aggregate import reduce as _reduce
@@ -9,7 +10,7 @@ from earthkit.transforms._tools import groupby_time
 from earthkit.transforms.temporal import reduce as _temporal_reduce
 
 
-@_tools.transform_inputs_decorator()
+@format_handler()
 @_tools.time_dim_decorator
 @_tools.groupby_kwargs_decorator(climatology=True)
 @_tools.season_order_decorator
@@ -577,7 +578,7 @@ def monthly_std(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     return monthly_reduce(*_args, **_kwargs)
 
 
-@_tools.transform_inputs_decorator()
+@format_handler()
 @_tools.time_dim_decorator
 @_tools.groupby_kwargs_decorator(climatology=True)
 @_tools.season_order_decorator
@@ -679,7 +680,7 @@ def percentiles(
     return result
 
 
-@_tools.transform_inputs_decorator()
+@format_handler()
 def anomaly(
     dataarray: xr.Dataset | xr.DataArray,
     climatology: xr.Dataset | xr.DataArray,
@@ -910,7 +911,7 @@ def relative_anomaly(*_args, **_kwargs):
 
 @_tools.time_dim_decorator
 @_tools.groupby_kwargs_decorator(climatology=True)
-@_tools.transform_inputs_decorator()
+@format_handler()
 def auto_anomaly(
     dataarray: xr.Dataset | xr.DataArray,
     *_args,
