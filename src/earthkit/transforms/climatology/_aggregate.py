@@ -942,7 +942,7 @@ def auto_anomaly(
         and the anomaly is returned on the same frequency as the input data.
     frequency : str (optional)
         Valid options are `day`, `week`, `month` and `year`. The default is to return the anomaly on the
-        same frequency as the input data. If the frequency of the anomaly is specified, the 
+        same frequency as the input data. If the frequency of the anomaly is specified, the
         climatology_frequency will default to this frequency.
     bin_widths : int or list (optional)
         If `bin_widths` is an `int`, it defines the width of each group bin on
@@ -964,9 +964,12 @@ def auto_anomaly(
     clim_kwargs = {k: v for k, v in _kwargs.items() if k not in ["how", "frequency"]}
     climatology_frequency = climatology_frequency or _kwargs.get("frequency")
     climatology = reduce(
-        dataarray, *_args,
-        how=climatology_how, climatology_range=climatology_range, frequency=climatology_frequency,
-        **clim_kwargs
+        dataarray,
+        *_args,
+        how=climatology_how,
+        climatology_range=climatology_range,
+        frequency=climatology_frequency,
+        **clim_kwargs,
     )
 
     return anomaly(dataarray, climatology, *_args, relative=relative, **_kwargs)
