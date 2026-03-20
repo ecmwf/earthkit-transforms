@@ -115,9 +115,6 @@ autodocs_hidden_modules = [
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns: list[str] = []
 
-# # TODO: remove for version 1.0
-# nbsphinx_allow_errors = True
-
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
