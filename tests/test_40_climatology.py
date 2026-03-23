@@ -57,8 +57,6 @@ def in_data(request):
 def test_climatology_base(in_data, expected_return_type, method):
     clim = method(in_data)
     assert isinstance(clim, expected_return_type)
-    # TBC, should the time-dimension be dropped altogether?
-    # assert "year" in list(clim.dims)
     if expected_return_type == xr.DataArray:
         assert "2t" == clim.name
     else:
@@ -120,19 +118,13 @@ def test_anomaly_base(in_data, expected_return_type, clim_method):
     anom_m = climatology.anomaly(in_data, clim_m)
 
     assert isinstance(anom_m, expected_return_type)
-    # Dimensions of the anomaly should be the same as the input data
+    # Dimensions and shape of the anomaly should be the same as the input data
     assert all(dim in list(anom_m.dims) for dim in in_data.dims)
+    assert all(anom_m.sizes[dim] == in_data.sizes[dim] for dim in in_data.dims)
     if expected_return_type == xr.DataArray:
         assert "2t" == anom_m.name
     else:
         assert "2t" in anom_m
-
-    # Check alternate frequencies
-    for freq in ["month", "dayofyear"]:
-        clim_m = clim_method(in_data, frequency=freq)
-        anom_m = climatology.anomaly(in_data, clim_m)
-        # Dimensions of the anomaly should be the same as the input data
-        assert all(dim in list(anom_m.dims) for dim in in_data.dims)
 
 
 @pytest.mark.parametrize(
@@ -161,7 +153,7 @@ def test_anomaly_base(in_data, expected_return_type, clim_method):
 def test_anomaly_frequency(clim_method, expected_dim_length, freq):
     in_data = get_data().to_xarray(time_dim_mode="valid_time").compute()
     clim_m = clim_method(in_data, frequency=freq)
-    anom_m = climatology.anomaly(in_data, clim_m)
+    anom_m = climatology.anomaly(in_data, clim_m, frequency=freq)
     # Dimensions of the anomaly should be the same as the input data
     assert all(dim in list(anom_m.dims) for dim in in_data.dims)
     # Check valid_time is the correct length for the frequency used
