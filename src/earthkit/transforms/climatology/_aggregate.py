@@ -958,8 +958,8 @@ def auto_anomaly(
     climatology_how : string
         Method used to calculate climatology, default is "mean". Accepted values are "median", "min", "max"
     climatology_frequency : str (optional)
-        Valid options are None, `day`, `week` and `month`. The default is the same frequency as used
-        for the anomaly. If neither are provided, the climatology is calculated over all time-steps
+        Valid options are None, `dayofyear`, `weekofyear` and `month`. The default is the same frequency as
+        used for the anomaly. If neither are provided, the climatology is calculated over all time-steps
         and the anomaly is returned on the same frequency as the input data.
     frequency : str (optional)
         Valid options are `day`, `week`, `month` and `year`. The default is to return the anomaly on the
