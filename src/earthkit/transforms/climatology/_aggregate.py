@@ -832,6 +832,7 @@ def _anomaly_dataarray(
 
     # Annual anomalies are simpler and do not need to be subtracted from before resampling
     frequency = groupby_kwargs.get("frequency")
+    clim_groupby_kwargs = {k: v for k, v in groupby_kwargs.items() if k != "frequency"}
     if frequency is None:
         if clim_freq == "year":
             # If frequency is None, and clim frequency is year, then we can just take the difference
@@ -842,11 +843,11 @@ def _anomaly_dataarray(
             # If clim_freq is not year, then we need to groupby the dataarray before taking
             # the difference
             anomaly_array = (
-                groupby_time(dataarray, time_dim=time_dim, frequency=clim_freq, **groupby_kwargs) - climatology_da
+                groupby_time(dataarray, time_dim=time_dim, frequency=clim_freq, **clim_groupby_kwargs) - climatology_da
             )
             if relative:
                 anomaly_array = (
-                    groupby_time(anomaly_array, time_dim=time_dim, frequency=clim_freq, **groupby_kwargs)
+                    groupby_time(anomaly_array, time_dim=time_dim, frequency=clim_freq, **clim_groupby_kwargs)
                     / climatology_da
                     * 100.0
                 )
