@@ -93,7 +93,4 @@ statistics analysis accross time dimensions/coordinates.
    genindex
 
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Select earthkit documentation
-   :hidden:
+

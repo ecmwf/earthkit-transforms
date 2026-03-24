@@ -73,9 +73,9 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Hide sidebar brand text */
-.sidebar-brand-text {
-  display: none;
+/* Dropdown container in the brand slot (above search bar) */
+.ek-project-selector-brand {
+  padding: 0.4rem 0.75rem 0.6rem;
 }
 
 /* Related projects dropdown */
@@ -83,7 +83,6 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.25rem 0.5rem 0.5rem;
 }
 
 .ek-project-selector select {
@@ -103,24 +102,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .ek-project-selector select:focus {
   border-color: #FCE54B;
-}
-
-.ek-project-selector button {
-  background: #FCE54B;
-  color: #131320;
-  border: none;
-  border-radius: 4px;
-  padding: 0.3rem 0.6rem;
-  font-size: 0.8rem;
-  font-family: inherit;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.ek-project-selector button:hover {
-  background: #e8d038;
 }
 
 /* Homepage card styling */
@@ -145,9 +126,4 @@ h1, h2, h3, h4, h5, h6 {
   :root:not([data-theme="light"]) .sd-card .sd-card-img-top {
     filter: invert(1) brightness(0.6);
   }
-}
-
-/* Hide sidebar brand text */
-.sidebar-brand-text {
-  display: none;
 }
