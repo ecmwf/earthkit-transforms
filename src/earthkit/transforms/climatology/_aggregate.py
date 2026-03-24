@@ -587,6 +587,7 @@ def quantiles(
     q: float | list,
     time_dim: str | None = None,
     groupby_kwargs: dict | None = None,
+    climatology_range: tuple | list | None = None,
     **reduce_kwargs,
 ) -> xr.DataArray:
     """Calculate a set of climatological quantiles.
@@ -607,6 +608,9 @@ def quantiles(
     time_dim : str (optional)
         Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
+    climatology_range : (list or tuple, optional)
+        Start and end year of the period to be used for the reference climatology. Default
+        is to use the entire time-series.
     groupby_kwargs : dict
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.groupby_time`
     **reduce_kwargs :
@@ -617,9 +621,25 @@ def quantiles(
     xr.DataArray
 
     """
+    # Validate and normalize climatology_range if provided
+    if climatology_range is not None:
+        try:
+            start, end = climatology_range  # expect exactly two items
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                "climatology_range must be a sequence of exactly two items (start, end), or None."
+            ) from exc
+        climatology_range = (start, end)
+
+    # If climate range is defined, use it
+    if climatology_range is not None and all(c_r is not None for c_r in climatology_range):
+        selection = dataarray.sel({time_dim: slice(*climatology_range)})
+    else:
+        selection = dataarray
+
     groupby_kwargs = groupby_kwargs or {}
     groupby_kwargs.setdefault("frequency", "year")
-    grouped_data = groupby_time(dataarray.chunk({time_dim: -1}), time_dim=time_dim, **groupby_kwargs)
+    grouped_data = groupby_time(selection.chunk({time_dim: -1}), time_dim=time_dim, **groupby_kwargs)
     results = []
     if not isinstance(q, (list, tuple)):
         q = [q]
