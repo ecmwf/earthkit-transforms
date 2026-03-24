@@ -95,11 +95,5 @@ statistics analysis accross time dimensions/coordinates.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Related projects
+   :caption: Select earthkit documentation
    :hidden:
-
-   earthkit <https://earthkit.readthedocs.io/en/latest>
-   earthkit-data <https://earthkit-data.readthedocs.io/en/latest>
-   earthkit-plots <https://earthkit-plots.readthedocs.io/en/latest>
-   earthkit-meteo <https://earthkit-meteo.readthedocs.io/en/latest>
-   earthkit-hydro <https://earthkit-hydro.readthedocs.io/en/latest>
