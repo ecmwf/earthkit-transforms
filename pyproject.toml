@@ -52,8 +52,6 @@ docs = [
   "rasterio",
   "earthkit-plots @ git+https://github.com/ecmwf/earthkit-plots@release/1.0.0rc0",
   "earthkit-data",
-  "eckit<=2.0.1.13",
-  "eckitlib<=2.0.1.13",
   "eccodeslib<=2.46.0.13"
 ]
 rasterio = [
