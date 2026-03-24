@@ -587,6 +587,7 @@ def quantiles(
     q: float | list,
     time_dim: str | None = None,
     groupby_kwargs: dict | None = None,
+    climatology_range: tuple | list | None = None,
     **reduce_kwargs,
 ) -> xr.DataArray:
     """Calculate a set of climatological quantiles.
@@ -607,6 +608,9 @@ def quantiles(
     time_dim : str (optional)
         Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
+    climatology_range : (list or tuple, optional)
+        Start and end year of the period to be used for the reference climatology. Default
+        is to use the entire time-series.
     groupby_kwargs : dict
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.groupby_time`
     **reduce_kwargs :
@@ -617,9 +621,25 @@ def quantiles(
     xr.DataArray
 
     """
+    # Validate and normalize climatology_range if provided
+    if climatology_range is not None:
+        try:
+            start, end = climatology_range  # expect exactly two items
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                "climatology_range must be a sequence of exactly two items (start, end), or None."
+            ) from exc
+        climatology_range = (start, end)
+
+    # If climate range is defined, use it
+    if climatology_range is not None and all(c_r is not None for c_r in climatology_range):
+        selection = dataarray.sel({time_dim: slice(*climatology_range)})
+    else:
+        selection = dataarray
+
     groupby_kwargs = groupby_kwargs or {}
     groupby_kwargs.setdefault("frequency", "year")
-    grouped_data = groupby_time(dataarray.chunk({time_dim: -1}), time_dim=time_dim, **groupby_kwargs)
+    grouped_data = groupby_time(selection.chunk({time_dim: -1}), time_dim=time_dim, **groupby_kwargs)
     results = []
     if not isinstance(q, (list, tuple)):
         q = [q]
@@ -800,17 +820,40 @@ def _anomaly_dataarray(
 
     # If frequency not defined, it is deduced from the climatology.
     # This is somewhat hardcoded, but it is best practice, so for now it can stay here
+    for clim_freq in _tools.VALID_CLIMATOLOGY_FREQUENCIES:
+        if clim_freq in climatology_da.dims:
+            break
+    else:
+        clim_freq = "year"
+
     groupby_kwargs = groupby_kwargs or {}
-    if groupby_kwargs.get("frequency") is None:
-        for freq in _tools.VALID_CLIMATOLOGY_FREQUENCIES:
-            if freq in climatology_da.dims:
-                groupby_kwargs["frequency"] = freq
-                break
-        else:
-            groupby_kwargs["frequency"] = "year"
+    if groupby_kwargs.get("frequency") == "climatology":
+        groupby_kwargs["frequency"] = clim_freq
 
     # Annual anomalies are simpler and do not need to be subtracted from before resampling
-    if groupby_kwargs["frequency"] == "year":
+    frequency = groupby_kwargs.get("frequency")
+    clim_groupby_kwargs = {k: v for k, v in groupby_kwargs.items() if k != "frequency"}
+    if frequency is None:
+        if clim_freq == "year":
+            # If frequency is None, and clim frequency is year, then we can just take the difference
+            anomaly_array = dataarray - climatology_da
+            if relative:
+                anomaly_array = (anomaly_array / climatology_da) * 100.0
+        else:
+            # If clim_freq is not year, then we need to groupby the dataarray before taking
+            # the difference
+            anomaly_array = (
+                groupby_time(dataarray, time_dim=time_dim, frequency=clim_freq, **clim_groupby_kwargs) - climatology_da
+            )
+            if relative:
+                anomaly_array = (
+                    groupby_time(anomaly_array, time_dim=time_dim, frequency=clim_freq, **clim_groupby_kwargs)
+                    / climatology_da
+                    * 100.0
+                )
+            anomaly_array = anomaly_array.broadcast_like(dataarray)
+
+    elif groupby_kwargs["frequency"] == "year":
         anomaly_array = (
             _temporal_reduce(dataarray, time_dim=time_dim, **groupby_kwargs, **reduce_kwargs) - climatology_da
         )
@@ -895,6 +938,7 @@ def auto_anomaly(
     *_args,
     climatology_range: tuple | None = None,
     climatology_how: str = "mean",
+    climatology_frequency: str | None = None,
     relative: bool = False,
     **_kwargs,
 ):
@@ -913,8 +957,14 @@ def auto_anomaly(
         is to use the entire time-series.
     climatology_how : string
         Method used to calculate climatology, default is "mean". Accepted values are "median", "min", "max"
+    climatology_frequency : str (optional)
+        Valid options are None, `dayofyear`, `weekofyear` and `month`. The default is the same frequency as
+        used for the anomaly. If neither are provided, the climatology is calculated over all time-steps
+        and the anomaly is returned on the same frequency as the input data.
     frequency : str (optional)
-        Valid options are `day`, `week` and `month`.
+        Valid options are `day`, `week`, `month` and `year`. The default is to return the anomaly on the
+        same frequency as the input data. If the frequency of the anomaly is specified, the
+        climatology_frequency will default to this frequency.
     bin_widths : int or list (optional)
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
@@ -932,7 +982,15 @@ def auto_anomaly(
     xr.DataArray
 
     """
-    clim_kwargs = {k: v for k, v in _kwargs.items() if k not in ["how"]}
-    climatology = reduce(dataarray, *_args, how=climatology_how, climatology_range=climatology_range, **clim_kwargs)
+    clim_kwargs = {k: v for k, v in _kwargs.items() if k not in ["how", "frequency"]}
+    climatology_frequency = climatology_frequency or _kwargs.get("frequency")
+    climatology = reduce(
+        dataarray,
+        *_args,
+        how=climatology_how,
+        climatology_range=climatology_range,
+        frequency=climatology_frequency,
+        **clim_kwargs,
+    )
 
     return anomaly(dataarray, climatology, *_args, relative=relative, **_kwargs)
