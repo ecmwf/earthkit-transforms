@@ -5,6 +5,7 @@ dependencies:
 # Dependencies for the earthkit-transforms modules
 - xarray
 - numpy
+- geopandas
 - rasterio
 - pip
 - pip:

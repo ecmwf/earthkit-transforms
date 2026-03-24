@@ -11,7 +11,7 @@ dependencies:
 - myst-parser
 - sphinx-rtd-theme
 - sphinx
-- sphinx-autoapi
+- sphinx-design
 - nbsphinx
 - sphinx-design
 - ipykernel
