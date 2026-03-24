@@ -91,6 +91,3 @@ statistics analysis accross time dimensions/coordinates.
    release-notes/index
    licence
    genindex
-
-
-

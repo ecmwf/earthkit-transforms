@@ -5,7 +5,7 @@ This section contains how-to guides for working with temporal data from ERA5 usi
 Each guide is an interactive Jupyter notebook that demonstrates a specific workflow for working with
 ERA5 data and  performing temporal transformations. The examples cover various aspects of temporal
 data processing, including calculating daily and monthly means, and calculating daily maximum, minimum,
-and standard deviation. 
+and standard deviation.
 
 .. toctree::
    :maxdepth: 1
