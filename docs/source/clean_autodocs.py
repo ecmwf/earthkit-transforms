@@ -164,15 +164,19 @@ def replace_automodule_with_autosummary(content: str, module_name: str) -> str:
     return content
 
 
-def clean_toctree(content: str, hidden_modules: list[str]) -> str:
+def clean_toctree(content: str, hidden_modules: list[str], max_depth: int | None = None) -> str:
     """Clean up toctree entries in RST content.
 
     - Removes entries for hidden/private modules
     - Updates entries to use short display names: 'temporal <earthkit.transforms.temporal>'
+    - Optionally overrides :maxdepth: to control how deep the TOC is rendered on the page
 
     Args:
         content: RST file content
         hidden_modules: List of module names to hide
+        max_depth: If set, replaces :maxdepth: in every toctree with this number.
+            This only affects the TOC rendering depth on the page; all linked pages
+            are still fully built and reachable.
 
     Returns:
         Updated RST content
@@ -207,7 +211,10 @@ def clean_toctree(content: str, hidden_modules: list[str]) -> str:
 
             # Check if this is a toctree option (starts with :)
             if stripped.startswith(":"):
-                result_lines.append(line)
+                if max_depth is not None and stripped.startswith(":maxdepth:"):
+                    result_lines.append(f"{current_indent}:maxdepth: {max_depth}")
+                else:
+                    result_lines.append(line)
                 continue
 
             # This is a toctree entry - extract the module name
@@ -262,7 +269,10 @@ def clean_autodocs():
 
         # Clean up toctree entries and replace automodule with autosummary
         content = rst_file.read_text()
-        new_content = clean_toctree(content, hidden_modules)
+        # Limit the toctree depth on the top-level package page to 1 so it only
+        # lists subpackage names. All child pages are still fully built.
+        toctree_depth = 1 if module_name == MODULE_PREFIX else None
+        new_content = clean_toctree(content, hidden_modules, max_depth=toctree_depth)
         new_content = replace_automodule_with_autosummary(new_content, module_name)
 
         if new_content != content:
