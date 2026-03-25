@@ -53,7 +53,8 @@ docs = [
   "earthkit-plots @ git+https://github.com/ecmwf/earthkit-plots@release/1.0.0rc0",
   "earthkit-utils @ git+https://github.com/ecmwf/earthkit-utils@develop",
   "earthkit-data",
-  "eccodeslib<=2.46.0.13"
+  "eccodeslib<=2.46.0.13",
+  "PyYAML"
 ]
 rasterio = [
   "rasterio"  # Requires GDAL
