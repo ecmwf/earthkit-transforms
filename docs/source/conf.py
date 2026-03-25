@@ -52,7 +52,7 @@ extensions = [
     # Links to the documentation of other projects via cross-references (see list below)
     "sphinx.ext.intersphinx",
     # Generates summary tables for modules/classes/functions
-    # "sphinx.ext.autosummary",
+    "sphinx.ext.autosummary",
     # Allows citing BibTeX bibliographic entries in reStructuredText
     # "sphinxcontrib.bibtex",
     # Tests snippets in documentation by running embedded Python examples
@@ -85,6 +85,9 @@ autodoc_default_options = {
     "show-inheritance": True,
 }
 
+autosummary_generate = True
+autosummary_generate_overwrite = True
+
 # GitHub links configuration
 extlinks = {
     "pr": ("https://github.com/ecmwf/earthkit-transforms/pull/%s", "PR #%s"),
@@ -111,6 +114,7 @@ templates_path = ["_templates"]
 # These modules will not appear in the API documentation sidebar
 autodocs_hidden_modules = [
     "aggregate",
+    "version"
 ]
 
 # List of patterns, relative to source directory, that match files and
