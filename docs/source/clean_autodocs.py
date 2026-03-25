@@ -96,9 +96,12 @@ def get_module_api(module_name: str) -> list[str]:
         all_names = list(getattr(module, "__all__", []))
         # Exclude submodule/subpackage entries — those are already represented
         # in the toctree and must not get their own autosummary pages.
+        # Exclude dunder names (e.g. __version__) — these are internal and
+        # should never appear as individual API pages.
         return [
             name for name in all_names
             if not isinstance(getattr(module, name, None), types.ModuleType)
+            and not (name.startswith("__") and name.endswith("__"))
         ]
     except ImportError as exc:
         print(f"Warning: could not import {module_name}: {exc}")

@@ -3,8 +3,7 @@ version.py
 
 # Sphinx automatic generation of API
 docs/_api/
-docs/autodocs/
-docs/source/autodocs/generated/
+docs/source/autodocs/
 
 # Combined environments
 ci/combined-environment-*.yml

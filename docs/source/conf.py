@@ -87,6 +87,7 @@ autodoc_default_options = {
 
 autosummary_generate = True
 autosummary_generate_overwrite = True
+autosummary_imported_members = False
 
 # GitHub links configuration
 extlinks = {
