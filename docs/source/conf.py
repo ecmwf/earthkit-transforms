@@ -7,8 +7,11 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 import datetime
+import json
 import os
 import sys
+
+import yaml
 
 on_rtd = os.environ.get("READTHEDOCS") == "True"
 
@@ -49,7 +52,7 @@ extensions = [
     # Links to the documentation of other projects via cross-references (see list below)
     "sphinx.ext.intersphinx",
     # Generates summary tables for modules/classes/functions
-    # "sphinx.ext.autosummary",
+    "sphinx.ext.autosummary",
     # Allows citing BibTeX bibliographic entries in reStructuredText
     # "sphinxcontrib.bibtex",
     # Tests snippets in documentation by running embedded Python examples
@@ -82,6 +85,10 @@ autodoc_default_options = {
     "show-inheritance": True,
 }
 
+autosummary_generate = True
+autosummary_generate_overwrite = True
+autosummary_imported_members = False
+
 # GitHub links configuration
 extlinks = {
     "pr": ("https://github.com/ecmwf/earthkit-transforms/pull/%s", "PR #%s"),
@@ -108,15 +115,13 @@ templates_path = ["_templates"]
 # These modules will not appear in the API documentation sidebar
 autodocs_hidden_modules = [
     "aggregate",
+    "version"
 ]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
-
-# TODO: remove for version 1.0
-nbsphinx_allow_errors = True
+exclude_patterns: list[str] = []
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
@@ -129,6 +134,11 @@ html_css_files = [
     "custom.css",
 ]
 
+html_js_files = [
+    "earthkit-packages.js",  # generated from earthkit-packages.yml at build time
+    "custom.js",
+]
+
 html_favicon = "https://raw.githubusercontent.com/ecmwf/logos/refs/heads/main/logos/earthkit/earthkit-logo-only.svg"
 
 d_thing = (
@@ -139,6 +149,7 @@ d_thing = (
     "1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25"
     ".54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"
 )
+
 html_theme_options = {
     "light_css_variables": {
         "color-sidebar-background": "#131320",
@@ -180,3 +191,20 @@ html_theme_options = {
         },
     ],
 }
+
+
+def _write_earthkit_packages_js(app):
+    """Read earthkit-packages.yml and write a JS data file into the output _static dir."""
+    config_path = os.path.join(os.path.dirname(__file__), "earthkit-packages.yml")
+    with open(config_path, encoding="utf-8") as fh:
+        config = yaml.safe_load(fh)
+    packages = config.get("packages", [])
+    static_dir = os.path.join(app.outdir, "_static")
+    os.makedirs(static_dir, exist_ok=True)
+    js_path = os.path.join(static_dir, "earthkit-packages.js")
+    with open(js_path, "w", encoding="utf-8") as fh:
+        fh.write(f"window.earthkitPackages = {json.dumps(packages)};\n")
+
+
+def setup(app):
+    app.connect("builder-inited", _write_earthkit_packages_js)

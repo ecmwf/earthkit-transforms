@@ -5,7 +5,7 @@ Version 0.5.0
 ===============
 
 **Major change (#61)**: The module API has been updated such that the intermediate module aggregate has been deprecated.
-earthkit.transforms now contains submodules which are relevant to the dimensions/coordinates of computation,
+earthkit.transforms now contains subpackages which are relevant to the dimensions/coordinates of computation,
 e.g. earthkit.transforms.temporal and earthkit.transforms.spatial. All methods associated with these
 dimensions/coordinates will be found within, at present this is only the existing aggregation methods,
 but will now contain other things such as trend analysis etc. Also note that the old API (earthkit.transforms.aggregate.XXX) will continue to work, but will produce
@@ -24,5 +24,5 @@ Other updates include:
 Version 0.5.1 - 0.5.3
 =====================
 
-- tools submodule revert by @EddyCMWF in #70
+- tools subpackage revert by @EddyCMWF in #70
 - Hotfix backwards compatibility, ensure that earthkit.transforms.aggregate is loaded with import of earthkit.transforms. Deprecation warnings applied more targetedly by @EddyCMWF in #71

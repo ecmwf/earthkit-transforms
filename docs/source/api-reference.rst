@@ -1,17 +1,17 @@
 API Reference Guide
 ===================
 
-Traverse through the API reference guide to find out more about the available functions and classes in
-`earthkit-transforms`.
+Traverse through the API reference guide to find out more about the available functions
+and classes in `earthkit-transforms`.
 The API reference follows the same structure as the package and its modules.
 
-Main Module
+Main module
 -----------
 
 - :doc:`autodocs/earthkit.transforms`
 
-Submodules
-----------
+Subpackages
+-----------
 
 - :doc:`autodocs/earthkit.transforms.temporal`
 - :doc:`autodocs/earthkit.transforms.spatial`
