@@ -20,6 +20,7 @@ dependencies:
 # Dependencies for type checking
 - mypy
 - pandas-stubs
+- types-PyYAML
 # Dependencies for units tests
 - pytest
 - pytest-cov
