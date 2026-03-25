@@ -18,8 +18,8 @@ dependencies = [
   "array-api-compat",
   "xarray>=2022.3.0",
   "numpy>=1.18",
-  "earthkit-data>=0.11.2",
-  "earthkit-utils",
+  "earthkit-data>=0.11.2,<1.0",
+  "earthkit-utils<1.0",
   "geopandas"
 ]
 description = "Aggregation tools for meteorological and climate data."
@@ -31,7 +31,7 @@ readme = "README.md"
 [project.optional-dependencies]
 all = [
   # Additional, heavy, dependencies required by the complete package
-  "earthkit-data[all]>=0.11.2",
+  "earthkit-data[all]>=0.11.2,<1.0",
   "rasterio"  # Requires GDAL
 ]
 docs = [
@@ -47,7 +47,7 @@ docs = [
   "myst-parser",
   "statsmodels",
   "matplotlib",
-  "earthkit-plots",
+  "earthkit-plots<1.0",
   "rasterio"
 ]
 rasterio = [

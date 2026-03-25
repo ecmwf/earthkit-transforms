@@ -16,5 +16,5 @@ dependencies:
 - numpy
 - xarray
 - geopandas
-- earthkit-data[all]
-- earthkit-utils
+- earthkit-data[all]>=0.11.2,<1.0
+- earthkit-utils<1.0
