@@ -17,8 +17,8 @@ def masks(
     **_kwargs,
 ):
     logger.warning(
-        "earthkit.transforms.aggregate.spatial.masks is deprecated, "
-        "please use earthkit.transforms.aggregate.spatial.mask instead."
+        "earthkit.transforms.spatial.masks is deprecated, "
+        "please use earthkit.transforms.spatial.mask instead."
     )
     return mask(*_args, **_kwargs)
 
