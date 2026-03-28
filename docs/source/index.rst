@@ -46,9 +46,9 @@ statistics analysis accross time dimensions/coordinates.
 
       Practical recipes for common tasks.
 
-   .. grid-item-card:: Concepts and Explanations
+   .. grid-item-card:: Concepts
       :img-top: _static/bulb.svg
-      :link: explanations/index
+      :link: concepts/index
       :link-type: doc
       :class-card: sd-shadow-sm
 
@@ -71,7 +71,7 @@ statistics analysis accross time dimensions/coordinates.
    getting-started
    tutorials/index
    how-tos/index
-   explanations/index
+   concepts/index
    api-reference
 
 
