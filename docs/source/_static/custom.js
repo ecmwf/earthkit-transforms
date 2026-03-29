@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", function () {
   select.addEventListener("change", function () {
     var url = select.value;
     if (url) {
-      window.open(url, "_blank", "noopener,noreferrer");
+      window.location.href = url;
       select.value = "";
     }
   });

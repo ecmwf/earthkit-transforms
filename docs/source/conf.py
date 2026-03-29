@@ -30,9 +30,14 @@ if rtd_version_type in ("branch", "tag"):
 else:
     source_branch = "main"
 
-sys.path.insert(0, os.path.abspath("../../src"))
+src_path = os.path.normpath(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "src")
+)
+sys.path.insert(0, src_path)
 
 project = "earthkit-transforms"
+module_prefix = project.replace("-", ".")
+autodocs_dir = "autodocs"
 
 copyright = f"{datetime.datetime.now().year}, European Centre for Medium-Range Weather Forecasts (ECMWF)"
 author = "European Centre for Medium-Range Weather Forecasts (ECMWF)"
@@ -118,6 +123,16 @@ autodocs_hidden_modules = [
     "version"
 ]
 
+# clean_autodocs.py feature flags
+# Set to False/None to disable or soften the corresponding processing step.
+autodocs_delete_hidden = True        # delete RST files for private/hidden modules
+autodocs_replace_automodule = True   # replace automodule directives with autosummary tables
+autodocs_short_display_names = True  # shorten toctree labels to the last module component
+autodocs_top_level_maxdepth = 1      # :maxdepth: on top-level page (None = keep sphinx-apidoc value)
+autodocs_rename_titles = False       # strip " package"/" module" from RST page headings
+autodocs_top_level_title = "API Reference"  # top-level page heading (used when rename_titles=True)
+autodocs_titlesonly = False          # inject :titlesonly: into toctree directives
+
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
@@ -173,7 +188,7 @@ html_theme_options = {
         "color-sidebar-item-background--hover": "#001F3F",
         "color-sidebar-item-expander-background--hover": "#001F3F",
     },
-    "light_logo": "earthkit-transforms-dark.svg",
+    "light_logo": "earthkit-transforms-light.svg",
     "dark_logo": "earthkit-transforms-dark.svg",
     "source_repository": "https://github.com/ecmwf/earthkit-transforms/",
     "source_branch": source_branch,
