@@ -30,9 +30,7 @@ if rtd_version_type in ("branch", "tag"):
 else:
     source_branch = "main"
 
-src_path = os.path.normpath(
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "src")
-)
+src_path = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "src"))
 sys.path.insert(0, src_path)
 
 project = "earthkit-transforms"
@@ -90,6 +88,11 @@ autodoc_default_options = {
     "show-inheritance": True,
 }
 
+# Napoleon settings for NumPy-style docstrings.
+# preprocess_types: convert type strings in Parameters/Returns sections to RST cross-reference roles,
+# enabling intersphinx to link them to upstream documentation automatically.
+napoleon_preprocess_types = True
+
 autosummary_generate = True
 autosummary_generate_overwrite = True
 autosummary_imported_members = False
@@ -118,20 +121,17 @@ templates_path = ["_templates"]
 
 # Modules to hide from autodocs (relative to earthkit.transforms)
 # These modules will not appear in the API documentation sidebar
-autodocs_hidden_modules = [
-    "aggregate",
-    "version"
-]
+autodocs_hidden_modules = ["aggregate", "version"]
 
 # clean_autodocs.py feature flags
 # Set to False/None to disable or soften the corresponding processing step.
-autodocs_delete_hidden = True        # delete RST files for private/hidden modules
-autodocs_replace_automodule = True   # replace automodule directives with autosummary tables
+autodocs_delete_hidden = True  # delete RST files for private/hidden modules
+autodocs_replace_automodule = True  # replace automodule directives with autosummary tables
 autodocs_short_display_names = True  # shorten toctree labels to the last module component
-autodocs_top_level_maxdepth = 1      # :maxdepth: on top-level page (None = keep sphinx-apidoc value)
-autodocs_rename_titles = False       # strip " package"/" module" from RST page headings
+autodocs_top_level_maxdepth = 1  # :maxdepth: on top-level page (None = keep sphinx-apidoc value)
+autodocs_rename_titles = False  # strip " package"/" module" from RST page headings
 autodocs_top_level_title = "API Reference"  # top-level page heading (used when rename_titles=True)
-autodocs_titlesonly = False          # inject :titlesonly: into toctree directives
+autodocs_titlesonly = False  # inject :titlesonly: into toctree directives
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.

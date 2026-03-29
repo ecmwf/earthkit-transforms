@@ -26,7 +26,7 @@ def reduce(
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         The DataArray over which to calculate the climatological mean. Must
         contain a `time` dimension.
     how: str or callable
@@ -59,7 +59,7 @@ def reduce(
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     # Validate and normalize climatology_range if provided
@@ -95,7 +95,7 @@ def mean(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         The DataArray over which to calculate the climatological mean. Must
         contain a `time` dimension.
     frequency : str (optional)
@@ -112,7 +112,7 @@ def mean(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     _kwargs["how"] = "mean"
@@ -124,7 +124,7 @@ def median(*_args, **_kwargs) -> xr.DataArray:
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         The DataArray over which to calculate the climatological median. Must
         contain a `time` dimension.
     frequency : str (optional)
@@ -141,7 +141,7 @@ def median(*_args, **_kwargs) -> xr.DataArray:
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     result = quantiles(*_args, q=[0.5], **_kwargs)
@@ -153,8 +153,8 @@ def min(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Parameters
     ----------
-    dataarray : xr.DataArray
-        The DataArray over which to calculate the climatological mean. Must
+    dataarray : xarray.DataArray
+        The DataArray over which to calculate the climatological minimum. Must
         contain a `time` dimension.
     frequency : str (optional)
         Valid options are `day`, `week`, `month` and `year`. The default is `year`.
@@ -170,7 +170,7 @@ def min(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     _kwargs["how"] = "min"
@@ -182,7 +182,7 @@ def max(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         The DataArray over which to calculate the climatological maximum. Must
         contain a `time` dimension.
     frequency : str (optional)
@@ -199,7 +199,7 @@ def max(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     _kwargs["how"] = "max"
@@ -211,7 +211,7 @@ def std(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         The DataArray over which to calculate the climatological standard deviation.
         Must contain a `time` dimension.
     frequency : str (optional)
@@ -226,10 +226,9 @@ def std(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.reduce` (except how)
 
-
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     _kwargs["how"] = "std"
@@ -241,8 +240,8 @@ def daily_reduce(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Parameters
     ----------
-    dataarray : xr.DataArray
-        The DataArray over which to calculate the climatological mean. Must
+    dataarray : xarray.DataArray
+        The DataArray over which to calculate the daily climatology. Must
         contain a `time` dimension.
     how: str or callable
         Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
@@ -264,7 +263,7 @@ def daily_reduce(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     _kwargs["frequency"] = "dayofyear"
@@ -276,7 +275,7 @@ def daily_mean(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         The DataArray over which to calculate the climatological mean. Must
         contain a `time` dimension.
     bin_widths : int or list (optional)
@@ -291,7 +290,7 @@ def daily_mean(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     _kwargs["how"] = "mean"
@@ -303,7 +302,7 @@ def daily_median(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         The DataArray over which to calculate the climatological median. Must
         contain a `time` dimension.
     bin_widths : int or list (optional)
@@ -318,7 +317,7 @@ def daily_median(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     _kwargs["how"] = "median"
@@ -326,12 +325,12 @@ def daily_median(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
 
 def daily_min(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
-    """Calculate the daily climatological min.
+    """Calculate the daily climatological minimum.
 
     Parameters
     ----------
-    dataarray : xr.DataArray
-        The DataArray over which to calculate the climatological min. Must
+    dataarray : xarray.DataArray
+        The DataArray over which to calculate the daily climatological minimum. Must
         contain a `time` dimension.
     bin_widths : int or list (optional)
         If `bin_widths` is an `int`, it defines the width of each group bin on
@@ -345,7 +344,7 @@ def daily_min(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     _kwargs["how"] = "min"
@@ -353,12 +352,12 @@ def daily_min(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
 
 def daily_max(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
-    """Calculate the daily climatological max.
+    """Calculate the daily climatological maximum.
 
     Parameters
     ----------
-    dataarray : xr.DataArray
-        The DataArray over which to calculate the climatological max. Must
+    dataarray : xarray.DataArray
+        The DataArray over which to calculate the daily climatological maximum. Must
         contain a `time` dimension.
     bin_widths : int or list (optional)
         If `bin_widths` is an `int`, it defines the width of each group bin on
@@ -372,7 +371,7 @@ def daily_max(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     _kwargs["how"] = "max"
@@ -384,7 +383,7 @@ def daily_std(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         The DataArray over which to calculate the climatological standard deviation.
         Must contain a `time` dimension.
     bin_widths : int or list (optional)
@@ -400,7 +399,7 @@ def daily_std(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     _kwargs["how"] = "std"
@@ -412,8 +411,8 @@ def monthly_reduce(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Parameters
     ----------
-    dataarray : xr.DataArray
-        The DataArray over which to calculate the climatological mean. Must
+    dataarray : xarray.DataArray
+        The DataArray over which to calculate the monthly climatology. Must
         contain a `time` dimension.
     how: str or callable
         Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
@@ -435,7 +434,7 @@ def monthly_reduce(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     _kwargs["frequency"] = "month"
@@ -447,7 +446,7 @@ def monthly_mean(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         The DataArray over which to calculate the climatological mean. Must
         contain a `time` dimension.
     bin_widths : int or list (optional)
@@ -462,7 +461,7 @@ def monthly_mean(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     _kwargs["how"] = "mean"
@@ -474,7 +473,7 @@ def monthly_median(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         The DataArray over which to calculate the climatological median. Must
         contain a `time` dimension.
     bin_widths : int or list (optional)
@@ -489,7 +488,7 @@ def monthly_median(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     _kwargs["how"] = "median"
@@ -497,12 +496,12 @@ def monthly_median(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
 
 def monthly_min(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
-    """Calculate the monthly climatological min.
+    """Calculate the monthly climatological minimum.
 
     Parameters
     ----------
-    dataarray : xr.DataArray
-        The DataArray over which to calculate the climatological min. Must
+    dataarray : xarray.DataArray
+        The DataArray over which to calculate the monthly climatological minimum. Must
         contain a `time` dimension.
     bin_widths : int or list (optional)
         If `bin_widths` is an `int`, it defines the width of each group bin on
@@ -516,7 +515,7 @@ def monthly_min(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     _kwargs["how"] = "min"
@@ -524,12 +523,12 @@ def monthly_min(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
 
 def monthly_max(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
-    """Calculate the monthly climatological max.
+    """Calculate the monthly climatological maximum.
 
     Parameters
     ----------
-    dataarray : xr.DataArray
-        The DataArray over which to calculate the climatological max. Must
+    dataarray : xarray.DataArray
+        The DataArray over which to calculate the monthly climatological maximum. Must
         contain a `time` dimension.
     bin_widths : int or list (optional)
         If `bin_widths` is an `int`, it defines the width of each group bin on
@@ -543,7 +542,7 @@ def monthly_max(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     _kwargs["how"] = "max"
@@ -555,7 +554,7 @@ def monthly_std(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         The DataArray over which to calculate the climatological standard deviation.
         Must contain a `time` dimension.
     bin_widths : int or list (optional)
@@ -568,10 +567,9 @@ def monthly_std(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.reduce` (except how)
 
-
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     _kwargs["how"] = "std"
@@ -594,7 +592,7 @@ def quantiles(
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         The DataArray over which to calculate the climatological quantiles. Must
         contain a `time` dimension.
     q : float | list
@@ -618,7 +616,7 @@ def quantiles(
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     # Validate and normalize climatology_range if provided
@@ -664,7 +662,7 @@ def percentiles(
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         The DataArray over which to calculate the climatological percentiles. Must
         contain a `time` dimension.
     p : float | list
@@ -683,7 +681,7 @@ def percentiles(
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     if not isinstance(p, (list, tuple)):
@@ -710,10 +708,10 @@ def anomaly(
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         The DataArray over which to calculate the anomaly from the reference
         climatology. Must contain a time dimension indicated by time_dim.
-    climatology :  (xr.DataArray, optional)
+    climatology :  (xarray.DataArray, optional)
         Reference climatology data against which the anomaly is to be calculated.
         If not provided then the climatological mean is calculated from dataarray.
     frequency : str (optional)
@@ -732,7 +730,7 @@ def anomaly(
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     if isinstance(dataarray, xr.Dataset):
@@ -762,10 +760,10 @@ def _anomaly_dataarray(
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         The DataArray over which to calculate the anomaly from the reference
         climatology. Must contain a time dimension indicated by time_dim.
-    climatology :  (xr.DataArray)
+    climatology :  (xarray.DataArray)
         Reference climatology data against which the anomaly is to be calculated.
         If not provided then the climatological mean is calculated from dataarray.
     frequency : str (optional)
@@ -790,7 +788,7 @@ def _anomaly_dataarray(
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     reduce_kwargs.setdefault("how", "mean")
@@ -899,10 +897,10 @@ def relative_anomaly(*_args, **_kwargs):
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         The DataArray over which to calculate the anomaly from the reference
         climatology. Must contain a `time` dimension.
-    climatology :  (xr.DataArray, optional)
+    climatology :  (xarray.DataArray, optional)
         Reference climatology data against which the anomaly is to be calculated.
         If not provided then the climatological mean is calculated from dataarray.
     climatology_range : (list or tuple, optional)
@@ -922,7 +920,7 @@ def relative_anomaly(*_args, **_kwargs):
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     anomaly_xarray = anomaly(*_args, relative=True, **_kwargs)
@@ -946,10 +944,10 @@ def auto_anomaly(
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         The DataArray over which to calculate the anomaly from the reference
         climatology. Must contain a `time` dimension.
-    climatology :  (xr.DataArray, optional)
+    climatology :  (xarray.DataArray, optional)
         Reference climatology data against which the anomaly is to be calculated.
         If not provided then the climatological mean is calculated from dataarray.
     climatology_range : (list or tuple, optional)
@@ -979,7 +977,7 @@ def auto_anomaly(
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     clim_kwargs = {k: v for k, v in _kwargs.items() if k not in ["how", "frequency"]}
