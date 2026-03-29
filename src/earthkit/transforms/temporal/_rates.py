@@ -34,12 +34,12 @@ def deaccumulate(
 
     Parameters
     ----------
-    dataarray : xr.DataArray | xr.Dataset
+    dataarray : xarray.DataArray | xarray.Dataset
         Data accumulated along time to be converted into rate (per time step).
     step : timedelta | str , optional
         Interval between consecutive time steps.
         If a string, it should be a valid pandas time frequency string (e.g., '15min', '3h', '1 day').
-        If not provided, the will be inferred from the data.
+        If not provided, it will be inferred from the data.
     rate_label: str = "", optional
         Suffix to append to the name and long_name of the output dataarray.
     xp : T.Any
@@ -66,7 +66,7 @@ def deaccumulate(
 
     Returns
     -------
-    xr.DataArray | xr.Dataset
+    xarray.DataArray | xarray.Dataset
         Data object with deaccumulation data.
 
     """
@@ -89,17 +89,17 @@ def accumulation_to_rate(
 
     The rate is computed by considering first-order discrete differences in data
     along the inferred, or specified, time dimension.
-    The difference are converted to a rate by dividing by the time step duration, unless
+    The differences are converted to a rate by dividing by the time step duration, unless
     specified otherwise.
 
     Parameters
     ----------
-    dataarray : xr.DataArray | xr.Dataset
+    dataarray : xarray.DataArray | xarray.Dataset
         Data accumulated along time to be converted into rate (per second).
     step : timedelta | str , optional
         Interval between consecutive time steps.
         If a string, it should be a valid pandas time frequency string (e.g., '15min', '3h', '1 day').
-        If not provided, the will be inferred from the data.
+        If not provided, it will be inferred from the data.
     rate_units : timedelta | str, optional
         Units for the output rate. If a string, it must be a valid pandas time frequency string
         (e.g., '15min', '3h', '1 day') or simple units like 'seconds', 'minutes', 'hours', 'days'.
@@ -107,7 +107,7 @@ def accumulation_to_rate(
         returned object will preserve the units and long_name attributes of the input dataarray.
         The default is 'seconds'.
     rate_label: str | None = None, optional
-        Suffix to append to the name of the output dataarray. If None, defaults to
+        Suffix to append to the name and long_name of the output dataarray. If None, defaults to
         'rate' or 'per_step' depending on the rate_units.
     xp : T.Any
         The array namespace to use for the reduction. If None, it will be inferred from the dataarray.
@@ -133,7 +133,7 @@ def accumulation_to_rate(
 
     Returns
     -------
-    xr.DataArray | xr.Dataset
+    xarray.DataArray | xarray.Dataset
         Data object with rate calculated based on the accumulation data.
 
     """
@@ -164,7 +164,6 @@ def _accumulation_to_rate_dataarray(
     along the time (or leadtime, if time is not a dimension)
     axis, divided by the number of seconds in the step.
 
-    # Check it does this
     If time[k] - time[k-1] != step, then the corresponding output values will be NaN.
 
     Example:
@@ -174,7 +173,7 @@ def _accumulation_to_rate_dataarray(
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         Data accumulated along time to be converted into rate (per second).
     accumulation_type : str, optional
         Type of accumulation used in the input data.
@@ -190,7 +189,7 @@ def _accumulation_to_rate_dataarray(
     step : timedelta | str , optional
         Interval between consecutive time steps.
         If a string, it should be a valid pandas time frequency string (e.g., '15min', '3h', '1 day').
-        If not provided, the will be inferred from the data.
+        If not provided, it will be inferred from the data.
     rate_units : timedelta | str, optional
         Units for the output rate. If a string, it must be a valid pandas time frequency string
         (e.g., '15min', '3h', '1 day') or simple units like 'seconds', 'minutes', 'hours', 'days'.
@@ -219,7 +218,7 @@ def _accumulation_to_rate_dataarray(
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
         Data object with rate calculated based on the accumulation data.
 
     """
