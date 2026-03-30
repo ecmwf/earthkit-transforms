@@ -26,7 +26,7 @@ def reduce(
 
     Parameters
     ----------
-    dataarray : xr.DataArray | xr.Dataset
+    dataarray : xarray.DataArray | xarray.Dataset
         The DataArray over which to calculate the climatological mean. Must
         contain a `time` dimension.
     how: str or callable
@@ -34,7 +34,7 @@ def reduce(
         If string, it must be an in-built xarray reduce method, an earthkit how method or any numpy method.
         In the case of duplicate names, method selection is first in the order: xarray, earthkit, numpy.
         Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
-        to return the result of reducing an np.ndarray over an integer valued axis.
+        to return the result of reducing an numpy.ndarray over an integer valued axis.
     dim : str (optional)
         Name of the ensemble dimension in the data object, default behaviour is to detect the
         ensemble dimension from the input object.
@@ -50,7 +50,7 @@ def mean(*args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
 
     Parameters
     ----------
-    dataarray : xr.DataArray | xr.Dataset
+    dataarray : xarray.DataArray | xarray.Dataset
         The DataArray over which to calculate the climatological mean. Must
         contain a `time` dimension.
     dim : str (optional)
@@ -69,7 +69,7 @@ def std(*args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
 
     Parameters
     ----------
-    dataarray : xr.DataArray | xr.Dataset
+    dataarray : xarray.DataArray | xarray.Dataset
         The DataArray over which to calculate the climatological mean. Must
         contain a `time` dimension.
     dim : str (optional)
@@ -88,7 +88,7 @@ def min(*args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
 
     Parameters
     ----------
-    dataarray : xr.DataArray | xr.Dataset
+    dataarray : xarray.DataArray | xarray.Dataset
         The DataArray over which to calculate the climatological mean. Must
         contain a `time` dimension.
     dim : str (optional)
@@ -107,7 +107,7 @@ def max(*args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
 
     Parameters
     ----------
-    dataarray : xr.DataArray | xr.Dataset
+    dataarray : xarray.DataArray | xarray.Dataset
         The DataArray over which to calculate the climatological mean. Must
         contain a `time` dimension.
     dim : str (optional)
@@ -126,7 +126,7 @@ def sum(*args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
 
     Parameters
     ----------
-    dataarray : xr.DataArray | xr.Dataset
+    dataarray : xarray.DataArray | xarray.Dataset
         The DataArray over which to calculate the climatological sum. Must
         contain a `time` dimension.
     dim : str (optional)

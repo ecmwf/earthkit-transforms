@@ -31,7 +31,7 @@ def standardise_time(
 
     Parameters
     ----------
-    dataarray : xr.Dataset or xr.DataArray
+    dataarray : xarray.Dataset or xarray.DataArray
         Data object with a time coordinate to be standardised.
     target_format : str, optional
         Datetime format to use when creating the standardised datetime object.
@@ -47,7 +47,7 @@ def standardise_time(
 
     Returns
     -------
-    xr.Dataset | xr.DataArray
+    xarray.Dataset | xarray.DataArray
         Data object with the time coordinate standardised to the specified format
 
     """
@@ -85,7 +85,7 @@ def reduce(
 
     Parameters
     ----------
-    dataarray : xr.DataArray or xr.Dataset
+    dataarray : xarray.DataArray or xarray.Dataset
         Data object to reduce
     time_dim : str
         Name of the time dimension, or coordinate, in the xarray object,
@@ -110,7 +110,7 @@ def reduce(
 
     Returns
     -------
-    xr.Dataset | xr.DataArray
+    xarray.Dataset | xarray.DataArray
         A dataarray reduced in the time dimension using the specified method
 
     """
@@ -136,7 +136,7 @@ def mean(
 
     Parameters
     ----------
-    dataarray : xr.DataArray or xr.Dataset
+    dataarray : xarray.DataArray or xarray.Dataset
         Data object to reduce
     time_dim : str
         Name of the time dimension, or coordinate, in the xarray object,
@@ -155,7 +155,7 @@ def mean(
 
     Returns
     -------
-    xr.Dataset | xr.DataArray
+    xarray.Dataset | xarray.DataArray
         A dataarray of the mean value in the time dimensions
 
     """
@@ -174,7 +174,7 @@ def median(
 
     Parameters
     ----------
-    dataarray : xr.DataArray or xr.Dataset
+    dataarray : xarray.DataArray or xarray.Dataset
         Data object to reduce
     time_dim : str
         Name of the time dimension, or coordinate, in the xarray object,
@@ -193,7 +193,7 @@ def median(
 
     Returns
     -------
-    xr.Dataset | xr.DataArray
+    xarray.Dataset | xarray.DataArray
         A dataarray of the median value in the time dimensions
 
     """
@@ -212,7 +212,7 @@ def min(
 
     Parameters
     ----------
-    dataarray : xr.DataArray or xr.Dataset
+    dataarray : xarray.DataArray or xarray.Dataset
         Data object to reduce
     time_dim : str
         Name of the time dimension, or coordinate, in the xarray object,
@@ -231,7 +231,7 @@ def min(
 
     Returns
     -------
-    xr.Dataset | xr.DataArray
+    xarray.Dataset | xarray.DataArray
         A dataarray of the minimum value in the time dimensions
 
     """
@@ -250,7 +250,7 @@ def max(
 
     Parameters
     ----------
-    dataarray : xr.DataArray or xr.Dataset
+    dataarray : xarray.DataArray or xarray.Dataset
         Data object to reduce
     time_dim : str
         Name of the time dimension, or coordinate, in the xarray object,
@@ -269,7 +269,7 @@ def max(
 
     Returns
     -------
-    xr.Dataset | xr.DataArray
+    xarray.Dataset | xarray.DataArray
         A dataarray of the maximum value in the time dimensions
 
     """
@@ -288,7 +288,7 @@ def std(
 
     Parameters
     ----------
-    dataarray : xr.DataArray or xr.Dataset
+    dataarray : xarray.DataArray or xarray.Dataset
         Data object to reduce
     time_dim : str
         Name of the time dimension, or coordinate, in the xarray object,
@@ -307,7 +307,7 @@ def std(
 
     Returns
     -------
-    xr.Dataset | xr.DataArray
+    xarray.Dataset | xarray.DataArray
         A dataarray of the standard deviation in the time dimensions
 
     """
@@ -326,7 +326,7 @@ def sum(
 
     Parameters
     ----------
-    dataarray : xr.DataArray or xr.Dataset
+    dataarray : xarray.DataArray or xarray.Dataset
         Data object to reduce
     time_dim : str
         Name of the time dimension, or coordinate, in the xarray object,
@@ -345,7 +345,7 @@ def sum(
 
     Returns
     -------
-    xr.Dataset | xr.DataArray
+    xarray.Dataset | xarray.DataArray
         A dataarray summed in the time dimensions
 
 
@@ -366,7 +366,7 @@ def daily_reduce(
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         DataArray containing a `time` dimension.
     how: str or callable
         Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
@@ -395,7 +395,7 @@ def daily_reduce(
 
     Returns
     -------
-    xr.DataArray | xr.Dataset
+    xarray.DataArray | xarray.Dataset
         A dataarray reduced to daily values using the specified method
 
     """
@@ -453,7 +453,7 @@ def daily_mean(*_args, **kwargs) -> xr.Dataset | xr.DataArray:
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         DataArray containing a `time` dimension.
     time_dim : str
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
@@ -471,7 +471,7 @@ def daily_mean(*_args, **kwargs) -> xr.Dataset | xr.DataArray:
 
     Returns
     -------
-    xr.DataArray | xr.Dataset
+    xarray.DataArray | xarray.Dataset
         A dataarray reduced to daily mean values
 
     """
@@ -483,7 +483,7 @@ def daily_median(*_args, **kwargs):
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         DataArray containing a `time` dimension.
     time_dim : str
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
@@ -501,7 +501,7 @@ def daily_median(*_args, **kwargs):
 
     Returns
     -------
-    xr.DataArray | xr.Dataset
+    xarray.DataArray | xarray.Dataset
         A dataarray reduced to daily median values
 
     """
@@ -513,7 +513,7 @@ def daily_max(*_args, **kwargs):
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         DataArray containing a `time` dimension.
     time_dim : str
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
@@ -531,7 +531,7 @@ def daily_max(*_args, **kwargs):
 
     Returns
     -------
-    xr.DataArray | xr.Dataset
+    xarray.DataArray | xarray.Dataset
         A dataarray reduced to daily max values
 
     """
@@ -543,7 +543,7 @@ def daily_min(*_args, **kwargs):
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         DataArray containing a `time` dimension.
     time_dim : str
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
@@ -561,7 +561,7 @@ def daily_min(*_args, **kwargs):
 
     Returns
     -------
-    xr.DataArray | xr.Dataset
+    xarray.DataArray | xarray.Dataset
         A dataarray reduced to daily min values
 
     """
@@ -573,7 +573,7 @@ def daily_std(*_args, **kwargs):
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         DataArray containing a `time` dimension.
     time_dim : str
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
@@ -591,7 +591,7 @@ def daily_std(*_args, **kwargs):
 
     Returns
     -------
-    xr.DataArray | xr.Dataset
+    xarray.DataArray | xarray.Dataset
         A dataarray reduced to daily standard deviation values
 
     """
@@ -603,7 +603,7 @@ def daily_sum(*_args, **kwargs):
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         DataArray containing a `time` dimension.
     time_dim : str
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
@@ -621,7 +621,7 @@ def daily_sum(*_args, **kwargs):
 
     Returns
     -------
-    xr.DataArray | xr.Dataset
+    xarray.DataArray | xarray.Dataset
         A dataarray reduced to daily sum values
 
     """
@@ -640,7 +640,7 @@ def monthly_reduce(
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         DataArray containing a `time` dimension.
     how: str or callable
         Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
@@ -669,7 +669,7 @@ def monthly_reduce(
 
     Returns
     -------
-    xr.DataArray | xr.Dataset
+    xarray.DataArray | xarray.Dataset
         A dataarray reduced to monthly values using the specified method
 
     """
@@ -734,7 +734,7 @@ def monthly_mean(
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         DataArray containing a `time` dimension.
     time_dim : str
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
@@ -752,7 +752,7 @@ def monthly_mean(
 
     Returns
     -------
-    xr.DataArray | xr.Dataset
+    xarray.DataArray | xarray.Dataset
         A dataarray reduced to monthly mean values
 
     """
@@ -767,7 +767,7 @@ def monthly_median(
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         DataArray containing a `time` dimension.
     time_dim : str
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
@@ -785,7 +785,7 @@ def monthly_median(
 
     Returns
     -------
-    xr.DataArray | xr.Dataset
+    xarray.DataArray | xarray.Dataset
         A dataarray reduced to monthly median values
 
     """
@@ -800,7 +800,7 @@ def monthly_min(
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         DataArray containing a `time` dimension.
     time_dim : str
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
@@ -818,7 +818,7 @@ def monthly_min(
 
     Returns
     -------
-    xr.DataArray | xr.Dataset
+    xarray.DataArray | xarray.Dataset
         A dataarray reduced to monthly minimum values
 
     """
@@ -833,7 +833,7 @@ def monthly_max(
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         DataArray containing a `time` dimension.
     time_dim : str
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
@@ -851,7 +851,7 @@ def monthly_max(
 
     Returns
     -------
-    xr.DataArray | xr.Dataset
+    xarray.DataArray | xarray.Dataset
         A dataarray reduced to monthly maximum values
 
     """
@@ -866,7 +866,7 @@ def monthly_std(
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         DataArray containing a `time` dimension.
     time_dim : str
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
@@ -884,7 +884,7 @@ def monthly_std(
 
     Returns
     -------
-    xr.DataArray | xr.Dataset
+    xarray.DataArray | xarray.Dataset
         A dataarray reduced to monthly standard deviation values
 
     """
@@ -899,7 +899,7 @@ def monthly_sum(
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         DataArray containing a `time` dimension.
     time_dim : str
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
@@ -917,7 +917,7 @@ def monthly_sum(
 
     Returns
     -------
-    xr.DataArray | xr.Dataset
+    xarray.DataArray | xarray.Dataset
         A dataarray reduced to monthly sum values
 
     """
@@ -936,7 +936,7 @@ def rolling_reduce(
 
     Parameters
     ----------
-    dataarray : xr.DataArray or xr.Dataset
+    dataarray : xarray.DataArray or xarray.Dataset
         Data over which the moving window is applied according to the reduction method.
     window_length :
         Length of window for the rolling groups along the time dimension.
@@ -963,7 +963,7 @@ def rolling_reduce(
 
     Returns
     -------
-    xr.DataArray | xr.Dataset
+    xarray.DataArray | xarray.Dataset
         A dataarray reduced values with a rolling window applied along the time dimension.
 
     """
