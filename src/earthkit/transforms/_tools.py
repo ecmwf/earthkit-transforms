@@ -202,7 +202,7 @@ def array_namespace_from_object(data_object: T.Any) -> types.ModuleType:
     ------
     TypeError
         If the input data_object contains an incompatible array interface,
-        e.g. a xr.Dataset with mixed array namespaces.
+        e.g. a xarray.Dataset with mixed array namespaces.
 
     """
     if isinstance(data_object, xr.DataArray):
@@ -285,7 +285,7 @@ def standard_weights(dataarray: xr.DataArray, weights: str, **kwargs):
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         The data object for which to compute weights.
     weights : str
         Name of the weighting method. Currently accepted values: ``'latitude'`` or ``'lat'``.
@@ -295,7 +295,7 @@ def standard_weights(dataarray: xr.DataArray, weights: str, **kwargs):
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
         Weights array compatible with the spatial coordinates of ``dataarray``.
 
     Raises
@@ -318,7 +318,7 @@ def latitude_weights(dataarray: xr.DataArray, lat_key: str | None = None):
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         The data object whose latitude coordinate is used to compute weights.
     lat_key : str, optional
         Name of the latitude coordinate. If not provided, the coordinate is
@@ -326,7 +326,7 @@ def latitude_weights(dataarray: xr.DataArray, lat_key: str | None = None):
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
         Array of cosine(latitude) weights with the same latitude coordinates
         as ``dataarray``.
 
@@ -555,7 +555,7 @@ def get_dim_key(
 
     Parameters
     ----------
-    dataarray : xr.Dataset or xr.DataArray
+    dataarray : xarray.Dataset or xarray.DataArray
         The data to search for the dimension in.
     axis : str
         The axis to search for. This should be a CF standard axis key like 'x', 'y', 'z' or 't',
@@ -603,7 +603,7 @@ def get_spatial_info(dataarray, lat_key=None, lon_key=None):
 
     Parameters
     ----------
-    dataarray : xr.DataArray or xr.Dataset
+    dataarray : xarray.DataArray or xarray.Dataset
         The data object to inspect.
     lat_key : str, optional
         Name of the latitude coordinate. If not provided, it is detected
@@ -677,7 +677,7 @@ def groupby_time(
 
     Parameters
     ----------
-    dataarray : xr.DataArray or xr.Dataset
+    dataarray : xarray.DataArray or xarray.Dataset
         The data object to group.
     frequency : str, optional
         The time frequency to group by (e.g. ``'month'``, ``'dayofyear'``,
@@ -732,7 +732,7 @@ def groupby_bins(
 
     Parameters
     ----------
-    dataarray : xr.DataArray or xr.Dataset
+    dataarray : xarray.DataArray or xarray.Dataset
         The data object to group.
     frequency : str
         The time component to bin (e.g. ``'month'``, ``'dayofyear'``).

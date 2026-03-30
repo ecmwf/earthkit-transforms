@@ -39,7 +39,7 @@ def _reduce_dataarray(
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         Data object to reduce
     how: str or callable
         Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
@@ -112,7 +112,7 @@ def reduce(
 
     Parameters
     ----------
-    dataarray : xr.DataArray or xr.Dataset
+    dataarray : xarray.DataArray or xarray.Dataset
         Data object to reduce
     how: str or callable
         Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
@@ -132,7 +132,7 @@ def reduce(
 
     Returns
     -------
-    xr.DataArray or xr.Dataset
+    xarray.DataArray or xarray.Dataset
         A data array with reduced dimensions removed.
 
     """
@@ -155,7 +155,7 @@ def rolling_reduce(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs) -> xr
 
     Parameters
     ----------
-    dataarray : xr.DataArray or xr.Dataset
+    dataarray : xarray.DataArray or xarray.Dataset
         Data over which the moving window is applied according to the reduction method.
     windows :
         windows for the rolling groups, for example `time=10` to perform a reduction
@@ -177,7 +177,7 @@ def rolling_reduce(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs) -> xr
 
     Returns
     -------
-    xr.DataArray or xr.Dataset (as provided)
+    xarray.DataArray or xarray.Dataset (as provided)
 
     """
     if isinstance(dataarray, (xr.Dataset)):
@@ -197,7 +197,7 @@ def _rolling_reduce_dataarray(
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         Data over which the moving window is applied according to the reduction method.
     windows :
         windows for the rolling groups, for example `time=10` to perform a reduction
@@ -221,7 +221,7 @@ def _rolling_reduce_dataarray(
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     xp = _tools.array_namespace_from_object(dataarray)
@@ -280,7 +280,7 @@ def resample(
 
     Parameters
     ----------
-    dataarray : xr.DataArray or xr.Dataset
+    dataarray : xarray.DataArray or xarray.Dataset
         Data object to be resampled.
     frequency : str, int, float
         The frequency at which to resample the chosen dimension. The format must be applicable
@@ -307,7 +307,7 @@ def resample(
 
     Returns
     -------
-    xr.Dataset | xr.DataArray
+    xarray.Dataset | xarray.DataArray
 
     """
     # Normalise mutable defaults
