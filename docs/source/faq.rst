@@ -24,5 +24,3 @@ Please see the :doc:`../how-tos/climatology/howto_climatology_mean_era5` example
 For a more detailed explanations and examples, please see the
 :doc:`../concepts/climatology` concept page and the
 :doc:`../tutorials/climatology/01-era5-climatology` tutorial notebook.
-
-

@@ -16,15 +16,8 @@ feature-flag block there for the full list and defaults.
 
 import importlib
 import re
-import sys
 import types
 from pathlib import Path
-
-# Ensure conf.py's directory is on sys.path so it can be imported when this
-# script is run directly from any working directory.
-_DOCS_SOURCE_DIR = str(Path(__file__).resolve().parent)
-if _DOCS_SOURCE_DIR not in sys.path:
-    sys.path.insert(0, _DOCS_SOURCE_DIR)
 
 # Import configuration from conf.py.
 # conf.py owns the sys.path setup for the project src directory.
@@ -117,7 +110,8 @@ def get_module_api(module_name: str) -> list[str]:
         # Exclude dunder names (e.g. __version__) — these are internal and
         # should never appear as individual API pages.
         return [
-            name for name in all_names
+            name
+            for name in all_names
             if not isinstance(getattr(module, name, None), types.ModuleType)
             and not (name.startswith("__") and name.endswith("__"))
         ]
@@ -270,7 +264,7 @@ def clean_toctree(
     lines = content.split("\n")
     result_lines: list[str] = []
     in_toctree = False
-    in_options_block = False   # True while we are still in the options section
+    in_options_block = False  # True while we are still in the options section
     toctree_has_titlesonly = False
 
     for line in lines:
