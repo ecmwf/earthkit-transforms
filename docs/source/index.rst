@@ -73,6 +73,7 @@ statistics analysis accross time dimensions/coordinates.
    how-tos/index
    concepts/index
    api-reference
+   faqs
 
 
 .. toctree::
