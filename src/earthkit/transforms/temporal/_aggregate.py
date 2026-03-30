@@ -184,7 +184,7 @@ def median(
     weights : str
         Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_label : str
-        Label to append to the name of the variable in the reduced object, default is _mean
+        Label to append to the name of the variable in the reduced object, default is _median
     how_dropna : str
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
@@ -205,7 +205,7 @@ def min(
     *_args,
     **kwargs,
 ):
-    """Calculate the mn of an xarray.dataarray or xarray.dataset along the time/date dimension.
+    """Calculate the minimum of an xarray.dataarray or xarray.dataset along the time/date dimension.
 
     With the option to apply weights either directly or using a specified
     `weights` method.
@@ -222,7 +222,7 @@ def min(
     weights : str
         Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_label : str
-        Label to append to the name of the variable in the reduced object, default is _mean
+        Label to append to the name of the variable in the reduced object, default is _min
     how_dropna : str
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
@@ -260,7 +260,7 @@ def max(
     weights : str
         Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_label : str
-        Label to append to the name of the variable in the reduced object, default is _mean
+        Label to append to the name of the variable in the reduced object, default is _max
     how_dropna : str
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
@@ -298,7 +298,7 @@ def std(
     weights : str
         Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_label : str
-        Label to append to the name of the variable in the reduced object, default is _mean
+        Label to append to the name of the variable in the reduced object, default is _std
     how_dropna : str
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
@@ -319,7 +319,7 @@ def sum(
     *_args,
     **kwargs,
 ) -> xr.Dataset | xr.DataArray:
-    """Calculate the standard deviation of an xarray.dataarray/dataset along the time/date dimension.
+    """Calculate the sum of an xarray.dataarray/dataset along the time/date dimension.
 
     With the option to apply weights either directly or using a specified
     `weights` method.
@@ -336,7 +336,7 @@ def sum(
     weights : str
         Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_label : str
-        Label to append to the name of the variable in the reduced object, default is _mean
+        Label to append to the name of the variable in the reduced object, default is _sum
     how_dropna : str
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
@@ -347,7 +347,6 @@ def sum(
     -------
     xarray.Dataset | xarray.DataArray
         A dataarray summed in the time dimensions
-
 
     """
     kwargs["how"] = "sum"
@@ -636,7 +635,7 @@ def monthly_reduce(
     time_dim: str | None = None,
     **kwargs,
 ):
-    """Group data by day and reduce using the given how method.
+    """Group data by month and reduce using the given how method.
 
     Parameters
     ----------
@@ -652,7 +651,7 @@ def monthly_reduce(
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-    time_shift : (optional) None, timedelta or dict
+    time_shift : None, timedelta or dict, optional
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
         It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
@@ -675,7 +674,7 @@ def monthly_reduce(
     """
     # If time_dim in dimensions then use resample, this should be faster.
     #  At present, performance differences are small, but resampling can be improved by handling as
-    #  a pandas dataframes. reample function should be updated to do this.
+    #  a pandas dataframes. resample function should be updated to do this.
     #  NOTE: force_groupby is an undocumented kwarg for debug purposes
     if time_dim in dataarray.dims and not kwargs.pop("force_groupby", False):
         kwargs.setdefault("frequency", "MS")

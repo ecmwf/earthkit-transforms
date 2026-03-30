@@ -36,11 +36,11 @@ def deaccumulate(
     ----------
     dataarray : xarray.DataArray | xarray.Dataset
         Data accumulated along time to be converted into rate (per time step).
-    step : timedelta | str , optional
+    step : timedelta | str, optional
         Interval between consecutive time steps.
         If a string, it should be a valid pandas time frequency string (e.g., '15min', '3h', '1 day').
-        If not provided, the will be inferred from the data.
-    rate_label: str = "", optional
+        If not provided, it will be inferred from the data.
+    rate_label : str, optional
         Suffix to append to the name and long_name of the output dataarray.
     xp : T.Any
         The array namespace to use for the reduction. If None, it will be inferred from the dataarray.
@@ -67,7 +67,7 @@ def deaccumulate(
     Returns
     -------
     xarray.DataArray | xarray.Dataset
-        Data object with deaccumulation data.
+        Data object with deaccumulated data.
 
     """
     if "rate_units" in _kwargs:
@@ -96,17 +96,17 @@ def accumulation_to_rate(
     ----------
     dataarray : xarray.DataArray | xarray.Dataset
         Data accumulated along time to be converted into rate (per second).
-    step : timedelta | str , optional
+    step : timedelta | str, optional
         Interval between consecutive time steps.
         If a string, it should be a valid pandas time frequency string (e.g., '15min', '3h', '1 day').
-        If not provided, the will be inferred from the data.
+        If not provided, it will be inferred from the data.
     rate_units : timedelta | str, optional
         Units for the output rate. If a string, it must be a valid pandas time frequency string
         (e.g., '15min', '3h', '1 day') or simple units like 'seconds', 'minutes', 'hours', 'days'.
         If set to 'step_length', the rate will be accumulation per time step ("deaccumulated") and the
         returned object will preserve the units and long_name attributes of the input dataarray.
         The default is 'seconds'.
-    rate_label: str | None = None, optional
+    rate_label : str or None, optional
         Suffix to append to the name of the output dataarray. If None, defaults to
         'rate' or 'per_step' depending on the rate_units.
     xp : T.Any
@@ -187,17 +187,17 @@ def _accumulation_to_rate_dataarray(
         - "start_of_day": accumulation restarts at the beginning of each day (00:00 UTC).
 
         Default is "start_of_step".
-    step : timedelta | str , optional
+    step : timedelta | str, optional
         Interval between consecutive time steps.
         If a string, it should be a valid pandas time frequency string (e.g., '15min', '3h', '1 day').
-        If not provided, the will be inferred from the data.
+        If not provided, it will be inferred from the data.
     rate_units : timedelta | str, optional
         Units for the output rate. If a string, it must be a valid pandas time frequency string
         (e.g., '15min', '3h', '1 day') or simple units like 'seconds', 'minutes', 'hours', 'days'.
         If set to 'step_length', the rate will be accumulation per time step ("deaccumulated") and the
         returned object will preserve the units and long_name attributes of the input dataarray.
         The default is 'seconds'.
-    rate_label: str | None = None, optional
+    rate_label : str or None, optional
         Suffix to append to the name of the output dataarray name, as _{rate_label}.
         If None, defaults to 'rate' or 'per_step' depending on the rate_units.
     xp : T.Any

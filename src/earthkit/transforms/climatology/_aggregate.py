@@ -154,7 +154,7 @@ def min(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     Parameters
     ----------
     dataarray : xarray.DataArray
-        The DataArray over which to calculate the climatological mean. Must
+        The DataArray over which to calculate the climatological minimum. Must
         contain a `time` dimension.
     frequency : str (optional)
         Valid options are `day`, `week`, `month` and `year`. The default is `year`.
