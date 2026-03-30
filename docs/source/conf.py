@@ -188,7 +188,7 @@ html_theme_options = {
         "color-sidebar-item-background--hover": "#001F3F",
         "color-sidebar-item-expander-background--hover": "#001F3F",
     },
-    "light_logo": "earthkit-transforms-light.svg",
+    "light_logo": "earthkit-transforms-dark.svg",
     "dark_logo": "earthkit-transforms-dark.svg",
     "source_repository": "https://github.com/ecmwf/earthkit-transforms/",
     "source_branch": source_branch,
