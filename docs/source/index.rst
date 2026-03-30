@@ -11,7 +11,7 @@ statistics analysis accross time dimensions/coordinates.
    :gutter: 2
 
    .. grid-item-card:: Why earthkit-transforms?
-      :img-top:  _static/earthkit-transforms-notext.svg
+      :img-top:  _static/earthkit-transforms-grey.svg
       :link: why
       :link-type: doc
       :class-card: sd-shadow-sm
