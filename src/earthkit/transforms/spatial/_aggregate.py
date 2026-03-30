@@ -70,7 +70,7 @@ def rasterize(
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
         A mask where points not inside the shape_list are set to `fill` value
 
     """
@@ -111,7 +111,7 @@ def mask_contains_points(
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
         A mask where points not inside the shape_list are set to `fill` value
 
     """
@@ -213,7 +213,7 @@ def shapes_to_masks(shapes: gpd.GeoDataFrame | list[gpd.GeoDataFrame], target, r
 
     Returns
     -------
-    list[xr.DataArray]
+    list[xarray.DataArray]
         A list of masks where points inside each geometry are 1, and those outside are xp.nan
 
     """
@@ -252,7 +252,7 @@ def shapes_to_mask(shapes, target, regular=True, **kwargs):
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
         A mask where points inside any geometry are 1, and those outside are xp.nan
 
     """
@@ -339,7 +339,7 @@ def mask(
 
     Returns
     -------
-    xr.Dataset | xr.DataArray
+    xarray.Dataset | xarray.DataArray
         A masked data array with dimensions [feautre_id] + [data.dims].
         Each slice of layer corresponds to a feature in layer.
 
@@ -430,7 +430,7 @@ def reduce(
 
     Returns
     -------
-    xr.Dataset | xr.DataArray
+    xarray.Dataset | xarray.DataArray
         A data array with dimensions `features` + `data.dims not in 'lat','lon'`.
         Each slice of layer corresponds to a feature in layer.
 
@@ -537,7 +537,7 @@ def _reduce_dataarray_as_xarray(
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
         A data array with dimensions [features] + [data.dims not in ['lat','lon']].
         Each slice of layer corresponds to a feature in layer
 
@@ -669,7 +669,7 @@ def _reduce_dataarray_as_pandas(
 
     Returns
     -------
-    pd.DataFrame
+    pandas.DataFrame
         A pandas.DataFrame similar to the geopandas dataframe, with the reduced data
         added as a new column.
 

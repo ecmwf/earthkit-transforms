@@ -34,7 +34,7 @@ def deaccumulate(
 
     Parameters
     ----------
-    dataarray : xr.DataArray | xr.Dataset
+    dataarray : xarray.DataArray | xarray.Dataset
         Data accumulated along time to be converted into rate (per time step).
     step : timedelta | str , optional
         Interval between consecutive time steps.
@@ -66,7 +66,7 @@ def deaccumulate(
 
     Returns
     -------
-    xr.DataArray | xr.Dataset
+    xarray.DataArray | xarray.Dataset
         Data object with deaccumulation data.
 
     """
@@ -94,7 +94,7 @@ def accumulation_to_rate(
 
     Parameters
     ----------
-    dataarray : xr.DataArray | xr.Dataset
+    dataarray : xarray.DataArray | xarray.Dataset
         Data accumulated along time to be converted into rate (per second).
     step : timedelta | str , optional
         Interval between consecutive time steps.
@@ -133,7 +133,7 @@ def accumulation_to_rate(
 
     Returns
     -------
-    xr.DataArray | xr.Dataset
+    xarray.DataArray | xarray.Dataset
         Data object with rate calculated based on the accumulation data.
 
     """
@@ -174,7 +174,7 @@ def _accumulation_to_rate_dataarray(
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         Data accumulated along time to be converted into rate (per second).
     accumulation_type : str, optional
         Type of accumulation used in the input data.
@@ -219,7 +219,7 @@ def _accumulation_to_rate_dataarray(
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
         Data object with rate calculated based on the accumulation data.
 
     """
