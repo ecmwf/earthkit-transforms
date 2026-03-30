@@ -32,7 +32,7 @@ statistics analysis accross time dimensions/coordinates.
 
    .. grid-item-card:: Frequently Asked Questions
       :img-top: _static/message-question.svg
-      :link: getting-started
+      :link: faq
       :link-type: doc
       :class-card: sd-shadow-sm
 
@@ -93,7 +93,7 @@ Have a feature request or found a bug? Feel free to open an
    how-tos/index
    concepts/index
    api-reference
-   faqs
+   faq
 
 
 .. toctree::
