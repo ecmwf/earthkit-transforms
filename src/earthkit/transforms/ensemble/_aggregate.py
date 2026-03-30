@@ -27,17 +27,21 @@ def reduce(
     Parameters
     ----------
     dataarray : xarray.DataArray | xarray.Dataset
-        The DataArray over which to reduce the ensemble dimension. Must
-        contain a realization/ensemble dimension.
+        The DataArray over which to reduce. Must contain an ensemble dimension.
     how: str or callable
         Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
         If string, it must be an in-built xarray reduce method, an earthkit how method or any numpy method.
         In the case of duplicate names, method selection is first in the order: xarray, earthkit, numpy.
         Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
         to return the result of reducing an numpy.ndarray over an integer valued axis.
-    dim : str (optional)
+    dim : str, optional
         Name of the ensemble dimension in the data object, default behaviour is to detect the
         ensemble dimension from the input object.
+
+    Returns
+    -------
+    xarray.DataArray | xarray.Dataset
+        Data reduced over the ensemble dimension.
 
     """
     if dim is None:
@@ -51,13 +55,18 @@ def mean(*args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
     Parameters
     ----------
     dataarray : xarray.DataArray | xarray.Dataset
-        The DataArray over which to calculate the ensemble mean. Must
-        contain a realization/ensemble dimension.
-    dim : str (optional)
+        The DataArray over which to calculate the ensemble mean. Must contain
+        an ensemble dimension.
+    dim : str, optional
         Name of the ensemble dimension in the data object, default behaviour is to detect the
         ensemble dimension from the input object.
     *args, **kwargs
         Additional arguments and keyword arguments to pass to the underlying reduce function.
+
+    Returns
+    -------
+    xarray.DataArray | xarray.Dataset
+        Data reduced to the ensemble mean.
 
     """
     kwargs["how"] = "mean"
@@ -70,13 +79,18 @@ def std(*args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
     Parameters
     ----------
     dataarray : xarray.DataArray | xarray.Dataset
-        The DataArray over which to calculate the ensemble standard deviation. Must
-        contain a realization/ensemble dimension.
-    dim : str (optional)
+        The DataArray over which to calculate the ensemble standard deviation.
+        Must contain an ensemble dimension.
+    dim : str, optional
         Name of the ensemble dimension in the data object, default behaviour is to detect the
         ensemble dimension from the input object.
     *args, **kwargs
         Additional arguments and keyword arguments to pass to the underlying reduce function.
+
+    Returns
+    -------
+    xarray.DataArray | xarray.Dataset
+        Data reduced to the ensemble standard deviation.
 
     """
     kwargs["how"] = "std"
@@ -89,13 +103,18 @@ def min(*args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
     Parameters
     ----------
     dataarray : xarray.DataArray | xarray.Dataset
-        The DataArray over which to calculate the ensemble minimum. Must
-        contain a realization/ensemble dimension.
-    dim : str (optional)
+        The DataArray over which to calculate the ensemble minimum. Must contain
+        an ensemble dimension.
+    dim : str, optional
         Name of the ensemble dimension in the data object, default behaviour is to detect the
         ensemble dimension from the input object.
     *args, **kwargs
         Additional arguments and keyword arguments to pass to the underlying reduce function.
+
+    Returns
+    -------
+    xarray.DataArray | xarray.Dataset
+        Data reduced to the ensemble minimum.
 
     """
     kwargs["how"] = "min"
@@ -108,13 +127,18 @@ def max(*args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
     Parameters
     ----------
     dataarray : xarray.DataArray | xarray.Dataset
-        The DataArray over which to calculate the ensemble maximum. Must
-        contain a realization/ensemble dimension.
-    dim : str (optional)
+        The DataArray over which to calculate the ensemble maximum. Must contain
+        an ensemble dimension.
+    dim : str, optional
         Name of the ensemble dimension in the data object, default behaviour is to detect the
         ensemble dimension from the input object.
     *args, **kwargs
         Additional arguments and keyword arguments to pass to the underlying reduce function.
+
+    Returns
+    -------
+    xarray.DataArray | xarray.Dataset
+        Data reduced to the ensemble maximum.
 
     """
     kwargs["how"] = "max"
@@ -127,13 +151,18 @@ def sum(*args: Any, **kwargs: Any) -> xr.Dataset | xr.DataArray:
     Parameters
     ----------
     dataarray : xarray.DataArray | xarray.Dataset
-        The DataArray over which to calculate the ensemble sum. Must
-        contain a realization/ensemble dimension.
-    dim : str (optional)
+        The DataArray over which to calculate the ensemble sum. Must contain
+        an ensemble dimension.
+    dim : str, optional
         Name of the ensemble dimension in the data object, default behaviour is to detect the
         ensemble dimension from the input object.
     *args, **kwargs
         Additional arguments and keyword arguments to pass to the underlying reduce function.
+
+    Returns
+    -------
+    xarray.DataArray | xarray.Dataset
+        Data reduced to the ensemble sum.
 
     """
     kwargs["how"] = "sum"

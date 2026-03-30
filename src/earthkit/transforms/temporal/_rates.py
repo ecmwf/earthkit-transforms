@@ -36,11 +36,11 @@ def deaccumulate(
     ----------
     dataarray : xarray.DataArray | xarray.Dataset
         Data accumulated along time to be converted into rate (per time step).
-    step : timedelta | str , optional
+    step : timedelta | str, optional
         Interval between consecutive time steps.
         If a string, it should be a valid pandas time frequency string (e.g., '15min', '3h', '1 day').
         If not provided, it will be inferred from the data.
-    rate_label: str = "", optional
+    rate_label : str, optional
         Suffix to append to the name and long_name of the output dataarray.
     xp : T.Any
         The array namespace to use for the reduction. If None, it will be inferred from the dataarray.
@@ -67,7 +67,7 @@ def deaccumulate(
     Returns
     -------
     xarray.DataArray | xarray.Dataset
-        Data object with deaccumulation data.
+        Data object with deaccumulated data.
 
     """
     if "rate_units" in _kwargs:
@@ -89,14 +89,14 @@ def accumulation_to_rate(
 
     The rate is computed by considering first-order discrete differences in data
     along the inferred, or specified, time dimension.
-    The differences are converted to a rate by dividing by the time step duration, unless
+    The difference are converted to a rate by dividing by the time step duration, unless
     specified otherwise.
 
     Parameters
     ----------
     dataarray : xarray.DataArray | xarray.Dataset
         Data accumulated along time to be converted into rate (per second).
-    step : timedelta | str , optional
+    step : timedelta | str, optional
         Interval between consecutive time steps.
         If a string, it should be a valid pandas time frequency string (e.g., '15min', '3h', '1 day').
         If not provided, it will be inferred from the data.
@@ -106,8 +106,8 @@ def accumulation_to_rate(
         If set to 'step_length', the rate will be accumulation per time step ("deaccumulated") and the
         returned object will preserve the units and long_name attributes of the input dataarray.
         The default is 'seconds'.
-    rate_label: str | None = None, optional
-        Suffix to append to the name and long_name of the output dataarray. If None, defaults to
+    rate_label : str or None, optional
+        Suffix to append to the name of the output dataarray. If None, defaults to
         'rate' or 'per_step' depending on the rate_units.
     xp : T.Any
         The array namespace to use for the reduction. If None, it will be inferred from the dataarray.
@@ -164,6 +164,7 @@ def _accumulation_to_rate_dataarray(
     along the time (or leadtime, if time is not a dimension)
     axis, divided by the number of seconds in the step.
 
+    # Check it does this
     If time[k] - time[k-1] != step, then the corresponding output values will be NaN.
 
     Example:
@@ -186,7 +187,7 @@ def _accumulation_to_rate_dataarray(
         - "start_of_day": accumulation restarts at the beginning of each day (00:00 UTC).
 
         Default is "start_of_step".
-    step : timedelta | str , optional
+    step : timedelta | str, optional
         Interval between consecutive time steps.
         If a string, it should be a valid pandas time frequency string (e.g., '15min', '3h', '1 day').
         If not provided, it will be inferred from the data.
@@ -196,7 +197,7 @@ def _accumulation_to_rate_dataarray(
         If set to 'step_length', the rate will be accumulation per time step ("deaccumulated") and the
         returned object will preserve the units and long_name attributes of the input dataarray.
         The default is 'seconds'.
-    rate_label: str | None = None, optional
+    rate_label : str or None, optional
         Suffix to append to the name of the output dataarray name, as _{rate_label}.
         If None, defaults to 'rate' or 'per_step' depending on the rate_units.
     xp : T.Any

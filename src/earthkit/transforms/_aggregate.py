@@ -39,7 +39,7 @@ def _reduce_dataarray(
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         Data object to reduce
     how: str or callable
         Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
@@ -49,7 +49,7 @@ def _reduce_dataarray(
         to return the result of reducing an xp.ndarray over an integer valued axis
     weights : str
         Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
-    how_dropna : str
+    how_dropna : str or None
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
     how_label : str
@@ -112,7 +112,7 @@ def reduce(
 
     Parameters
     ----------
-    dataarray : xr.DataArray or xr.Dataset
+    dataarray : xarray.DataArray or xarray.Dataset
         Data object to reduce
     how: str or callable
         Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
@@ -124,7 +124,7 @@ def reduce(
         Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
     how_label : str
         Label to append to the name of the variable in the reduced object
-    how_dropna : str
+    how_dropna : str or None
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
     **kwargs :
@@ -132,7 +132,8 @@ def reduce(
 
     Returns
     -------
-    A data array with reduce dimensions removed.
+    xarray.DataArray or xarray.Dataset
+        A data array with reduced dimensions removed.
 
     """
     # handle how as arg or kwarg
@@ -154,7 +155,7 @@ def rolling_reduce(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs) -> xr
 
     Parameters
     ----------
-    dataarray : xr.DataArray or xr.Dataset
+    dataarray : xarray.DataArray or xarray.Dataset
         Data over which the moving window is applied according to the reduction method.
     windows :
         windows for the rolling groups, for example `time=10` to perform a reduction
@@ -168,15 +169,15 @@ def rolling_reduce(dataarray: xr.Dataset | xr.DataArray, *_args, **kwargs) -> xr
         Set the labels at the centre of the window, **see documentation for xarray.dataarray.rolling**.
     how_reduce : str,
         Function to be applied for reduction. Default is 'mean'.
-    how_dropna : str
+    how_dropna : str or None
         Determine if dimension is removed from the output when we have at least one NaN or
-        all NaN. **how_dropna** can be 'None', 'any' or 'all'. Default is 'any'.
+        all NaN. **how_dropna** can be None, 'any' or 'all'. Default is 'any'.
     **kwargs :
         Any kwargs that are compatible with the select `how_reduce` method.
 
     Returns
     -------
-    xr.DataArray or xr.Dataset (as provided)
+    xarray.DataArray or xarray.Dataset (as provided)
 
     """
     if isinstance(dataarray, (xr.Dataset)):
@@ -196,7 +197,7 @@ def _rolling_reduce_dataarray(
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         Data over which the moving window is applied according to the reduction method.
     windows :
         windows for the rolling groups, for example `time=10` to perform a reduction
@@ -210,9 +211,9 @@ def _rolling_reduce_dataarray(
         Set the labels at the centre of the window, **see documentation for xarray.dataarray.rolling**.
     how_reduce : str,
         Function to be applied for reduction. Default is 'mean'.
-    how_dropna : str
+    how_dropna : str or None
         Determine if dimension is removed from the output when we have at least one NaN or
-        all NaN. **how_dropna** can be 'None', 'any' or 'all'. Default is None.
+        all NaN. **how_dropna** can be None, 'any' or 'all'. Default is None.
     chunk: bool
         If True, the dataarray is chunked before the rolling operation.
     **kwargs :
@@ -220,7 +221,7 @@ def _rolling_reduce_dataarray(
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
 
     """
     xp = _tools.array_namespace_from_object(dataarray)
@@ -279,8 +280,8 @@ def resample(
 
     Parameters
     ----------
-    dataarray : xr.DataArray
-        DataArray to be resampled.
+    dataarray : xarray.DataArray or xarray.Dataset
+        Data object to be resampled.
     frequency : str, int, float
         The frequency at which to resample the chosen dimension. The format must be applicable
         to the chosen dimension.
@@ -306,7 +307,7 @@ def resample(
 
     Returns
     -------
-    xr.Dataset | xr.DataArray
+    xarray.Dataset | xarray.DataArray
 
     """
     # Normalise mutable defaults

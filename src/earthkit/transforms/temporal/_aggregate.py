@@ -43,7 +43,7 @@ def standardise_time(
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-        If you do not want to aggregate along the time dimension use earthkit.transforms.reduce
+        If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
 
     Returns
     -------
@@ -62,7 +62,8 @@ def standardise_time(
 
     history = dataarray.attrs.get("history", "")
     history += (
-        "The time coordinate of this data has been standardised with earthkit.transforms.temporal.standardise_time."
+        "The time coordinate of this data has been standardised with "
+        "earthkit.transforms.aggregate.temporal.standardise_time."
     )
     dataarray = dataarray.assign_attrs({"history": history})
 
@@ -90,23 +91,22 @@ def reduce(
         Name of the time dimension, or coordinate, in the xarray object,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-        If you do not want to aggregate along the time dimension use earthkit.transforms.reduce
+        If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     how: str or callable
         Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
-        If string, it must be an in-built xarray reduce method, an earthkit how method or any numpy method.
+        If string, it must be an in-built xarray reduce method, a earthkit how method or any numpy method.
         In the case of duplicate names, method selection is first in the order: xarray, earthkit, numpy.
         Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
         to return the result of reducing an array over an integer valued axis
     weights : str
         Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
-    how_label : str, optional
-        Label to append to the name of the variable in the reduced object.
-        Default is None, in which case the variable name is not modified.
+    how_label : str
+        Label to append to the name of the variable in the reduced object, default is _{how}
     how_dropna : str
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
     **kwargs :
-        kwargs recognised by the how :func: `earthkit.transforms.reduce`
+        kwargs recognised by the how :func: `earthkit.transforms.aggregate.reduce`
 
     Returns
     -------
@@ -126,14 +126,9 @@ def reduce(
 
 
 def mean(
-    dataarray: xr.Dataset | xr.DataArray,
-    *,
-    time_dim: str | None = None,
-    weights: str | None = None,
-    how_label: str | None = None,
-    how_dropna: str | None = None,
+    *_args,
     **kwargs,
-) -> xr.Dataset | xr.DataArray:
+):
     """Calculate the mean of an xarray.dataarray or xarray.dataset along the time/date dimension.
 
     With the option to apply weights either directly or using a specified
@@ -147,17 +142,16 @@ def mean(
         Name of the time dimension, or coordinate, in the xarray object,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-        If you do not want to aggregate along the time dimension use earthkit.transforms.reduce
+        If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     weights : str
         Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
-    how_label : str, optional
-        Label to append to the name of the variable in the reduced object.
-        Default is None, in which case the variable name is not modified.
+    how_label : str
+        Label to append to the name of the variable in the reduced object, default is _mean
     how_dropna : str
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
     **kwargs :
-        kwargs recognised by the how :func: `earthkit.transforms.reduce`
+        kwargs recognised by the how :func: `earthkit.transforms.aggregate.reduce`
 
     Returns
     -------
@@ -165,20 +159,14 @@ def mean(
         A dataarray of the mean value in the time dimensions
 
     """
-    return reduce(
-        dataarray, how="mean", time_dim=time_dim, weights=weights, how_label=how_label, how_dropna=how_dropna, **kwargs
-    )
+    kwargs["how"] = "mean"
+    return reduce(*_args, **kwargs)
 
 
 def median(
-    dataarray: xr.Dataset | xr.DataArray,
-    *,
-    time_dim: str | None = None,
-    weights: str | None = None,
-    how_label: str | None = None,
-    how_dropna: str | None = None,
+    *_args,
     **kwargs,
-) -> xr.Dataset | xr.DataArray:
+):
     """Calculate the median of an xarray.dataarray or xarray.dataset along the time/date dimension.
 
     With the option to apply weights either directly or using a specified
@@ -192,17 +180,16 @@ def median(
         Name of the time dimension, or coordinate, in the xarray object,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-        If you do not want to aggregate along the time dimension use earthkit.transforms.reduce
+        If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     weights : str
         Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
-    how_label : str, optional
-        Label to append to the name of the variable in the reduced object.
-        Default is None, in which case the variable name is not modified.
+    how_label : str
+        Label to append to the name of the variable in the reduced object, default is _median
     how_dropna : str
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
     **kwargs :
-        kwargs recognised by the how :func: `earthkit.transforms.reduce`
+        kwargs recognised by the how :func: `earthkit.transforms.aggregate.reduce`
 
     Returns
     -------
@@ -210,26 +197,14 @@ def median(
         A dataarray of the median value in the time dimensions
 
     """
-    return reduce(
-        dataarray,
-        how="median",
-        time_dim=time_dim,
-        weights=weights,
-        how_label=how_label,
-        how_dropna=how_dropna,
-        **kwargs,
-    )
+    kwargs["how"] = "median"
+    return reduce(*_args, **kwargs)
 
 
 def min(
-    dataarray: xr.Dataset | xr.DataArray,
-    *,
-    time_dim: str | None = None,
-    weights: str | None = None,
-    how_label: str | None = None,
-    how_dropna: str | None = None,
+    *_args,
     **kwargs,
-) -> xr.Dataset | xr.DataArray:
+):
     """Calculate the minimum of an xarray.dataarray or xarray.dataset along the time/date dimension.
 
     With the option to apply weights either directly or using a specified
@@ -243,17 +218,16 @@ def min(
         Name of the time dimension, or coordinate, in the xarray object,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-        If you do not want to aggregate along the time dimension use earthkit.transforms.reduce
+        If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     weights : str
         Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
-    how_label : str, optional
-        Label to append to the name of the variable in the reduced object.
-        Default is None, in which case the variable name is not modified.
+    how_label : str
+        Label to append to the name of the variable in the reduced object, default is _min
     how_dropna : str
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
     **kwargs :
-        kwargs recognised by the how :func: `earthkit.transforms.reduce`
+        kwargs recognised by the how :func: `earthkit.transforms.aggregate.reduce`
 
     Returns
     -------
@@ -261,20 +235,14 @@ def min(
         A dataarray of the minimum value in the time dimensions
 
     """
-    return reduce(
-        dataarray, how="min", time_dim=time_dim, weights=weights, how_label=how_label, how_dropna=how_dropna, **kwargs
-    )
+    kwargs["how"] = "min"
+    return reduce(*_args, **kwargs)
 
 
 def max(
-    dataarray: xr.Dataset | xr.DataArray,
-    *,
-    time_dim: str | None = None,
-    weights: str | None = None,
-    how_label: str | None = None,
-    how_dropna: str | None = None,
+    *_args,
     **kwargs,
-) -> xr.Dataset | xr.DataArray:
+):
     """Calculate the max of an xarray.dataarray or xarray.dataset along the time/date dimension.
 
     With the option to apply weights either directly or using a specified
@@ -288,17 +256,16 @@ def max(
         Name of the time dimension, or coordinate, in the xarray object,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-        If you do not want to aggregate along the time dimension use earthkit.transforms.reduce
+        If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     weights : str
         Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
-    how_label : str, optional
-        Label to append to the name of the variable in the reduced object.
-        Default is None, in which case the variable name is not modified.
+    how_label : str
+        Label to append to the name of the variable in the reduced object, default is _max
     how_dropna : str
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
     **kwargs :
-        kwargs recognised by the how :func: `earthkit.transforms.reduce`
+        kwargs recognised by the how :func: `earthkit.transforms.aggregate.reduce`
 
     Returns
     -------
@@ -306,18 +273,12 @@ def max(
         A dataarray of the maximum value in the time dimensions
 
     """
-    return reduce(
-        dataarray, how="max", time_dim=time_dim, weights=weights, how_label=how_label, how_dropna=how_dropna, **kwargs
-    )
+    kwargs["how"] = "max"
+    return reduce(*_args, **kwargs)
 
 
 def std(
-    dataarray: xr.Dataset | xr.DataArray,
-    *,
-    time_dim: str | None = None,
-    weights: str | None = None,
-    how_label: str | None = None,
-    how_dropna: str | None = None,
+    *_args,
     **kwargs,
 ) -> xr.Dataset | xr.DataArray:
     """Calculate the standard deviation of an xarray.dataarray/dataset along the time/date dimension.
@@ -333,17 +294,16 @@ def std(
         Name of the time dimension, or coordinate, in the xarray object,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-        If you do not want to aggregate along the time dimension use earthkit.transforms.reduce
+        If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     weights : str
         Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
-    how_label : str, optional
-        Label to append to the name of the variable in the reduced object.
-        Default is None, in which case the variable name is not modified.
+    how_label : str
+        Label to append to the name of the variable in the reduced object, default is _std
     how_dropna : str
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
     **kwargs :
-        kwargs recognised by the how :func: `earthkit.transforms.reduce`
+        kwargs recognised by the how :func: `earthkit.transforms.aggregate.reduce`
 
     Returns
     -------
@@ -351,18 +311,12 @@ def std(
         A dataarray of the standard deviation in the time dimensions
 
     """
-    return reduce(
-        dataarray, how="std", time_dim=time_dim, weights=weights, how_label=how_label, how_dropna=how_dropna, **kwargs
-    )
+    kwargs["how"] = "std"
+    return reduce(*_args, **kwargs)
 
 
 def sum(
-    dataarray: xr.Dataset | xr.DataArray,
-    *,
-    time_dim: str | None = None,
-    weights: str | None = None,
-    how_label: str | None = None,
-    how_dropna: str | None = None,
+    *_args,
     **kwargs,
 ) -> xr.Dataset | xr.DataArray:
     """Calculate the sum of an xarray.dataarray/dataset along the time/date dimension.
@@ -378,17 +332,16 @@ def sum(
         Name of the time dimension, or coordinate, in the xarray object,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-        If you do not want to aggregate along the time dimension use earthkit.transforms.reduce
+        If you do not want to aggregate along the time dimension use earthkit.transforms.aggregate.reduce
     weights : str
         Choose a recognised method to apply weighting. Currently available methods are; 'latitude'
-    how_label : str, optional
-        Label to append to the name of the variable in the reduced object.
-        Default is None, in which case the variable name is not modified.
+    how_label : str
+        Label to append to the name of the variable in the reduced object, default is _sum
     how_dropna : str
         Choose how to drop nan values.
         Default is None and na values are preserved. Options are 'any' and 'all'.
     **kwargs :
-        kwargs recognised by the how :func: `earthkit.transforms.reduce`
+        kwargs recognised by the how :func: `earthkit.transforms.aggregate.reduce`
 
     Returns
     -------
@@ -396,9 +349,8 @@ def sum(
         A dataarray summed in the time dimensions
 
     """
-    return reduce(
-        dataarray, how="sum", time_dim=time_dim, weights=weights, how_label=how_label, how_dropna=how_dropna, **kwargs
-    )
+    kwargs["how"] = "sum"
+    return reduce(*_args, **kwargs)
 
 
 @format_handler()
@@ -417,7 +369,7 @@ def daily_reduce(
         DataArray containing a `time` dimension.
     how: str or callable
         Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
-        If string, it must be an in-built xarray reduce method, an earthkit how method or any numpy method.
+        If string, it must be an in-built xarray reduce method, a earthkit how method or any numpy method.
         In the case of duplicate names, method selection is first in the order: xarray, earthkit, numpy.
         Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
         to return the result of reducing an array over an integer valued axis
@@ -432,9 +384,8 @@ def daily_reduce(
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
-    how_label : str, optional
-        Label to append to the name of the variable in the reduced object.
-        Default is None, in which case the variable name is not modified.
+    how_label : str
+        Label to append to the name of the variable in the reduced object, default is _daily_{how}
     extra_reduce_dims : str or list of str
         Additional dimensions to reduce over (in addition to the grouping dimension), for example to
         calculate a daily global mean you would set this to "longitude" and "latitude". Default is None.
@@ -496,17 +447,8 @@ def daily_reduce(
     return red_array
 
 
-def daily_mean(
-    dataarray: xr.Dataset | xr.DataArray,
-    *,
-    time_dim: str | None = None,
-    time_shift: dict | str | pd.Timedelta | None = None,
-    remove_partial_periods: bool = False,
-    how_label: str | None = None,
-    extra_reduce_dims: str | list[str] | None = None,
-    **kwargs,
-) -> xr.DataArray | xr.Dataset:
-    """Calculate the daily mean.
+def daily_mean(*_args, **kwargs) -> xr.Dataset | xr.DataArray:
+    """Return the daily mean of the datacube.
 
     Parameters
     ----------
@@ -523,14 +465,8 @@ def daily_mean(
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
-    how_label : str, optional
-        Label to append to the name of the variable in the reduced object.
-        Default is None, in which case the variable name is not modified.
-    extra_reduce_dims : str or list of str
-        Additional dimensions to reduce over (in addition to the grouping dimension), for example to
-        calculate a daily global mean you would set this to "longitude" and "latitude". Default is None.
     **kwargs
-        Keyword arguments to be passed to :func:`daily_reduce`.
+        Keyword arguments to be passed to :func:`reduce`.
 
     Returns
     -------
@@ -538,29 +474,11 @@ def daily_mean(
         A dataarray reduced to daily mean values
 
     """
-    return daily_reduce(
-        dataarray,
-        how="mean",
-        time_dim=time_dim,
-        time_shift=time_shift,
-        remove_partial_periods=remove_partial_periods,
-        how_label=how_label,
-        extra_reduce_dims=extra_reduce_dims,
-        **kwargs,
-    )
+    return daily_reduce(*_args, how="mean", **kwargs)
 
 
-def daily_median(
-    dataarray: xr.Dataset | xr.DataArray,
-    *,
-    time_dim: str | None = None,
-    time_shift: dict | str | pd.Timedelta | None = None,
-    remove_partial_periods: bool = False,
-    how_label: str | None = None,
-    extra_reduce_dims: str | list[str] | None = None,
-    **kwargs,
-) -> xr.DataArray | xr.Dataset:
-    """Calculate the daily median.
+def daily_median(*_args, **kwargs):
+    """Return the daily median of the datacube.
 
     Parameters
     ----------
@@ -577,14 +495,8 @@ def daily_median(
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
-    how_label : str, optional
-        Label to append to the name of the variable in the reduced object.
-        Default is None, in which case the variable name is not modified.
-    extra_reduce_dims : str or list of str
-        Additional dimensions to reduce over (in addition to the grouping dimension), for example to
-        calculate a daily global mean you would set this to "longitude" and "latitude". Default is None.
     **kwargs
-        Keyword arguments to be passed to :func:`daily_reduce`.
+        Keyword arguments to be passed to :func:`reduce`.
 
     Returns
     -------
@@ -592,28 +504,10 @@ def daily_median(
         A dataarray reduced to daily median values
 
     """
-    return daily_reduce(
-        dataarray,
-        how="median",
-        time_dim=time_dim,
-        time_shift=time_shift,
-        remove_partial_periods=remove_partial_periods,
-        how_label=how_label,
-        extra_reduce_dims=extra_reduce_dims,
-        **kwargs,
-    )
+    return daily_reduce(*_args, how="median", **kwargs)
 
 
-def daily_max(
-    dataarray: xr.Dataset | xr.DataArray,
-    *,
-    time_dim: str | None = None,
-    time_shift: dict | str | pd.Timedelta | None = None,
-    remove_partial_periods: bool = False,
-    how_label: str | None = None,
-    extra_reduce_dims: str | list[str] | None = None,
-    **kwargs,
-) -> xr.DataArray | xr.Dataset:
+def daily_max(*_args, **kwargs):
     """Calculate the daily maximum.
 
     Parameters
@@ -631,43 +525,19 @@ def daily_max(
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
-    how_label : str, optional
-        Label to append to the name of the variable in the reduced object.
-        Default is None, in which case the variable name is not modified.
-    extra_reduce_dims : str or list of str
-        Additional dimensions to reduce over (in addition to the grouping dimension), for example to
-        calculate a daily global mean you would set this to "longitude" and "latitude". Default is None.
     **kwargs
-        Keyword arguments to be passed to :func:`daily_reduce`.
+        Keyword arguments to be passed to :func:`reduce`.
 
     Returns
     -------
     xarray.DataArray | xarray.Dataset
-        A dataarray reduced to daily maximum values
+        A dataarray reduced to daily max values
 
     """
-    return daily_reduce(
-        dataarray,
-        how="max",
-        time_dim=time_dim,
-        time_shift=time_shift,
-        remove_partial_periods=remove_partial_periods,
-        how_label=how_label,
-        extra_reduce_dims=extra_reduce_dims,
-        **kwargs,
-    )
+    return daily_reduce(*_args, how="max", **kwargs)
 
 
-def daily_min(
-    dataarray: xr.Dataset | xr.DataArray,
-    *,
-    time_dim: str | None = None,
-    time_shift: dict | str | pd.Timedelta | None = None,
-    remove_partial_periods: bool = False,
-    how_label: str | None = None,
-    extra_reduce_dims: str | list[str] | None = None,
-    **kwargs,
-) -> xr.DataArray | xr.Dataset:
+def daily_min(*_args, **kwargs):
     """Calculate the daily minimum.
 
     Parameters
@@ -685,43 +555,19 @@ def daily_min(
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
-    how_label : str, optional
-        Label to append to the name of the variable in the reduced object.
-        Default is None, in which case the variable name is not modified.
-    extra_reduce_dims : str or list of str
-        Additional dimensions to reduce over (in addition to the grouping dimension), for example to
-        calculate a daily global mean you would set this to "longitude" and "latitude". Default is None.
     **kwargs
-        Keyword arguments to be passed to :func:`daily_reduce`.
+        Keyword arguments to be passed to :func:`reduce`.
 
     Returns
     -------
     xarray.DataArray | xarray.Dataset
-        A dataarray reduced to daily minimum values
+        A dataarray reduced to daily min values
 
     """
-    return daily_reduce(
-        dataarray,
-        how="min",
-        time_dim=time_dim,
-        time_shift=time_shift,
-        remove_partial_periods=remove_partial_periods,
-        how_label=how_label,
-        extra_reduce_dims=extra_reduce_dims,
-        **kwargs,
-    )
+    return daily_reduce(*_args, how="min", **kwargs)
 
 
-def daily_std(
-    dataarray: xr.Dataset | xr.DataArray,
-    *,
-    time_dim: str | None = None,
-    time_shift: dict | str | pd.Timedelta | None = None,
-    remove_partial_periods: bool = False,
-    how_label: str | None = None,
-    extra_reduce_dims: str | list[str] | None = None,
-    **kwargs,
-) -> xr.DataArray | xr.Dataset:
+def daily_std(*_args, **kwargs):
     """Calculate the daily standard deviation.
 
     Parameters
@@ -739,14 +585,8 @@ def daily_std(
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
-    how_label : str, optional
-        Label to append to the name of the variable in the reduced object.
-        Default is None, in which case the variable name is not modified.
-    extra_reduce_dims : str or list of str
-        Additional dimensions to reduce over (in addition to the grouping dimension), for example to
-        calculate a daily global mean you would set this to "longitude" and "latitude". Default is None.
     **kwargs
-        Keyword arguments to be passed to :func:`daily_reduce`.
+        Keyword arguments to be passed to :func:`reduce`.
 
     Returns
     -------
@@ -754,28 +594,10 @@ def daily_std(
         A dataarray reduced to daily standard deviation values
 
     """
-    return daily_reduce(
-        dataarray,
-        how="std",
-        time_dim=time_dim,
-        time_shift=time_shift,
-        remove_partial_periods=remove_partial_periods,
-        how_label=how_label,
-        extra_reduce_dims=extra_reduce_dims,
-        **kwargs,
-    )
+    return daily_reduce(*_args, how="std", **kwargs)
 
 
-def daily_sum(
-    dataarray: xr.Dataset | xr.DataArray,
-    *,
-    time_dim: str | None = None,
-    time_shift: dict | str | pd.Timedelta | None = None,
-    remove_partial_periods: bool = False,
-    how_label: str | None = None,
-    extra_reduce_dims: str | list[str] | None = None,
-    **kwargs,
-) -> xr.DataArray | xr.Dataset:
+def daily_sum(*_args, **kwargs):
     """Calculate the daily sum (accumulation).
 
     Parameters
@@ -793,14 +615,8 @@ def daily_sum(
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
-    how_label : str, optional
-        Label to append to the name of the variable in the reduced object.
-        Default is None, in which case the variable name is not modified.
-    extra_reduce_dims : str or list of str
-        Additional dimensions to reduce over (in addition to the grouping dimension), for example to
-        calculate a daily global mean you would set this to "longitude" and "latitude". Default is None.
     **kwargs
-        Keyword arguments to be passed to :func:`daily_reduce`.
+        Keyword arguments to be passed to :func:`reduce`.
 
     Returns
     -------
@@ -808,16 +624,7 @@ def daily_sum(
         A dataarray reduced to daily sum values
 
     """
-    return daily_reduce(
-        dataarray,
-        how="sum",
-        time_dim=time_dim,
-        time_shift=time_shift,
-        remove_partial_periods=remove_partial_periods,
-        how_label=how_label,
-        extra_reduce_dims=extra_reduce_dims,
-        **kwargs,
-    )
+    return daily_reduce(*_args, how="sum", **kwargs)
 
 
 @format_handler()
@@ -836,7 +643,7 @@ def monthly_reduce(
         DataArray containing a `time` dimension.
     how: str or callable
         Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
-        If string, it must be an in-built xarray reduce method, an earthkit how method or any numpy method.
+        If string, it must be an in-built xarray reduce method, a earthkit how method or any numpy method.
         In the case of duplicate names, method selection is first in the order: xarray, earthkit, numpy.
         Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
         to return the result of reducing an array over an integer valued axis
@@ -844,16 +651,15 @@ def monthly_reduce(
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-    time_shift : (optional) None, timedelta or dict
+    time_shift : None, timedelta or dict, optional
         A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
         It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
         as kwargs to `pandas.Timedelta`. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
-    how_label : str, optional
-        Label to append to the name of the variable in the reduced object.
-        Default is None, in which case the variable name is not modified.
+    how_label : str
+        Label to append to the name of the variable in the reduced object, default is _monthly_{how}
     extra_reduce_dims : str or list of str
         Additional dimensions to reduce over (in addition to the grouping dimension), for example to
         calculate a monthly global mean you would set this to "longitude" and "latitude". Default is None.
@@ -920,15 +726,9 @@ def monthly_reduce(
 
 
 def monthly_mean(
-    dataarray: xr.Dataset | xr.DataArray,
-    *,
-    time_dim: str | None = None,
-    time_shift: dict | str | pd.Timedelta | None = None,
-    remove_partial_periods: bool = False,
-    how_label: str | None = None,
-    extra_reduce_dims: str | list[str] | None = None,
+    *_args,
     **kwargs,
-) -> xr.DataArray | xr.Dataset:
+):
     """Calculate the monthly mean.
 
     Parameters
@@ -946,14 +746,8 @@ def monthly_mean(
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
-    how_label : str, optional
-        Label to append to the name of the variable in the reduced object.
-        Default is None, in which case the variable name is not modified.
-    extra_reduce_dims : str or list of str
-        Additional dimensions to reduce over (in addition to the grouping dimension), for example to
-        calculate a monthly global mean you would set this to "longitude" and "latitude". Default is None.
     **kwargs
-        Keyword arguments to be passed to :func:`monthly_reduce`.
+        Keyword arguments to be passed to :func:`resample`.
 
     Returns
     -------
@@ -961,28 +755,13 @@ def monthly_mean(
         A dataarray reduced to monthly mean values
 
     """
-    return monthly_reduce(
-        dataarray,
-        how="mean",
-        time_dim=time_dim,
-        time_shift=time_shift,
-        remove_partial_periods=remove_partial_periods,
-        how_label=how_label,
-        extra_reduce_dims=extra_reduce_dims,
-        **kwargs,
-    )
+    return monthly_reduce(*_args, how="mean", **kwargs)
 
 
 def monthly_median(
-    dataarray: xr.Dataset | xr.DataArray,
-    *,
-    time_dim: str | None = None,
-    time_shift: dict | str | pd.Timedelta | None = None,
-    remove_partial_periods: bool = False,
-    how_label: str | None = None,
-    extra_reduce_dims: str | list[str] | None = None,
+    *_args,
     **kwargs,
-) -> xr.DataArray | xr.Dataset:
+):
     """Calculate the monthly median.
 
     Parameters
@@ -1000,14 +779,8 @@ def monthly_median(
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
-    how_label : str, optional
-        Label to append to the name of the variable in the reduced object.
-        Default is None, in which case the variable name is not modified.
-    extra_reduce_dims : str or list of str
-        Additional dimensions to reduce over (in addition to the grouping dimension), for example to
-        calculate a monthly global mean you would set this to "longitude" and "latitude". Default is None.
     **kwargs
-        Keyword arguments to be passed to :func:`monthly_reduce`.
+        Keyword arguments to be passed to :func:`resample`.
 
     Returns
     -------
@@ -1015,28 +788,13 @@ def monthly_median(
         A dataarray reduced to monthly median values
 
     """
-    return monthly_reduce(
-        dataarray,
-        how="median",
-        time_dim=time_dim,
-        time_shift=time_shift,
-        remove_partial_periods=remove_partial_periods,
-        how_label=how_label,
-        extra_reduce_dims=extra_reduce_dims,
-        **kwargs,
-    )
+    return monthly_reduce(*_args, how="median", **kwargs)
 
 
 def monthly_min(
-    dataarray: xr.Dataset | xr.DataArray,
-    *,
-    time_dim: str | None = None,
-    time_shift: dict | str | pd.Timedelta | None = None,
-    remove_partial_periods: bool = False,
-    how_label: str | None = None,
-    extra_reduce_dims: str | list[str] | None = None,
+    *_args,
     **kwargs,
-) -> xr.DataArray | xr.Dataset:
+):
     """Calculate the monthly min.
 
     Parameters
@@ -1054,14 +812,8 @@ def monthly_min(
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
-    how_label : str, optional
-        Label to append to the name of the variable in the reduced object.
-        Default is None, in which case the variable name is not modified.
-    extra_reduce_dims : str or list of str
-        Additional dimensions to reduce over (in addition to the grouping dimension), for example to
-        calculate a monthly global mean you would set this to "longitude" and "latitude". Default is None.
     **kwargs
-        Keyword arguments to be passed to :func:`monthly_reduce`.
+        Keyword arguments to be passed to :func:`resample`.
 
     Returns
     -------
@@ -1069,28 +821,13 @@ def monthly_min(
         A dataarray reduced to monthly minimum values
 
     """
-    return monthly_reduce(
-        dataarray,
-        how="min",
-        time_dim=time_dim,
-        time_shift=time_shift,
-        remove_partial_periods=remove_partial_periods,
-        how_label=how_label,
-        extra_reduce_dims=extra_reduce_dims,
-        **kwargs,
-    )
+    return monthly_reduce(*_args, how="min", **kwargs)
 
 
 def monthly_max(
-    dataarray: xr.Dataset | xr.DataArray,
-    *,
-    time_dim: str | None = None,
-    time_shift: dict | str | pd.Timedelta | None = None,
-    remove_partial_periods: bool = False,
-    how_label: str | None = None,
-    extra_reduce_dims: str | list[str] | None = None,
+    *_args,
     **kwargs,
-) -> xr.DataArray | xr.Dataset:
+):
     """Calculate the monthly max.
 
     Parameters
@@ -1108,14 +845,8 @@ def monthly_max(
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
-    how_label : str, optional
-        Label to append to the name of the variable in the reduced object.
-        Default is None, in which case the variable name is not modified.
-    extra_reduce_dims : str or list of str
-        Additional dimensions to reduce over (in addition to the grouping dimension), for example to
-        calculate a monthly global mean you would set this to "longitude" and "latitude". Default is None.
     **kwargs
-        Keyword arguments to be passed to :func:`monthly_reduce`.
+        Keyword arguments to be passed to :func:`resample`.
 
     Returns
     -------
@@ -1123,28 +854,13 @@ def monthly_max(
         A dataarray reduced to monthly maximum values
 
     """
-    return monthly_reduce(
-        dataarray,
-        how="max",
-        time_dim=time_dim,
-        time_shift=time_shift,
-        remove_partial_periods=remove_partial_periods,
-        how_label=how_label,
-        extra_reduce_dims=extra_reduce_dims,
-        **kwargs,
-    )
+    return monthly_reduce(*_args, how="max", **kwargs)
 
 
 def monthly_std(
-    dataarray: xr.Dataset | xr.DataArray,
-    *,
-    time_dim: str | None = None,
-    time_shift: dict | str | pd.Timedelta | None = None,
-    remove_partial_periods: bool = False,
-    how_label: str | None = None,
-    extra_reduce_dims: str | list[str] | None = None,
+    *_args,
     **kwargs,
-) -> xr.DataArray | xr.Dataset:
+):
     """Calculate the monthly standard deviation.
 
     Parameters
@@ -1162,14 +878,8 @@ def monthly_std(
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
-    how_label : str, optional
-        Label to append to the name of the variable in the reduced object.
-        Default is None, in which case the variable name is not modified.
-    extra_reduce_dims : str or list of str
-        Additional dimensions to reduce over (in addition to the grouping dimension), for example to
-        calculate a monthly global mean you would set this to "longitude" and "latitude". Default is None.
     **kwargs
-        Keyword arguments to be passed to :func:`monthly_reduce`.
+        Keyword arguments to be passed to :func:`resample`.
 
     Returns
     -------
@@ -1177,28 +887,13 @@ def monthly_std(
         A dataarray reduced to monthly standard deviation values
 
     """
-    return monthly_reduce(
-        dataarray,
-        how="std",
-        time_dim=time_dim,
-        time_shift=time_shift,
-        remove_partial_periods=remove_partial_periods,
-        how_label=how_label,
-        extra_reduce_dims=extra_reduce_dims,
-        **kwargs,
-    )
+    return monthly_reduce(*_args, how="std", **kwargs)
 
 
 def monthly_sum(
-    dataarray: xr.Dataset | xr.DataArray,
-    *,
-    time_dim: str | None = None,
-    time_shift: dict | str | pd.Timedelta | None = None,
-    remove_partial_periods: bool = False,
-    how_label: str | None = None,
-    extra_reduce_dims: str | list[str] | None = None,
+    *_args,
     **kwargs,
-) -> xr.DataArray | xr.Dataset:
+):
     """Calculate the monthly sum/accumulation along the time dimension.
 
     Parameters
@@ -1216,14 +911,8 @@ def monthly_sum(
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
-    how_label : str, optional
-        Label to append to the name of the variable in the reduced object.
-        Default is None, in which case the variable name is not modified.
-    extra_reduce_dims : str or list of str
-        Additional dimensions to reduce over (in addition to the grouping dimension), for example to
-        calculate a monthly global mean you would set this to "longitude" and "latitude". Default is None.
     **kwargs
-        Keyword arguments to be passed to :func:`monthly_reduce`.
+        Keyword arguments to be passed to :func:`resample`.
 
     Returns
     -------
@@ -1231,16 +920,7 @@ def monthly_sum(
         A dataarray reduced to monthly sum values
 
     """
-    return monthly_reduce(
-        dataarray,
-        how="sum",
-        time_dim=time_dim,
-        time_shift=time_shift,
-        remove_partial_periods=remove_partial_periods,
-        how_label=how_label,
-        extra_reduce_dims=extra_reduce_dims,
-        **kwargs,
-    )
+    return monthly_reduce(*_args, how="sum", **kwargs)
 
 
 @format_handler()

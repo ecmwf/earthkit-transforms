@@ -30,7 +30,9 @@ if rtd_version_type in ("branch", "tag"):
 else:
     source_branch = "main"
 
-src_path = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "src"))
+src_path = os.path.normpath(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "src")
+)
 sys.path.insert(0, src_path)
 
 project = "earthkit-transforms"
@@ -88,11 +90,6 @@ autodoc_default_options = {
     "show-inheritance": True,
 }
 
-# Napoleon settings for NumPy-style docstrings.
-# preprocess_types: convert type strings in Parameters/Returns sections to RST cross-reference roles,
-# enabling intersphinx to link them to upstream documentation automatically.
-napoleon_preprocess_types = True
-
 autosummary_generate = True
 autosummary_generate_overwrite = True
 autosummary_imported_members = False
@@ -121,17 +118,20 @@ templates_path = ["_templates"]
 
 # Modules to hide from autodocs (relative to earthkit.transforms)
 # These modules will not appear in the API documentation sidebar
-autodocs_hidden_modules = ["aggregate", "version"]
+autodocs_hidden_modules = [
+    "aggregate",
+    "version"
+]
 
 # clean_autodocs.py feature flags
 # Set to False/None to disable or soften the corresponding processing step.
-autodocs_delete_hidden = True  # delete RST files for private/hidden modules
-autodocs_replace_automodule = True  # replace automodule directives with autosummary tables
+autodocs_delete_hidden = True        # delete RST files for private/hidden modules
+autodocs_replace_automodule = True   # replace automodule directives with autosummary tables
 autodocs_short_display_names = True  # shorten toctree labels to the last module component
-autodocs_top_level_maxdepth = 1  # :maxdepth: on top-level page (None = keep sphinx-apidoc value)
-autodocs_rename_titles = False  # strip " package"/" module" from RST page headings
+autodocs_top_level_maxdepth = 1      # :maxdepth: on top-level page (None = keep sphinx-apidoc value)
+autodocs_rename_titles = False       # strip " package"/" module" from RST page headings
 autodocs_top_level_title = "API Reference"  # top-level page heading (used when rename_titles=True)
-autodocs_titlesonly = False  # inject :titlesonly: into toctree directives
+autodocs_titlesonly = False          # inject :titlesonly: into toctree directives
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -154,7 +154,7 @@ html_js_files = [
     "custom.js",
 ]
 
-html_favicon = "https://raw.githubusercontent.com/ecmwf/logos/refs/heads/main/logos/earthkit/earthkit-logo-only.svg"
+html_favicon = "./_static/earthkit-transforms-notext.svg"
 
 d_thing = (
     "M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1."
@@ -188,7 +188,7 @@ html_theme_options = {
         "color-sidebar-item-background--hover": "#001F3F",
         "color-sidebar-item-expander-background--hover": "#001F3F",
     },
-    "light_logo": "earthkit-transforms-light.svg",
+    "light_logo": "earthkit-transforms-dark.svg",
     "dark_logo": "earthkit-transforms-dark.svg",
     "source_repository": "https://github.com/ecmwf/earthkit-transforms/",
     "source_branch": source_branch,

@@ -201,8 +201,8 @@ def array_namespace_from_object(data_object: T.Any) -> types.ModuleType:
     Raises
     ------
     TypeError
-        If the input data_object contains an compatible array interface,
-        e.g. a xr.Dataset with mixed array namespaces.
+        If the input data_object contains an incompatible array interface,
+        e.g. a xarray.Dataset with mixed array namespaces.
 
     """
     if isinstance(data_object, xr.DataArray):
@@ -235,14 +235,14 @@ def nanaverage(data, weights=None, **kwargs):
 
     Parameters
     ----------
-    data : array
+    data : array-like
         Data to average.
-    weights:
+    weights : array-like or None, optional
         Weights to apply to the data for averaging.
         Weights will be normalised and must correspond to the
         shape of the data array and axis/axes that is/are
         averaged over.
-    axis:
+    axis : int or tuple of int, optional
         axis/axes to compute the nanaverage over.
     kwargs:
         any other xp.nansum kwargs
@@ -281,7 +281,29 @@ def nanaverage(data, weights=None, **kwargs):
 
 
 def standard_weights(dataarray: xr.DataArray, weights: str, **kwargs):
-    """Implement any standard weights functions included in earthkit-transforms."""
+    """Return a weights DataArray for a recognised weighting method.
+
+    Parameters
+    ----------
+    dataarray : xarray.DataArray
+        The data object for which to compute weights.
+    weights : str
+        Name of the weighting method. Currently accepted values: ``'latitude'`` or ``'lat'``.
+    **kwargs
+        Additional keyword arguments passed to the underlying weighting function
+        (e.g. ``lat_key`` to override the detected latitude coordinate name).
+
+    Returns
+    -------
+    xarray.DataArray
+        Weights array compatible with the spatial coordinates of ``dataarray``.
+
+    Raises
+    ------
+    NotImplementedError
+        If ``weights`` is not a recognised weighting method.
+
+    """
     if weights in ["latitude", "lat"]:
         lat_weight_kwargs = {key: value for key, value in kwargs.items() if key in ["lat_key"]}
         return latitude_weights(dataarray, **lat_weight_kwargs)
@@ -290,9 +312,29 @@ def standard_weights(dataarray: xr.DataArray, weights: str, **kwargs):
 
 
 def latitude_weights(dataarray: xr.DataArray, lat_key: str | None = None):
-    """xarray.DataArray wrapper for latitude_weights.
+    """Return cosine-of-latitude weights for the given DataArray.
 
-    Detects the spatial dimensions latitude must be a coordinate of the dataarray.
+    Detects the spatial dimensions; latitude must be a coordinate of the dataarray.
+
+    Parameters
+    ----------
+    dataarray : xarray.DataArray
+        The data object whose latitude coordinate is used to compute weights.
+    lat_key : str, optional
+        Name of the latitude coordinate. If not provided, the coordinate is
+        detected automatically using CF conventions and known key names.
+
+    Returns
+    -------
+    xarray.DataArray
+        Array of cosine(latitude) weights with the same latitude coordinates
+        as ``dataarray``.
+
+    Raises
+    ------
+    KeyError
+        If the latitude coordinate cannot be found in the dataarray.
+
     """
     if lat_key is None:
         lat_key = get_dim_key(dataarray, "y")
@@ -513,7 +555,7 @@ def get_dim_key(
 
     Parameters
     ----------
-    dataarray : xr.Dataset or xr.DataArray
+    dataarray : xarray.Dataset or xarray.DataArray
         The data to search for the dimension in.
     axis : str
         The axis to search for. This should be a CF standard axis key like 'x', 'y', 'z' or 't',
@@ -553,7 +595,34 @@ def get_dim_key(
 
 
 def get_spatial_info(dataarray, lat_key=None, lon_key=None):
-    # Figure out the keys for the latitude and longitude variables
+    """Return a dictionary of spatial metadata for a DataArray.
+
+    Detects latitude and longitude coordinate names, their associated
+    dimensions, and whether the grid is regular (1-D lat/lon coordinates)
+    or irregular (shared dimensions, e.g. obs or curvilinear grids).
+
+    Parameters
+    ----------
+    dataarray : xarray.DataArray or xarray.Dataset
+        The data object to inspect.
+    lat_key : str, optional
+        Name of the latitude coordinate. If not provided, it is detected
+        automatically.
+    lon_key : str, optional
+        Name of the longitude coordinate. If not provided, it is detected
+        automatically.
+
+    Returns
+    -------
+    dict
+        A dictionary with keys:
+
+        - ``'lat_key'`` (str): name of the latitude coordinate.
+        - ``'lon_key'`` (str): name of the longitude coordinate.
+        - ``'regular'`` (bool): ``True`` if the grid is regular, ``False`` if irregular.
+        - ``'spatial_dims'`` (list[str]): list of spatial dimension names.
+
+    """
     if lat_key is None:
         lat_key = get_dim_key(dataarray, "y")
     if lon_key is None:
@@ -604,6 +673,32 @@ def groupby_time(
     bin_widths: int | None = None,
     time_dim: str = "time",
 ):
+    """Group a DataArray or Dataset by a time frequency.
+
+    Parameters
+    ----------
+    dataarray : xarray.DataArray or xarray.Dataset
+        The data object to group.
+    frequency : str, optional
+        The time frequency to group by (e.g. ``'month'``, ``'dayofyear'``,
+        ``'weekofyear'``). If not provided, it is inferred from the data.
+    bin_widths : int, optional
+        Width of bins to use when grouping. If provided, :func:`groupby_bins`
+        is used instead of a simple ``groupby``.
+    time_dim : str, optional
+        Name of the time dimension. Defaults to ``'time'``.
+
+    Returns
+    -------
+    xr.core.groupby.DataArrayGroupBy or xr.core.groupby.DatasetGroupBy
+        A grouped data object ready for reduction.
+
+    Raises
+    ------
+    ValueError
+        If the frequency cannot be inferred from the data or is not valid.
+
+    """
     if frequency is None:
         try:
             frequency = xr.infer_freq(dataarray.time)
@@ -633,6 +728,32 @@ def groupby_bins(
     bin_widths: list[int] | int = 1,
     time_dim: str = "time",
 ):
+    """Group a DataArray or Dataset by binned time values.
+
+    Parameters
+    ----------
+    dataarray : xarray.DataArray or xarray.Dataset
+        The data object to group.
+    frequency : str
+        The time component to bin (e.g. ``'month'``, ``'dayofyear'``).
+    bin_widths : list of int or int, optional
+        If an ``int``, defines the uniform width of each bin (edges are
+        generated from 0 to the maximum value for ``frequency``). If a list
+        or tuple, it is used directly as the bin edges. Defaults to ``1``.
+    time_dim : str, optional
+        Name of the time dimension. Defaults to ``'time'``.
+
+    Returns
+    -------
+    xr.core.groupby.DataArrayGroupBy or xr.core.groupby.DatasetGroupBy
+        A grouped data object ready for reduction.
+
+    Raises
+    ------
+    ValueError
+        If the frequency is not valid.
+
+    """
     if not isinstance(bin_widths, (list, tuple)):
         max_value = _BIN_MAXES[frequency]
         bin_widths = list(range(0, max_value + 1, bin_widths))

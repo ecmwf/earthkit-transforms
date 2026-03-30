@@ -54,15 +54,15 @@ def rasterize(
 
     Parameters
     ----------
-    shape_list : affine.Affine
+    shape_list : list
         List of geometries
     coords : xarray.coords
         Coordinates of dataarray to be masked
-    lat_key :
+    lat_key : str, optional
         name of the latitude variables in the coordinates object
-    lon_key :
+    lon_key : str, optional
         name of the longitude variables in the coordinates object
-    dtype:
+    dtype : type, optional
         datatype of the returned mask, default is `int`
 
     kwargs:
@@ -102,11 +102,11 @@ def mask_contains_points(
         List of geometries
     coords : xarray.coords
         Coordinates of dataarray to be masked
-    lat_key:
+    lat_key : str, optional
         name of the latitude variables in the coordinates object
-    lon_key:
+    lon_key : str, optional
         name of the longitude variables in the coordinates object
-    dtype:
+    dtype : type, optional
         datatype of the returned mask, default is `int`
 
     Returns
@@ -317,7 +317,7 @@ def mask(
     geodataframe :
         Geopandas Dataframe containing the polygons for aggregations
     mask_dim :
-        dimension that will be created to accomodate the masked arrays, default is the index
+        dimension that will be created to accommodate the masked arrays, default is the index
         of the geodataframe
     all_touched :
         If True, all pixels touched by geometries will be considered in,
@@ -340,7 +340,7 @@ def mask(
     Returns
     -------
     xarray.Dataset | xarray.DataArray
-        A masked data array with dimensions [feautre_id] + [data.dims].
+        A masked data array with dimensions [feature_id] + [data.dims].
         Each slice of layer corresponds to a feature in layer.
 
     """

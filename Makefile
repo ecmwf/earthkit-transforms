@@ -35,4 +35,4 @@ template-update:
 	pre-commit run --all-files cruft -c .pre-commit-config-cruft.yaml
 
 docs-build:
-	cd docs && rm -fr _api && make clean SPHINXOPTS="-D nbsphinx_execute=$(NBSPHINX_EXECUTE)" && make html SPHINXOPTS="-D nbsphinx_execute=$(NBSPHINX_EXECUTE)"
+	cd docs && make clean && make html SPHINXOPTS="-D nbsphinx_execute=$(NBSPHINX_EXECUTE)"
