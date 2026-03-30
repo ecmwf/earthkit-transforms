@@ -7,16 +7,19 @@ for  transformations of data in specific domains.
 For example, the temporal module contains methods for aggregation and
 statistics analysis accross time dimensions/coordinates.
 
-.. **earthkit-transforms** has been designed
-.. following the philosophy of earthkit, hence the methods should be
-.. interoperable with any data object understood by earthkit-data.
-.. Under the bonnet, **earthkit-transforms** generally uses
-.. `xarray <https://xarray.pydata.org/en/stable/>`_ for computations,
-.. therefore it recommended to prepare your data as xarray objects
-.. before using the methods. This ensure clarity and consistency of the
-.. output produced by **earthkit-transforms**.
-
 .. grid:: 1
+   :gutter: 2
+
+   .. grid-item-card:: Why earthkit-transforms?
+      :img-top:  _static/earthkit-transforms-grey.svg
+      :link: why
+      :link-type: doc
+      :class-card: sd-shadow-sm
+
+      The motivation and key features of earthkit-transforms.
+
+
+.. grid:: 1 1 2 2
    :gutter: 2
 
    .. grid-item-card:: Installation and Getting Started
@@ -27,8 +30,13 @@ statistics analysis accross time dimensions/coordinates.
 
       New to earthkit-transforms? Start here with installation and a quick overview.
 
-.. grid:: 1 1 2 2
-   :gutter: 2
+   .. grid-item-card:: Frequently Asked Questions
+      :img-top: _static/message-question.svg
+      :link: getting-started
+      :link-type: doc
+      :class-card: sd-shadow-sm
+
+      The most common questions, answered.
 
    .. grid-item-card:: Tutorials
       :img-top: _static/book.svg
@@ -63,6 +71,18 @@ statistics analysis accross time dimensions/coordinates.
       Detailed documentation of all functions and classes.
 
 
+**Support**
+
+Have a feature request or found a bug? Feel free to open an
+`issue <https://github.com/ecmwf/earthkit-transforms/issues/new/choose>`_.
+
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+
+   why
+
 .. toctree::
    :caption: User guide
    :maxdepth: 2
@@ -73,6 +93,7 @@ statistics analysis accross time dimensions/coordinates.
    how-tos/index
    concepts/index
    api-reference
+   faqs
 
 
 .. toctree::
