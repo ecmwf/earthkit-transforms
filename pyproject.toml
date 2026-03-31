@@ -53,6 +53,7 @@ docs = [
   "sphinx-design",
   "nbsphinx",
   "myst-parser",
+  "pandoc",
   "pypandoc-binary",
   "PyYAML",
   "statsmodels",
