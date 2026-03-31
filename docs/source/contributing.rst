@@ -8,8 +8,6 @@ it and submit your PRs against the **main** branch.
 Development setup
 ~~~~~~~~~~~~~~~~~
 
-The recommended development environment is based on **conda**.
-
 First, clone the repository locally. You can use the following command:
 
 
@@ -18,22 +16,42 @@ First, clone the repository locally. You can use the following command:
    git clone git@github.com:ecmwf/earthkit-tranforms.git
 
 
-For best experience create a new conda environment (e.g. DEVELOP) with
-Python 3.11:
+The Makefile provides some convenient commands for setting up clean environments for developing
+and testing the package. To set up a clean `pip` environment, run the following:
 
 ::
 
-   conda create -n DEVELOP -c conda-forge python=3.11
-   conda activate DEVELOP
-   make conda-env-update
+   make clean-pip-env
 
-Before pushing to GitHub, run the following commands:
+   # Then activate the virtual environment with
+   . venv/bin/activate
 
-1. Install this package: ``pip install -e .``
-2. Run quality assurance checks: ``make default``
+Or if you prefer to use `uv`, then use the following:
 
-Run the quality assurance checks independently
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+::
+
+   make clean-uv-env
+
+   # Then activate the virtual environment with
+   uv venv .venv
+
+
+The environment created has the base installation of the package.
+To replicate the environment used in the CI, install the package with the `ci` extra:
+
+::
+
+   pip install -e ".[ci]"
+
+
+Run the CI checks independently
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With the `ci` extra installed, you can run the CI checks locally with:
+
+::
+
+   make default
 
 If you are interested on one specific aspect of the quality assurance
 tests they can be run independently as:

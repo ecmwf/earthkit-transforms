@@ -26,10 +26,10 @@ clean-pip-env:
 	python3 -m venv .venv
 	.venv/bin/pip install --upgrade pip setuptools wheel pre-commit mypy
 	.venv/bin/pip install -e .
-	. .venv/bin/activate
+	echo to activate the environment, run: . .venv/bin/activate
 
 clean-uv-env:
 	rm -rf .venv
 	uv venv .venv
 	uv pip install -e .
-	. .venv/bin/activate
+	echo to activate the environment, run: uv venv .venv
