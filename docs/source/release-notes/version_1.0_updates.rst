@@ -31,5 +31,6 @@ New Contributors
 
 * @mcocdawc made their first contribution in #87
 
-**Full Changelog**: https://github.com/ecmwf/earthkit-transforms/compare/0.5.3.1...1.0.0
+**Full Changelog**: https://github.com/ecmwf/earthkit-transforms/compare/0.5.4...1.0.0
+
 **Github release-notes**: https://github.com/ecmwf/earthkit-transforms/releases/tag/1.0.0
