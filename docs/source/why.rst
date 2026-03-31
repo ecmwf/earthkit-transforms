@@ -23,4 +23,4 @@ The results of transformations are designed to be easily visualised with the com
 
 .. figure:: _static/climate-stripes-reading.png
 
-Image created with the :doc:`../tutorials/climatology/01-era5-climatology` tutorial notebook.
+Image created with the :doc:`../tutorials/climatology/02-era5-anomaly` tutorial notebook.
