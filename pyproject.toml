@@ -35,30 +35,31 @@ all = [
   "earthkit-data[all]",
   "rasterio"  # Requires GDAL
 ]
+ci = [
+  "pre-commit",
+  "mypy",
+  "pytest",
+  "pytest-cov",
+  "pandas-stubs",
+  "types-PyYAML",
+  "earthkit-data",
+  "rasterio"  # Requires GDAL
+]
 docs = [
   "ipykernel",
-  "docutils",
   "Pygments>=2.6.1",
   "Sphinx",
   "furo",
   "sphinx-design",
   "nbsphinx",
   "myst-parser",
-  "setuptools",
-  "entrypoints",
-  "pandas",
-  "tqdm",
-  "xarray",
-  "filelock",
   "statsmodels",
   "reverse-geocode",
-  "matplotlib",
   "rasterio",
   "earthkit-plots @ git+https://github.com/ecmwf/earthkit-plots@release/1.0.0rc0",
   "earthkit-utils @ git+https://github.com/ecmwf/earthkit-utils@develop",
-  "earthkit-data",
-  "eccodeslib<=2.46.0.13",
-  "PyYAML"
+  "earthkit-data[all]",
+  "eccodeslib<=2.46.0.13"
 ]
 rasterio = [
   "rasterio"  # Requires GDAL
@@ -68,7 +69,7 @@ rasterio = [
 branch = true
 
 [tool.mypy]
-exclude = '^tests/legacy-api/'
+exclude = '(^tests/legacy-api/|^build/)'
 ignore_missing_imports = true
 
 [tool.ruff]

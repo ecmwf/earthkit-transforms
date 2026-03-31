@@ -24,7 +24,7 @@ docs-build:
 clean-pip-env:
 	rm -rf .venv
 	python3 -m venv .venv
-	.venv/bin/pip install --upgrade pip setuptools wheel pre-commit
+	.venv/bin/pip install --upgrade pip setuptools wheel pre-commit mypy
 	.venv/bin/pip install -e .
 	. .venv/bin/activate
 
