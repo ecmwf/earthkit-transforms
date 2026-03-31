@@ -1,6 +1,12 @@
 Earthkit-transforms documentation
 =================================
 
+.. important::
+
+   This software is in **release candidate** stage. It is not yet considered stable and may still undergo
+   significant changes before the final 1.0 release. We welcome feedback and contributions as we approach
+   that milestone.
+
 **earthkit-transforms** is a library of software tools to support people
 working with climate and meteorology data. It is made of sub-modules designed
 for  transformations of data in specific domains.
