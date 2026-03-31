@@ -3,7 +3,7 @@ Earthkit-transforms documentation
 
 .. important::
 
-   This software is in **release candidate** stage. It is not yet considered stable and may still undergo 
+   This software is in **release candidate** stage. It is not yet considered stable and may still undergo
    significant changes before the final 1.0 release. We welcome feedback and contributions as we approach
    that milestone.
 

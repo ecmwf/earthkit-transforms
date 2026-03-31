@@ -63,9 +63,9 @@ docs = [
   "statsmodels",
   "reverse-geocode",
   "rasterio",
-  "earthkit-plots @ git+https://github.com/ecmwf/earthkit-plots@release/1.0.0rc0",
+  "earthkit-plots>=1.0.0rc0",
   "earthkit-utils",
-  "earthkit-data",
+  "earthkit-data"
 ]
 
 [tool.coverage.run]
