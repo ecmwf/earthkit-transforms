@@ -32,7 +32,7 @@ requires-python = ">=3.10"
 
 [project.optional-dependencies]
 all = [
-  "earthkit-data[all]",
+  "earthkit-data",
   "rasterio"  # Requires GDAL
 ]
 ci = [
@@ -58,10 +58,7 @@ docs = [
   "rasterio",
   "earthkit-plots @ git+https://github.com/ecmwf/earthkit-plots@release/1.0.0rc0",
   "earthkit-utils",
-  "earthkit-data[all]",
-]
-rasterio = [
-  "rasterio"  # Requires GDAL
+  "earthkit-data",
 ]
 
 [tool.coverage.run]
