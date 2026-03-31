@@ -35,6 +35,15 @@ Or if you prefer to use `uv`, then use the following:
    # Then activate the virtual environment with
    uv venv .venv
 
+Or if you prefer to use `conda`, then use the following:
+
+::
+
+   make clean-conda-env
+
+   # Then activate the virtual environment with
+   conda activate ./.conda
+
 
 The environment created has the base installation of the package.
 To replicate the environment used in the CI, install the package with the `ci` extra:

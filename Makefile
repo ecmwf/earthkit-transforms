@@ -30,6 +30,12 @@ clean-pip-env:
 
 clean-uv-env:
 	rm -rf .venv
-	uv venv .venv
+	uv venv --python 3.12 .venv
 	uv pip install -e .
 	echo to activate the environment, run: uv venv .venv
+
+clean-conda-env:
+    conda create -p ./.conda -c conda-forge python=3.12
+	conda activate ./.conda
+	pip install -e .
+	echo to activate the environment, run: conda activate ./.conda
