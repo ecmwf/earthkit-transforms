@@ -3,7 +3,6 @@ build-backend = "setuptools.build_meta"
 requires = ["setuptools>=77", "setuptools_scm>=8"]
 
 [project]
-requires-python = ">=3.10"
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Science/Research",
@@ -26,9 +25,10 @@ dependencies = [
 description = "Aggregation tools for meteorological and climate data."
 dynamic = ["version"]
 license = "Apache-2.0"
-license-files = [ "LICENSE" ]
+license-files = ["LICENSE"]
 name = "earthkit-transforms"
 readme = "README.md"
+requires-python = ">=3.10"
 
 [project.optional-dependencies]
 all = [
