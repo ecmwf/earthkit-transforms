@@ -1,6 +1,4 @@
 PROJECT := earthkit-transforms
-CONDA := conda
-CONDAFLAGS :=
 COV_REPORT := html
 NBSPHINX_EXECUTE := auto
 
@@ -22,3 +20,17 @@ type-check:
 
 docs-build:
 	cd docs && make clean && make html SPHINXOPTS="-D nbsphinx_execute=$(NBSPHINX_EXECUTE)"
+
+clean-pip-env:
+	rm -rf .venv
+	python3 -m venv .venv
+	.venv/bin/pip install --upgrade pip setuptools wheel
+	.venv/bin/pip install -e .
+	. .venv/bin/activate
+
+clean-uv-env:
+	rm -rf .venv
+	uv venv .venv
+	uv pip install -e .
+	. .venv/bin/activate
+
