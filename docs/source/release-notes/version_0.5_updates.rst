@@ -26,3 +26,10 @@ Version 0.5.1 - 0.5.3
 
 - tools subpackage revert by @EddyCMWF in #70
 - Hotfix backwards compatibility, ensure that earthkit.transforms.aggregate is loaded with import of earthkit.transforms. Deprecation warnings applied more targetedly by @EddyCMWF in #71
+
+
+
+Version 0.5.4
+=============
+
+Pinned other earthkit dependencies to <1.0 to avoid any breaking changes
