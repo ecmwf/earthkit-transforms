@@ -22,9 +22,10 @@ Compatible with both CPU and GPU, and with data objects that are lazily loaded o
 The results of transformations are designed to be easily visualised with the companion library, earthkit-plots, with methods that return plot-ready objects.
 
 **earthkit-transforms** is used in a number of ECMWF projects, including the on-the-fly production of
-`daily statistics for the ERA5 reanalysis <https://cds.climate.copernicus.eu/datasets/derived-era5-single-levels-daily-statistics>`_
-and in the backend processing of several Climate Change Service web-applications, e.g. to produce
-the anomaly data used to produce cliamte stripes.
+`Daily statistics for the ERA5 reanalysis <https://cds.climate.copernicus.eu/datasets/derived-era5-single-levels-daily-statistics>`_,
+in the backend processing of Climate Change Service
+`Global temperature trend monitor <https://apps.climate.copernicus.eu/global-temperature-trend-monitor/?tab=plots>`_, 
+and is used to produce the anomaly data visualised in the infamous climate stripes, as demonstrated below.
 
 .. figure:: _static/climate-stripes-reading.png
 
