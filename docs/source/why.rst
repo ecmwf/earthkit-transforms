@@ -25,7 +25,7 @@ The results of transformations are designed to be easily visualised with the com
 `Daily statistics for the ERA5 reanalysis <https://cds.climate.copernicus.eu/datasets/derived-era5-single-levels-daily-statistics>`_,
 in the backend processing of Climate Change Service
 `Global temperature trend monitor <https://apps.climate.copernicus.eu/global-temperature-trend-monitor/?tab=plots>`_, 
-and is used to produce the anomaly data visualised in the infamous climate stripes, as demonstrated below.
+and is used to produce the anomaly data visualised in the famous climate stripes, as demonstrated below.
 
 .. figure:: _static/climate-stripes-reading.png
 
