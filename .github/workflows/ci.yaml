@@ -85,6 +85,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
     - name: Get current date
       id: date
       run: echo "date=$(date +%Y-%m-%d)" >> "${GITHUB_OUTPUT}"
@@ -93,7 +96,8 @@ jobs:
         python -m pip install -e ".[docs]"
     - name: Register Jupyter kernel
       run: |
-        python -m ipykernel install --user --name=python3 --display-name "Python 3 (CI)" --replace
+        jupyter kernelspec uninstall -f python3 || true
+        python -m ipykernel install --user --name=python3 --display-name="Python 3"
     - name: Build documentation
       run: |
         make docs-build
