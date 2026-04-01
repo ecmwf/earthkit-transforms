@@ -19,7 +19,7 @@ classifiers = [
 dependencies = [
   "xarray>=2022.3.0",
   "numpy>=1.18",
-  "earthkit-utils",
+  "earthkit-utils>=1.0.0rc0",
   "geopandas"
 ]
 description = "Aggregation tools for meteorological and climate data."
@@ -32,7 +32,7 @@ requires-python = ">=3.10"
 
 [project.optional-dependencies]
 all = [
-  "earthkit-data",
+  "earthkit-data>=1.0.0rc0",
   "rasterio"  # Requires GDAL
 ]
 ci = [
@@ -46,13 +46,21 @@ ci = [
   "rasterio"  # Requires GDAL
 ]
 docs = [
+  "pre-commit",
+  "mypy",
+  "pytest",
+  "pytest-cov",
+  "pandas-stubs",
+  "types-PyYAML",
   "ipykernel",
   "Pygments>=2.6.1",
   "Sphinx",
+  "docutils",
   "entrypoints",
   "filelock",
   "furo",
   "sphinx-design",
+  "nbconvert",
   "nbsphinx",
   "myst-parser",
   "tqdm",
@@ -64,8 +72,8 @@ docs = [
   "reverse-geocode",
   "rasterio",
   "earthkit-plots>=1.0.0rc0",
-  "earthkit-utils",
-  "earthkit-data"
+  "earthkit-utils>=1.0.0rc0",
+  "earthkit-data>=1.0.0rc0"
 ]
 
 [tool.coverage.run]
