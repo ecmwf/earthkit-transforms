@@ -46,6 +46,12 @@ ci = [
   "rasterio"  # Requires GDAL
 ]
 docs = [
+  "pre-commit",
+  "mypy",
+  "pytest",
+  "pytest-cov",
+  "pandas-stubs",
+  "types-PyYAML",
   "ipykernel",
   "Pygments>=2.6.1",
   "Sphinx",
