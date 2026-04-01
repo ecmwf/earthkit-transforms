@@ -19,7 +19,7 @@ classifiers = [
 dependencies = [
   "xarray>=2022.3.0",
   "numpy>=1.18",
-  "earthkit-utils>=1.0.0rc1",
+  "earthkit-utils>=1.0.0rc0",
   "geopandas"
 ]
 description = "Aggregation tools for meteorological and climate data."
@@ -64,8 +64,8 @@ docs = [
   "reverse-geocode",
   "rasterio",
   "earthkit-plots>=1.0.0rc0",
-  "earthkit-utils",
-  "earthkit-data"
+  "earthkit-utils>=1.0.0rc0",
+  "earthkit-data>=1.0.0rc0"
 ]
 
 [tool.coverage.run]
