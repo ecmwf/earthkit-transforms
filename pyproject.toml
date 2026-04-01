@@ -32,7 +32,7 @@ requires-python = ">=3.10"
 
 [project.optional-dependencies]
 all = [
-  "earthkit-data",
+  "earthkit-data>=1.0.0rc0",
   "rasterio"  # Requires GDAL
 ]
 ci = [
