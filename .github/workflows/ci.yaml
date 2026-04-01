@@ -100,4 +100,4 @@ jobs:
         python -m ipykernel install --user --name=python3 --display-name="Python 3"
     - name: Build documentation
       run: |
-        make docs-build
+        cd docs; make html
