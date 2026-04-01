@@ -42,7 +42,7 @@ jobs:
         python -m pip install -e ".[docs]"
     - name: Register Jupyter kernel
       run: |
-        python -m ipykernel install --user --name=python3
+        python -m ipykernel install --user --name=python3 --display-name "Python 3 (CI)" --replace
     - name: Build documentation
       run: |
         make docs-build
