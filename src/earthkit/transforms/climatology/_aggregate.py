@@ -962,22 +962,18 @@ def auto_anomaly(
     dataarray : xarray.DataArray
         The DataArray over which to calculate the anomaly from the reference
         climatology. Must contain a `time` dimension.
-    climatology :  (xarray.DataArray, optional)
-        Reference climatology data against which the anomaly is to be calculated.
-        If not provided then the climatological mean is calculated from dataarray.
     climatology_range : (list or tuple, optional)
         Start and end year of the period to be used for the reference climatology. Default
         is to use the entire time-series.
     climatology_how : string
         Method used to calculate climatology, default is "mean". Accepted values are "median", "min", "max"
     climatology_frequency : str (optional)
-        Valid options are None, `dayofyear`, `weekofyear` and `month`. The default is the same frequency as
-        used for the anomaly. If neither are provided, the climatology is calculated over all time-steps
+        Valid options are None (default), `dayofyear`, `weekofyear` and `month`. If None, 
+        the climatology is calculated over all time-steps
         and the anomaly is returned on the same frequency as the input data.
     frequency : str (optional)
         Valid options are `day`, `week`, `month` and `year`. The default is to return the anomaly on the
-        same frequency as the input data. If the frequency of the anomaly is specified, the
-        climatology_frequency will default to this frequency.
+        same frequency as the input data.
     bin_widths : int or list (optional)
         If `bin_widths` is an `int`, it defines the width of each group bin on
         the frequency provided by `frequency`. If `bin_widths` is a sequence
@@ -995,15 +991,12 @@ def auto_anomaly(
     xarray.DataArray
 
     """
-    clim_kwargs = {k: v for k, v in _kwargs.items() if k not in ["how", "frequency"]}
-    climatology_frequency = climatology_frequency or _kwargs.get("frequency")
     climatology = reduce(
         dataarray,
         *_args,
         how=climatology_how,
         climatology_range=climatology_range,
         frequency=climatology_frequency,
-        **clim_kwargs,
     )
 
     return anomaly(dataarray, climatology, *_args, relative=relative, **_kwargs)
