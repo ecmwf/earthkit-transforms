@@ -23,6 +23,7 @@ from earthkit.transforms._tools import (
     nanaverage,
     normalize_dims,
     season_order_decorator,
+    time_shift_decorator,
     standard_weights,
     time_dim_decorator,
     timedelta_to_largest_unit,
@@ -540,3 +541,126 @@ def test_groupby_kwargs_decorator_climatology_valid_freq():
 
     result = dummy(None, frequency="month")
     assert result["frequency"] == "month"
+
+
+# ---------------------------------------------------------------------------
+# time_shift_decorator validation
+# ---------------------------------------------------------------------------
+
+
+def _dummy_func_shift(dataarray, *args, time_shift=None, **kwargs):
+    return dataarray, time_shift
+
+
+def _make_time_da_shift():
+    """Simple 1-D time DataArray."""
+    return xr.DataArray(
+        [1.0, 2.0, 3.0, 4.0],
+        dims=["time"],
+        coords={"time": pd.date_range("2020-01-01", periods=4, freq="h")},
+    )
+
+
+def test_time_shift_decorator_none_passthrough():
+    """time_shift=None must be passed to the wrapped function unchanged."""
+    da = _make_time_da_shift()
+    _, ts = time_shift_decorator(_dummy_func_shift)(da, time_shift=None)
+    assert ts is None
+
+
+def test_time_shift_decorator_scalar_passthrough():
+    """A pd.Timedelta scalar must be passed through without modification."""
+    da = _make_time_da_shift()
+    td = pd.Timedelta("2h")
+    _, ts = time_shift_decorator(_dummy_func_shift)(da, time_shift=td)
+    assert ts == td
+
+
+def test_time_shift_decorator_dict_passthrough():
+    """A dict time_shift must be passed through without modification."""
+    da = _make_time_da_shift()
+    shift = {"hours": 3}
+    _, ts = time_shift_decorator(_dummy_func_shift)(da, time_shift=shift)
+    assert ts == shift
+
+
+def test_time_shift_decorator_str_scalar_coord():
+    """A string is resolved to the named coordinate; scalar coords are unwrapped."""
+    da = _make_time_da_shift().assign_coords(tz=np.timedelta64(1, "h"))
+    _, ts = time_shift_decorator(_dummy_func_shift)(da, time_shift="tz")
+    assert ts == np.timedelta64(1, "h")
+
+
+def test_time_shift_decorator_da_single_unique():
+    """A DataArray with a single unique value is unwrapped to that scalar."""
+    da = _make_time_da_shift()
+    # A 0-d DataArray (no dims): single unique value, no time dependence.
+    shift_da = xr.DataArray(np.timedelta64(2, "h"))
+    _, ts = time_shift_decorator(_dummy_func_shift)(da, time_shift=shift_da)
+    assert ts == np.timedelta64(2, "h")
+
+
+def test_time_shift_decorator_da_multi_zone():
+    """A DataArray with multiple unique values triggers per-zone groupby processing."""
+    time = pd.date_range("2020-01-01", periods=4, freq="h")
+    lat = [0, 1]
+    da = xr.DataArray(
+        np.ones((4, 2)),
+        dims=["time", "lat"],
+        coords={"time": time, "lat": lat},
+    )
+    shift_da = xr.DataArray(
+        [np.timedelta64(-1, "h"), np.timedelta64(2, "h")],
+        dims=["lat"],
+        coords={"lat": lat},
+    )
+
+    received_shifts = []
+
+    def _recording(dataarray, *args, time_shift=None, **kwargs):
+        received_shifts.append(time_shift)
+        return dataarray
+
+    result = time_shift_decorator(_recording)(da, time_shift=shift_da)
+
+    # The wrapped function must have been called once per unique shift value.
+    assert len(received_shifts) == 2
+    # Each call must have received a scalar, not a DataArray.
+    assert all(not isinstance(ts, xr.DataArray) for ts in received_shifts)
+    assert set(received_shifts) == {np.timedelta64(-1, "h"), np.timedelta64(2, "h")}
+    # The internal groupby coordinate must not leak into the output.
+    assert "__recording_time_shift" not in result.coords
+
+
+def test_time_shift_decorator_str_spatial_coord():
+    """A string resolving to a spatially-varying coordinate triggers per-zone processing."""
+    time = pd.date_range("2020-01-01", periods=4, freq="h")
+    lat = [0, 1]
+    shift_values = [np.timedelta64(-1, "h"), np.timedelta64(3, "h")]
+    shift_da = xr.DataArray(shift_values, dims=["lat"], coords={"lat": lat})
+    da = xr.DataArray(
+        np.ones((4, 2)),
+        dims=["time", "lat"],
+        coords={"time": time, "lat": lat, "tz": shift_da},
+    )
+
+    received_shifts = []
+
+    def _recording2(dataarray, *args, time_shift=None, **kwargs):
+        received_shifts.append(time_shift)
+        return dataarray
+
+    result = time_shift_decorator(_recording2)(da, time_shift="tz")
+
+    assert len(received_shifts) == 2
+    assert all(not isinstance(ts, xr.DataArray) for ts in received_shifts)
+    assert set(received_shifts) == {np.timedelta64(-1, "h"), np.timedelta64(3, "h")}
+    assert "__recording2_time_shift" not in result.coords
+
+
+def test_time_shift_decorator_str_missing_coord():
+    """A string that is not a coordinate name raises a KeyError with an informative message."""
+    da = _make_time_da_shift()
+    decorated = time_shift_decorator(_dummy_func_shift)
+    with pytest.raises(KeyError):
+        decorated(da, time_shift="nonexistent_coord")
