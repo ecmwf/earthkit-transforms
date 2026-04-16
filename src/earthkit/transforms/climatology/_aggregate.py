@@ -24,6 +24,7 @@ from earthkit.transforms.temporal import reduce as _temporal_reduce
 
 
 @format_handler()
+@_tools.time_shift_decorator
 @_tools.time_dim_decorator
 @_tools.groupby_kwargs_decorator(climatology=True)
 @_tools.season_order_decorator
@@ -62,6 +63,13 @@ def reduce(
     time_dim : str (optional)
         Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
+        as kwargs to `pandas.Timedelta`.  An :class:`xarray.DataArray` may be used to
+        specify, e.g., spatially-varying per-gridpoint time zone offsets.
+        A string is interpreted as the name of a coordinate on the input data.
+        Default is None.
     climatology_range : (list or tuple, optional)
         Start and end year of the period to be used for the reference climatology. Default
         is to use the entire time-series.
@@ -272,6 +280,13 @@ def daily_reduce(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     time_dim : str (optional)
         Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
+        as kwargs to `pandas.Timedelta`.  An :class:`xarray.DataArray` may be used to
+        specify, e.g., spatially-varying per-gridpoint time zone offsets.
+        A string is interpreted as the name of a coordinate on the input data.
+        Default is None.
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
@@ -443,6 +458,13 @@ def monthly_reduce(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
     time_dim : str (optional)
         Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
+        as kwargs to `pandas.Timedelta`.  An :class:`xarray.DataArray` may be used to
+        specify, e.g., spatially-varying per-gridpoint time zone offsets.
+        A string is interpreted as the name of a coordinate on the input data.
+        Default is None.
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
@@ -592,6 +614,7 @@ def monthly_std(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
 
 @format_handler()
+@_tools.time_shift_decorator
 @_tools.time_dim_decorator
 @_tools.groupby_kwargs_decorator(climatology=True)
 @_tools.season_order_decorator
@@ -621,6 +644,13 @@ def quantiles(
     time_dim : str (optional)
         Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
+        as kwargs to `pandas.Timedelta`.  An :class:`xarray.DataArray` may be used to
+        specify, e.g., spatially-varying per-gridpoint time zone offsets.
+        A string is interpreted as the name of a coordinate on the input data.
+        Default is None.
     climatology_range : (list or tuple, optional)
         Start and end year of the period to be used for the reference climatology. Default
         is to use the entire time-series.
@@ -691,6 +721,13 @@ def percentiles(
     time_dim : str (optional)
         Name of the time dimension in the data object, default behaviour is to detect the
         time dimension from the input object
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
+        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
+        as kwargs to `pandas.Timedelta`.  An :class:`xarray.DataArray` may be used to
+        specify, e.g., spatially-varying per-gridpoint time zone offsets.
+        A string is interpreted as the name of a coordinate on the input data.
+        Default is None.
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.reduce` (except how)
 
