@@ -18,7 +18,6 @@ from earthkit.utils.decorators import format_handler
 
 from earthkit.transforms import _tools
 from earthkit.transforms._aggregate import reduce as _reduce
-from earthkit.transforms._aggregate import resample
 from earthkit.transforms._tools import groupby_time
 from earthkit.transforms.temporal import reduce as _temporal_reduce
 
@@ -881,7 +880,7 @@ def _anomaly_dataarray(
             if relative:
                 anomaly_array = (anomaly_array / climatology_da) * 100.0
         else:
-            # Need to group the dataarray to the same frequency as the climatology before taking the difference, 
+            # Need to group the dataarray to the same frequency as the climatology before taking the difference,
             # and then broadcast back to the original dataarray dimensions
             anomaly_array = (
                 groupby_time(dataarray, time_dim=time_dim, frequency=clim_freq, **clim_groupby_kwargs) - climatology_da
@@ -893,6 +892,10 @@ def _anomaly_dataarray(
                     / climatology_da
                     * 100.0
                 )
+
+            # The broadcast_like is probably not necessary as the _temporal_reduce should take care
+            # of things, but it is a useful safeguard against any potential changes in downstream processing
+            anomaly_array = anomaly_array.broadcast_like(dataarray)
 
         anomaly_array = _temporal_reduce(anomaly_array, time_dim=time_dim, **groupby_kwargs, **reduce_kwargs)
 
@@ -983,7 +986,7 @@ def auto_anomaly(
     climatology_how : string
         Method used to calculate climatology, default is "mean". Accepted values are "median", "min", "max"
     climatology_frequency : str (optional)
-        Valid options are None (default), `dayofyear`, `weekofyear` and `month`. If None, 
+        Valid options are None (default), `dayofyear`, `weekofyear` and `month`. If None,
         the climatology is calculated over all time-steps
         and the anomaly is returned on the same frequency as the input data.
     frequency : str (optional)
