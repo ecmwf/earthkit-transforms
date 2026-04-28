@@ -846,6 +846,7 @@ def _anomaly_dataarray(
     # Annual anomalies are simpler and do not need to be subtracted from before resampling
     frequency = groupby_kwargs.get("frequency")
     clim_groupby_kwargs = {k: v for k, v in groupby_kwargs.items() if k != "frequency"}
+
     if frequency is None:
         if clim_freq == "year":
             # If frequency is None, and clim frequency is year, then we can just take the difference
@@ -866,7 +867,7 @@ def _anomaly_dataarray(
                 )
             anomaly_array = anomaly_array.broadcast_like(dataarray)
 
-    elif groupby_kwargs["frequency"] == "year":
+    elif frequency == "year":
         anomaly_array = (
             _temporal_reduce(dataarray, time_dim=time_dim, **groupby_kwargs, **reduce_kwargs) - climatology_da
         )
@@ -875,11 +876,25 @@ def _anomaly_dataarray(
             anomaly_array = (anomaly_array / climatology_da) * 100.0
 
     else:
-        anomaly_array = groupby_time(dataarray, time_dim=time_dim, **groupby_kwargs) - climatology_da
+        if clim_freq == "year":
+            anomaly_array = dataarray - climatology_da
+            if relative:
+                anomaly_array = (anomaly_array / climatology_da) * 100.0
+        else:
+            # Need to group the dataarray to the same frequency as the climatology before taking the difference, 
+            # and then broadcast back to the original dataarray dimensions
+            anomaly_array = (
+                groupby_time(dataarray, time_dim=time_dim, frequency=clim_freq, **clim_groupby_kwargs) - climatology_da
+            )
 
-        if relative:
-            anomaly_array = (groupby_time(anomaly_array, time_dim=time_dim, **groupby_kwargs) / climatology_da) * 100.0
-        anomaly_array = resample(anomaly_array, **reduce_kwargs, **groupby_kwargs, dim=time_dim)
+            if relative:
+                anomaly_array = (
+                    groupby_time(anomaly_array, time_dim=time_dim, frequency=clim_freq, **clim_groupby_kwargs)
+                    / climatology_da
+                    * 100.0
+                )
+
+        anomaly_array = _temporal_reduce(anomaly_array, time_dim=time_dim, **groupby_kwargs, **reduce_kwargs)
 
     if relative:
         name_tag = "relative anomaly"
