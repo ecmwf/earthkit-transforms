@@ -436,3 +436,107 @@ def test_climatology_auto_anomaly_local():
     result = climatology.auto_anomaly(da, frequency="month")
     assert isinstance(result, xr.DataArray)
     assert "time" in result.dims
+
+
+# --- anomaly: clim frequency ≠ anomaly frequency (local) -------------------
+
+
+def test_anomaly_monthly_clim_no_freq_broadcasts_to_original_shape():
+    """Monthly climatology with no anomaly frequency broadcasts back to the original time axis.
+
+    Code path: clim_freq='month', frequency=None →
+    groupby(month) - clim → broadcast_like(da)
+    """
+    da = _make_daily_clim_da()
+    clim = climatology.monthly_mean(da)
+    anom = climatology.anomaly(da, clim)
+    assert isinstance(anom, xr.DataArray)
+    assert anom.shape == da.shape
+    assert "time" in anom.dims
+
+
+def test_anomaly_scalar_clim_no_freq_subtracts_scalar():
+    """Overall (scalar) climatology with no anomaly frequency subtracts the scalar from the input.
+
+    Code path: clim_freq='year', frequency=None → da - clim_scalar
+    """
+    da = _make_daily_clim_da()
+    clim = climatology.mean(da)  # no frequency → scalar
+    anom = climatology.anomaly(da, clim)
+    assert isinstance(anom, xr.DataArray)
+    assert anom.shape == da.shape
+    assert "time" in anom.dims
+    # Anomaly mean must be near zero (mean of da minus mean of da)
+    np.testing.assert_allclose(float(anom.mean()), 0.0, atol=1e-10)
+
+
+def test_anomaly_relative_near_zero_for_constant_per_month():
+    """Relative anomaly is ~0 when data equals the climatology exactly.
+
+    With constant-per-month data, (data - clim) / clim * 100 == 0.
+    """
+    da = _make_monthly_clim_da()
+    clim = climatology.monthly_mean(da)
+    anom_rel = climatology.anomaly(da, clim, frequency="month", relative=True)
+    assert isinstance(anom_rel, xr.DataArray)
+    assert anom_rel.shape == da.shape
+    np.testing.assert_allclose(anom_rel.values, 0.0, atol=1e-10)
+
+
+# --- auto_anomaly: varied climatology_frequency / frequency (local) --------
+
+
+def test_auto_anomaly_monthly_clim_freq_broadcasts_to_original_shape():
+    """auto_anomaly with climatology_frequency='month' and no anomaly frequency.
+
+    The monthly climatology is broadcast back to the original monthly time axis.
+    """
+    da = _make_monthly_clim_da()
+    result = climatology.auto_anomaly(da, climatology_frequency="month")
+    assert isinstance(result, xr.DataArray)
+    assert result.shape == da.shape
+    assert "time" in result.dims
+
+
+def test_auto_anomaly_daily_clim_freq_broadcasts_to_original_shape():
+    """auto_anomaly with climatology_frequency='dayofyear' and no anomaly frequency.
+
+    The dayofyear climatology is broadcast back to the original daily time axis.
+    """
+    da = _make_daily_clim_da()
+    result = climatology.auto_anomaly(da, climatology_frequency="dayofyear")
+    assert isinstance(result, xr.DataArray)
+    assert result.shape == da.shape
+    assert "time" in result.dims
+
+
+def test_auto_anomaly_climatology_range_restricts_clim_years():
+    """climatology_range limits the years used to build the climatology.
+
+    The anomaly is still returned over the full input time axis.
+    """
+    da = _make_monthly_clim_da(n_years=5, start_year=2000)
+    result = climatology.auto_anomaly(da, frequency="month", climatology_range=("2000", "2002"))
+    assert isinstance(result, xr.DataArray)
+    assert "time" in result.dims
+    # Full 5-year monthly series is preserved
+    assert result.sizes["time"] == 60
+
+
+def test_auto_anomaly_climatology_how_median():
+    """climatology_how='median' produces the same result as 'mean' for constant-per-month data."""
+    da = _make_monthly_clim_da()
+    result_mean = climatology.auto_anomaly(da, frequency="month", climatology_how="mean")
+    result_median = climatology.auto_anomaly(da, frequency="month", climatology_how="median")
+    assert isinstance(result_median, xr.DataArray)
+    np.testing.assert_allclose(result_mean.values, result_median.values, rtol=1e-10)
+
+
+def test_auto_anomaly_dataset_input():
+    """auto_anomaly accepts xr.Dataset and returns xr.Dataset."""
+    da = _make_monthly_clim_da()
+    ds = da.to_dataset(name="var")
+    result = climatology.auto_anomaly(ds, frequency="month")
+    assert isinstance(result, xr.Dataset)
+    assert "var" in result
+    assert "time" in result.dims
