@@ -6,7 +6,7 @@ built on xarray. Developed and maintained by ECMWF.
 - **Docs**: https://earthkit-transforms.readthedocs.io/en/latest/
 - **Repo**: https://github.com/ecmwf/earthkit-transforms
 
----
+______________________________________________________________________
 
 ## Architecture
 
@@ -28,7 +28,7 @@ earthkit-data objects directly (converted internally by the `format_handler` dec
 Source lives in `src/earthkit/transforms/`. Each sub-module has a domain `_aggregate.py`
 (and `_rates.py` for temporal). Shared utilities are in `src/earthkit/transforms/_tools.py`.
 
----
+______________________________________________________________________
 
 ## API Conventions
 
@@ -70,9 +70,10 @@ When `frequency` is passed to `temporal.reduce`, the function delegates to `resa
 ### Dimension detection
 
 Dimensions are auto-detected in this priority order:
+
 1. `axis` attribute on the coordinate (CF: `"T"`, `"X"`, `"Y"`, `"E"`)
-2. `standard_name` attribute (CF conventions)
-3. Common variable names (see table below)
+1. `standard_name` attribute (CF conventions)
+1. Common variable names (see table below)
 
 | Axis | Recognised names |
 |---|---|
@@ -108,7 +109,7 @@ Appends a suffix to output variable names:
 temporal.reduce(data, how="mean", how_label="mean")  # variable becomes "2t_mean"
 ```
 
----
+______________________________________________________________________
 
 ## Common Patterns
 
@@ -120,21 +121,25 @@ ekt.temporal.mean(ds)
 ekt.temporal.reduce(ds, how="max")
 
 # Resample to daily/monthly (pass frequency)
-ekt.temporal.reduce(ds, frequency="D", how="mean")    # daily mean
-ekt.temporal.daily_mean(ds)                            # equivalent shorthand
-ekt.temporal.reduce(ds, frequency="ME", how="sum")    # monthly sum
-ekt.temporal.monthly_sum(ds)                           # equivalent shorthand
+ekt.temporal.reduce(ds, frequency="D", how="mean")  # daily mean
+ekt.temporal.daily_mean(ds)  # equivalent shorthand
+ekt.temporal.reduce(ds, frequency="ME", how="sum")  # monthly sum
+ekt.temporal.monthly_sum(ds)  # equivalent shorthand
 
 # Rolling window
 ekt.temporal.rolling_reduce(ds, time=7, how_reduce="mean")
 
 # Deaccumulation / rate conversion
-ekt.temporal.deaccumulate(ds)                          # step-length rate (e.g. seasonal forecasts)
-ekt.temporal.accumulation_to_rate(ds, rate_units="hours", accumulation_type="start_of_step")
+ekt.temporal.deaccumulate(ds)  # step-length rate (e.g. seasonal forecasts)
+ekt.temporal.accumulation_to_rate(
+    ds, rate_units="hours", accumulation_type="start_of_step"
+)
 
 # Climatology (group across years, reduce within each group)
 ekt.climatology.mean(ds, frequency="month")
-ekt.climatology.reduce(ds, frequency="dayofyear", how="std", climatology_range=(1991, 2020))
+ekt.climatology.reduce(
+    ds, frequency="dayofyear", how="std", climatology_range=(1991, 2020)
+)
 
 # Anomaly
 ekt.climatology.anomaly(data, reference_climatology)
@@ -149,7 +154,7 @@ ekt.ensemble.mean(ds)
 ekt.ensemble.reduce(ds, how="std")
 ```
 
----
+______________________________________________________________________
 
 ## Dependencies
 
@@ -161,7 +166,7 @@ ekt.ensemble.reduce(ds, how="std")
 
 Python 3.10+ required.
 
----
+______________________________________________________________________
 
 ## Build and Test (contributors)
 
@@ -188,7 +193,7 @@ make docs-build               # Sphinx HTML docs
 Tests fetch remote ERA5 test data (cached after first run via earthkit-data cache).
 Legacy API tests cover the deprecated `earthkit.transforms.aggregate` namespace.
 
----
+______________________________________________________________________
 
 ## Conventions (contributors)
 

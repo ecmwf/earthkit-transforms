@@ -14,20 +14,20 @@ ek_data.settings.set("cache-policy", "user")
 
 
 def get_data():
-    remote_era5_file = earthkit_remote_test_data_file("era5-Europe-sfc-2m-temperature-3deg-2015-2017.grib")
+    remote_era5_file = earthkit_remote_test_data_file("ERA5-Reading-2m-temperature-1940-2025.nc")
     return ek_data.from_source("url", remote_era5_file)
 
 
 @pytest.fixture(scope="session")
 def era5_dataset():
     """Session-scoped computed xarray.Dataset for ERA5 test data."""
-    return get_data().to_xarray().compute()
+    return get_data().to_xarray().sel(valid_time=slice("2000", "2020")).compute()
 
 
 @pytest.fixture(scope="session")
-def era5_da_2t(era5_dataset):
-    """Session-scoped DataArray for the '2t' variable from ERA5 dataset."""
-    return era5_dataset["2t"]
+def era5_da_t2m(era5_dataset):
+    """Session-scoped DataArray for the 't2m' variable from ERA5 dataset."""
+    return era5_dataset["t2m"]
 
 
 @pytest.fixture
@@ -50,7 +50,7 @@ def in_data(request):
     "in_data, expected_return_type",
     (
         pytest.param("era5_dataset", xr.Dataset, id="dataset"),
-        pytest.param("era5_da_2t", xr.DataArray, id="dataarray"),
+        pytest.param("era5_da_t2m", xr.DataArray, id="dataarray"),
     ),
     indirect=["in_data"],
 )
@@ -58,9 +58,9 @@ def test_climatology_base(in_data, expected_return_type, method):
     clim = method(in_data)
     assert isinstance(clim, expected_return_type)
     if expected_return_type == xr.DataArray:
-        assert "2t" == clim.name
+        assert "t2m" == clim.name
     else:
-        assert "2t" in clim
+        assert "t2m" in clim
 
     # Check alternate frequencies
     for freq in ["month", "dayofyear"]:
@@ -92,10 +92,9 @@ def test_climatology_base(in_data, expected_return_type, method):
         climatology.median,
     ),
 )
-def test_climatology_frequency(method, freq, expected_dim):
-    in_data = get_data().to_xarray(time_dim_mode="valid_time").compute()
-    clim = method(in_data, frequency=freq)
-    assert "2t" in clim
+def test_climatology_frequency(era5_dataset, method, freq, expected_dim):
+    clim = method(era5_dataset, frequency=freq)
+    assert "t2m" in clim
     assert expected_dim in list(clim.dims)
 
 
@@ -109,9 +108,10 @@ def test_climatology_frequency(method, freq, expected_dim):
 @pytest.mark.parametrize(
     "in_data, expected_return_type",
     (
-        [get_data().to_xarray().compute(), xr.Dataset],
-        [get_data().to_xarray()["2t"], xr.DataArray],
+        pytest.param("era5_dataset", xr.Dataset, id="dataset"),
+        pytest.param("era5_da_t2m", xr.DataArray, id="dataarray"),
     ),
+    indirect=["in_data"],
 )
 def test_anomaly_base(in_data, expected_return_type, clim_method):
     clim_m = clim_method(in_data)
@@ -122,40 +122,39 @@ def test_anomaly_base(in_data, expected_return_type, clim_method):
     assert all(dim in list(anom_m.dims) for dim in in_data.dims)
     assert all(anom_m.sizes[dim] == in_data.sizes[dim] for dim in in_data.dims)
     if expected_return_type == xr.DataArray:
-        assert "2t" == anom_m.name
+        assert "t2m" == anom_m.name
     else:
-        assert "2t" in anom_m
+        assert "t2m" in anom_m
 
 
 @pytest.mark.parametrize(
     "freq, expected_dim_length",
     (
-        ("D", 365 + 366 + 365),
-        ("dayofyear", 365 + 366 + 365),
+        ("D", 7671),
+        ("dayofyear", 7671),
         # ("day", "Ambiguous, not supported"),
-        ("week", 52 + 53 + 52),
-        ("weekofyear", 52 + 53 + 52),
-        ("MS", 36),
-        ("ME", 36),
+        ("week", 1097),
+        ("weekofyear", 1097),
+        ("MS", 252),
+        ("ME", 252),
         # ("3MS", "month"),
-        ("month", 36),
-        ("YE", 3),
-        ("year", 3),
+        ("month", 252),
+        ("YE", 21),
+        ("year", 21),
     ),
 )
 @pytest.mark.parametrize(
     "clim_method",
     (
         climatology.mean,
-        climatology.median,
+        climatology.max,
     ),
 )
-def test_anomaly_frequency(clim_method, expected_dim_length, freq):
-    in_data = get_data().to_xarray(time_dim_mode="valid_time").compute()
-    clim_m = clim_method(in_data, frequency=freq)
-    anom_m = climatology.anomaly(in_data, clim_m, frequency=freq)
+def test_anomaly_frequency(era5_dataset, clim_method, expected_dim_length, freq):
+    clim_m = clim_method(era5_dataset, frequency=freq)
+    anom_m = climatology.anomaly(era5_dataset, clim_m, frequency=freq)
     # Dimensions of the anomaly should be the same as the input data
-    assert all(dim in list(anom_m.dims) for dim in in_data.dims)
+    assert all(dim in list(anom_m.dims) for dim in era5_dataset.dims)
     # Check valid_time is the correct length for the frequency used
     assert anom_m.sizes["valid_time"] == expected_dim_length
 
@@ -172,27 +171,27 @@ def test_anomaly_frequency(clim_method, expected_dim_length, freq):
 @pytest.mark.parametrize(
     "in_data, expected_return_type",
     (
-        # [get_data(), xr.Dataset],
-        [get_data().to_xarray().compute(), xr.Dataset],
-        [get_data().to_xarray().compute()["2t"], xr.DataArray],
+        pytest.param("era5_dataset", xr.Dataset, id="dataset"),
+        pytest.param("era5_da_t2m", xr.DataArray, id="dataarray"),
     ),
+    indirect=["in_data"],
 )
 def test_climatology_monthly(in_data, expected_return_type, method, how):
     clim_m = method(in_data)
     assert isinstance(clim_m, expected_return_type)
     assert "month" in list(clim_m.dims)
     if expected_return_type == xr.DataArray:
-        assert "2t" == clim_m.name
+        assert "t2m" == clim_m.name
     else:
-        assert "2t" in clim_m
+        assert "t2m" in clim_m
 
     clim_m = method(in_data, how_label=how)
     assert isinstance(clim_m, expected_return_type)
     assert "month" in list(clim_m.dims)
     if expected_return_type == xr.DataArray:
-        assert f"2t_{how}" == clim_m.name
+        assert f"t2m_{how}" == clim_m.name
     else:
-        assert f"2t_{how}" in clim_m
+        assert f"t2m_{how}" in clim_m
 
 
 @pytest.mark.parametrize(
@@ -207,27 +206,27 @@ def test_climatology_monthly(in_data, expected_return_type, method, how):
 @pytest.mark.parametrize(
     "in_data, expected_return_type",
     (
-        # [get_data(), xr.Dataset],
-        [get_data().to_xarray().compute(), xr.Dataset],
-        [get_data().to_xarray().compute()["2t"], xr.DataArray],
+        pytest.param("era5_dataset", xr.Dataset, id="dataset"),
+        pytest.param("era5_da_t2m", xr.DataArray, id="dataarray"),
     ),
+    indirect=["in_data"],
 )
 def test_climatology_daily(in_data, expected_return_type, method, how):
     clim_d = method(in_data)
     assert isinstance(clim_d, expected_return_type)
     assert "dayofyear" in list(clim_d.dims)
     if expected_return_type == xr.DataArray:
-        assert "2t" == clim_d.name
+        assert "t2m" == clim_d.name
     else:
-        assert "2t" in clim_d
+        assert "t2m" in clim_d
 
     clim_d = method(in_data, how_label=how)
     assert isinstance(clim_d, expected_return_type)
     assert "dayofyear" in list(clim_d.dims)
     if expected_return_type == xr.DataArray:
-        assert f"2t_{how}" == clim_d.name
+        assert f"t2m_{how}" == clim_d.name
     else:
-        assert f"2t_{how}" in clim_d
+        assert f"t2m_{how}" in clim_d
 
 
 @pytest.mark.parametrize(
@@ -240,25 +239,25 @@ def test_climatology_daily(in_data, expected_return_type, method, how):
 @pytest.mark.parametrize(
     "in_data, expected_return_type",
     (
-        # [get_data(), xr.Dataset],
-        [get_data().to_xarray().compute(), xr.Dataset],
-        [get_data().to_xarray().compute()["2t"], xr.DataArray],
+        pytest.param("era5_dataset", xr.Dataset, id="dataset"),
+        pytest.param("era5_da_t2m", xr.DataArray, id="dataarray"),
     ),
+    indirect=["in_data"],
 )
 def test_anomaly_monthly(in_data, expected_return_type, clim_method):
     clim_m = clim_method(in_data)
     anom_m = climatology.anomaly(in_data, clim_m, frequency="month")
     assert isinstance(anom_m, expected_return_type)
     if expected_return_type == xr.DataArray:
-        assert "2t" == anom_m.name
+        assert "t2m" == anom_m.name
     else:
-        assert "2t" in anom_m
+        assert "t2m" in anom_m
     anom_m = climatology.anomaly(in_data, clim_m, frequency="month", how_label="anomaly")
     assert isinstance(anom_m, expected_return_type)
     if expected_return_type == xr.DataArray:
-        assert "2t_anomaly" == anom_m.name
+        assert "t2m_anomaly" == anom_m.name
     else:
-        assert "2t_anomaly" in anom_m
+        assert "t2m_anomaly" in anom_m
 
 
 @pytest.mark.parametrize(
@@ -271,25 +270,25 @@ def test_anomaly_monthly(in_data, expected_return_type, clim_method):
 @pytest.mark.parametrize(
     "in_data, expected_return_type",
     (
-        # [get_data(), xr.Dataset],
-        [get_data().to_xarray().compute(), xr.Dataset],
-        [get_data().to_xarray().compute()["2t"], xr.DataArray],
+        pytest.param("era5_dataset", xr.Dataset, id="dataset"),
+        pytest.param("era5_da_t2m", xr.DataArray, id="dataarray"),
     ),
+    indirect=["in_data"],
 )
 def test_anomaly_daily(in_data, expected_return_type, clim_method):
     clim_d = clim_method(in_data)
     anom_d = climatology.anomaly(in_data, clim_d, frequency="dayofyear")
     assert isinstance(anom_d, expected_return_type)
     if expected_return_type == xr.DataArray:
-        assert "2t" == anom_d.name
+        assert "t2m" == anom_d.name
     else:
-        assert "2t" in anom_d
+        assert "t2m" in anom_d
     anom_d = climatology.anomaly(in_data, clim_d, frequency="dayofyear", how_label="anomaly")
     assert isinstance(anom_d, expected_return_type)
     if expected_return_type == xr.DataArray:
-        assert "2t_anomaly" == anom_d.name
+        assert "t2m_anomaly" == anom_d.name
     else:
-        assert "2t_anomaly" in anom_d
+        assert "t2m_anomaly" in anom_d
 
 
 # ---------------------------------------------------------------------------
@@ -436,4 +435,108 @@ def test_climatology_auto_anomaly_local():
     da = _make_monthly_clim_da()
     result = climatology.auto_anomaly(da, frequency="month")
     assert isinstance(result, xr.DataArray)
+    assert "time" in result.dims
+
+
+# --- anomaly: clim frequency ≠ anomaly frequency (local) -------------------
+
+
+def test_anomaly_monthly_clim_no_freq_broadcasts_to_original_shape():
+    """Monthly climatology with no anomaly frequency broadcasts back to the original time axis.
+
+    Code path: clim_freq='month', frequency=None →
+    groupby(month) - clim → broadcast_like(da)
+    """
+    da = _make_daily_clim_da()
+    clim = climatology.monthly_mean(da)
+    anom = climatology.anomaly(da, clim)
+    assert isinstance(anom, xr.DataArray)
+    assert anom.shape == da.shape
+    assert "time" in anom.dims
+
+
+def test_anomaly_scalar_clim_no_freq_subtracts_scalar():
+    """Overall (scalar) climatology with no anomaly frequency subtracts the scalar from the input.
+
+    Code path: clim_freq='year', frequency=None → da - clim_scalar
+    """
+    da = _make_daily_clim_da()
+    clim = climatology.mean(da)  # no frequency → scalar
+    anom = climatology.anomaly(da, clim)
+    assert isinstance(anom, xr.DataArray)
+    assert anom.shape == da.shape
+    assert "time" in anom.dims
+    # Anomaly mean must be near zero (mean of da minus mean of da)
+    np.testing.assert_allclose(float(anom.mean()), 0.0, atol=1e-10)
+
+
+def test_anomaly_relative_near_zero_for_constant_per_month():
+    """Relative anomaly is ~0 when data equals the climatology exactly.
+
+    With constant-per-month data, (data - clim) / clim * 100 == 0.
+    """
+    da = _make_monthly_clim_da()
+    clim = climatology.monthly_mean(da)
+    anom_rel = climatology.anomaly(da, clim, frequency="month", relative=True)
+    assert isinstance(anom_rel, xr.DataArray)
+    assert anom_rel.shape == da.shape
+    np.testing.assert_allclose(anom_rel.values, 0.0, atol=1e-10)
+
+
+# --- auto_anomaly: varied climatology_frequency / frequency (local) --------
+
+
+def test_auto_anomaly_monthly_clim_freq_broadcasts_to_original_shape():
+    """auto_anomaly with climatology_frequency='month' and no anomaly frequency.
+
+    The monthly climatology is broadcast back to the original monthly time axis.
+    """
+    da = _make_monthly_clim_da()
+    result = climatology.auto_anomaly(da, climatology_frequency="month")
+    assert isinstance(result, xr.DataArray)
+    assert result.shape == da.shape
+    assert "time" in result.dims
+
+
+def test_auto_anomaly_daily_clim_freq_broadcasts_to_original_shape():
+    """auto_anomaly with climatology_frequency='dayofyear' and no anomaly frequency.
+
+    The dayofyear climatology is broadcast back to the original daily time axis.
+    """
+    da = _make_daily_clim_da()
+    result = climatology.auto_anomaly(da, climatology_frequency="dayofyear")
+    assert isinstance(result, xr.DataArray)
+    assert result.shape == da.shape
+    assert "time" in result.dims
+
+
+def test_auto_anomaly_climatology_range_restricts_clim_years():
+    """climatology_range limits the years used to build the climatology.
+
+    The anomaly is still returned over the full input time axis.
+    """
+    da = _make_monthly_clim_da(n_years=5, start_year=2000)
+    result = climatology.auto_anomaly(da, frequency="month", climatology_range=("2000", "2002"))
+    assert isinstance(result, xr.DataArray)
+    assert "time" in result.dims
+    # Full 5-year monthly series is preserved
+    assert result.sizes["time"] == 60
+
+
+def test_auto_anomaly_climatology_how_median():
+    """climatology_how='median' produces the same result as 'mean' for constant-per-month data."""
+    da = _make_monthly_clim_da()
+    result_mean = climatology.auto_anomaly(da, frequency="month", climatology_how="mean")
+    result_median = climatology.auto_anomaly(da, frequency="month", climatology_how="median")
+    assert isinstance(result_median, xr.DataArray)
+    np.testing.assert_allclose(result_mean.values, result_median.values, rtol=1e-10)
+
+
+def test_auto_anomaly_dataset_input():
+    """auto_anomaly accepts xr.Dataset and returns xr.Dataset."""
+    da = _make_monthly_clim_da()
+    ds = da.to_dataset(name="var")
+    result = climatology.auto_anomaly(ds, frequency="month")
+    assert isinstance(result, xr.Dataset)
+    assert "var" in result
     assert "time" in result.dims
