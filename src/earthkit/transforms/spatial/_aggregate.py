@@ -105,7 +105,7 @@ def mask_contains_points(
 ) -> xr.DataArray:
     """Return a mask array for the spatial points of data that lie within shapes in shape_list.
 
-    Function uses matplotlib.Path so can accept a list of points, this is much faster than shapely.
+    Function uses shapely.contains_xy and handles Polygon, MultiPolygon, and polygons with holes.
     It was initially included for use with irregular data but has been constructed to also accept
     regular data and return in the same format as the rasterize function.
 
@@ -128,7 +128,7 @@ def mask_contains_points(
         A mask where points not inside the shape_list are set to `fill` value
 
     """
-    import matplotlib.path as mpltPath
+    import shapely
 
     xp = array_namespace_from_object(coords[lat_key])
 
@@ -149,13 +149,6 @@ def mask_contains_points(
             coords[lon_key].data,
             coords[lat_key].data,
         )
-    # convert lat lon pairs to to points:
-    points = list(
-        zip(
-            lon_full.flat,
-            lat_full.flat,
-        )
-    )
 
     # get spatial dims and create output array:
     spatial_dims = list(set(lat_dims + lon_dims))
@@ -163,16 +156,8 @@ def mask_contains_points(
     outdata = xp.full(outdata_shape, xp.nan)
     # loop over shapes and mask any point that is in the shape
     for shape in shape_list:
-        for shp in shape[0]:
-            shape_exterior = shp.exterior.coords.xy
-            shape_exterior = list(
-                zip(
-                    list(shape_exterior[0]),  # longitudes
-                    list(shape_exterior[1]),  # latitudes
-                )
-            )
-            path = mpltPath.Path(shape_exterior)
-            outdata.flat[path.contains_points(points)] = True
+        inside = shapely.contains_xy(shape, lon_full.flat, lat_full.flat)
+        outdata.flat[inside] = True
 
     out_coords = {coord: coords[coord] for coord in spatial_dims}
     outarray = xr.DataArray(outdata, coords=out_coords, dims=spatial_dims)
@@ -193,6 +178,7 @@ def _array_mask_iterator(mask_arrays):
 
 def _shape_mask_iterator(shapes, target, regular=True, **kwargs):
     """Iterate over shape mask methods."""
+    print(regular, kwargs)
     if isinstance(shapes, gpd.GeoDataFrame):
         shapes = _geopandas_to_shape_list(shapes)
     if regular:
@@ -200,6 +186,7 @@ def _shape_mask_iterator(shapes, target, regular=True, **kwargs):
     else:
         mask_function = mask_contains_points
     for shape in shapes:
+        print(shape)
         shape_da = mask_function([shape], target.coords, **kwargs)
         yield shape_da
 
