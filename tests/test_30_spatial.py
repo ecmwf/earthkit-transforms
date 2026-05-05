@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
-from shapely.geometry import Polygon
+from shapely.geometry import MultiPolygon, Polygon
 
 # from earthkit.data.core.temporary import temp_directory
 from earthkit import data as ekd
@@ -325,3 +325,108 @@ def test_spatial_reduce_with_shapely_geodataframe_local():
     result = _spatial._reduce_dataarray_as_xarray(create_test_dataarray(), geodataframe=geodataframe, how="mean")
     assert isinstance(result, xr.DataArray)
     assert "index" in result.dims
+
+
+# ---------------------------------------------------------------------------
+# mask_contains_points tests — no network required
+# ---------------------------------------------------------------------------
+
+# A 5×5 regular grid centred on the origin, 1-degree spacing
+_MCP_LATS = np.array([-2.0, -1.0, 0.0, 1.0, 2.0])
+_MCP_LONS = np.array([-2.0, -1.0, 0.0, 1.0, 2.0])
+_MCP_COORDS = xr.DataArray(
+    np.zeros((5, 5)),
+    dims=["latitude", "longitude"],
+    coords={"latitude": _MCP_LATS, "longitude": _MCP_LONS},
+).coords
+
+
+def test_mask_contains_points_simple_polygon():
+    """Points strictly inside a simple polygon are True; outside points are NaN."""
+    # Box covering only the centre point (0, 0)
+    shape = Polygon([(-0.5, -0.5), (-0.5, 0.5), (0.5, 0.5), (0.5, -0.5)])
+    result = _spatial.mask_contains_points([shape], _MCP_COORDS)
+
+    assert isinstance(result, xr.DataArray)
+    assert set(result.dims) == {"latitude", "longitude"}
+    # Only the centre grid point (lat=0, lon=0) should be True
+    assert bool(result.sel(latitude=0.0, longitude=0.0) == True)  # noqa: E712
+    # All other points should be NaN
+    other = result.where(~((result.latitude == 0.0) & (result.longitude == 0.0)), drop=False)
+    other_vals = other.values.flat
+    assert all(
+        np.isnan(v)
+        or (
+            result.sel(latitude=float(result.latitude[i // 5]), longitude=float(result.longitude[i % 5])).item() is True
+        )  # noqa: E712
+        for i, v in enumerate(other_vals)
+        if not (result.latitude.values[i // 5] == 0.0 and result.longitude.values[i % 5] == 0.0)
+    )
+
+
+def test_mask_contains_points_simple_polygon_values():
+    """Concise value check: centre True, corners NaN."""
+    shape = Polygon([(-0.5, -0.5), (-0.5, 0.5), (0.5, 0.5), (0.5, -0.5)])
+    result = _spatial.mask_contains_points([shape], _MCP_COORDS)
+
+    assert result.sel(latitude=0.0, longitude=0.0).item() == True  # noqa: E712
+    assert np.isnan(result.sel(latitude=2.0, longitude=2.0).item())
+    assert np.isnan(result.sel(latitude=-2.0, longitude=-2.0).item())
+
+
+def test_mask_contains_points_polygon_with_hole():
+    """Points inside a hole (interior ring) must NOT be marked as inside."""
+    # Outer ring: covers (-1.5, -1.5) to (1.5, 1.5)
+    # Hole: covers (-0.4, -0.4) to (0.4, 0.4) — excludes the exact centre point
+    outer = [(-1.5, -1.5), (-1.5, 1.5), (1.5, 1.5), (1.5, -1.5)]
+    hole = [(-0.4, -0.4), (-0.4, 0.4), (0.4, 0.4), (0.4, -0.4)]
+    shape = Polygon(outer, [hole])
+
+    result = _spatial.mask_contains_points([shape], _MCP_COORDS)
+
+    # The exact centre (0, 0) lies inside the hole — must be NaN
+    assert np.isnan(result.sel(latitude=0.0, longitude=0.0).item()), "Centre point is inside the hole and should be NaN"
+    # A point inside the outer ring but outside the hole should be True
+    assert result.sel(latitude=1.0, longitude=1.0).item() == True  # noqa: E712
+
+
+def test_mask_contains_points_multipolygon():
+    """Points inside any sub-polygon of a MultiPolygon are marked True."""
+    # Two separate boxes: top-right and bottom-left quadrants
+    box1 = Polygon([(0.6, 0.6), (0.6, 1.5), (1.5, 1.5), (1.5, 0.6)])  # covers (1, 1)
+    box2 = Polygon([(-1.5, -1.5), (-1.5, -0.6), (-0.6, -0.6), (-0.6, -1.5)])  # covers (-1, -1)
+    shape = MultiPolygon([box1, box2])
+
+    result = _spatial.mask_contains_points([shape], _MCP_COORDS)
+
+    assert result.sel(latitude=1.0, longitude=1.0).item() == True  # noqa: E712
+    assert result.sel(latitude=-1.0, longitude=-1.0).item() == True  # noqa: E712
+    assert np.isnan(result.sel(latitude=0.0, longitude=0.0).item())
+    assert np.isnan(result.sel(latitude=2.0, longitude=2.0).item())
+
+
+def test_mask_contains_points_irregular_grid():
+    """mask_contains_points works with irregular (stacked) coordinates."""
+    # Simulate a point-cloud / unstructured grid where lat and lon share one dim
+    lats = np.array([-1.0, 0.0, 1.0])
+    lons = np.array([-1.0, 0.0, 1.0])
+    da = xr.DataArray(
+        np.zeros(3),
+        dims=["index"],
+        coords={"latitude": ("index", lats), "longitude": ("index", lons)},
+    )
+    shape = Polygon([(-0.5, -0.5), (-0.5, 0.5), (0.5, 0.5), (0.5, -0.5)])
+    result = _spatial.mask_contains_points([shape], da.coords)
+
+    # Only the centre point (lat=0, lon=0) at index 1 is inside
+    assert result.isel(index=1).item() == True  # noqa: E712
+    assert np.isnan(result.isel(index=0).item())
+    assert np.isnan(result.isel(index=2).item())
+
+
+def test_mask_contains_points_no_points_inside():
+    """When no grid points fall inside the shape the result is all NaN."""
+    # Shape entirely outside the grid extent
+    shape = Polygon([(10.0, 10.0), (10.0, 20.0), (20.0, 20.0), (20.0, 10.0)])
+    result = _spatial.mask_contains_points([shape], _MCP_COORDS)
+    assert np.all(np.isnan(result.values))
