@@ -178,7 +178,6 @@ def _array_mask_iterator(mask_arrays):
 
 def _shape_mask_iterator(shapes, target, regular=True, **kwargs):
     """Iterate over shape mask methods."""
-    print(regular, kwargs)
     if isinstance(shapes, gpd.GeoDataFrame):
         shapes = _geopandas_to_shape_list(shapes)
     if regular:
@@ -186,7 +185,6 @@ def _shape_mask_iterator(shapes, target, regular=True, **kwargs):
     else:
         mask_function = mask_contains_points
     for shape in shapes:
-        print(shape)
         shape_da = mask_function([shape], target.coords, **kwargs)
         yield shape_da
 
