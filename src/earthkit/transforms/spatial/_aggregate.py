@@ -354,7 +354,7 @@ def mask(
 
     masked_arrays = []
     for this_mask in loop_masks:
-        this_masked_array = dataarray.where(this_mask)
+        this_masked_array = dataarray.where(this_mask > 0)
         if chunk:
             this_masked_array = this_masked_array.chunk()
         masked_arrays.append(this_masked_array.copy())
@@ -608,7 +608,7 @@ def _reduce_dataarray_as_xarray(
 
     reduced_list = []
     for masked_data in masked_data_list:
-        this = dataarray.where(masked_data, other=xp.nan)
+        this = dataarray.where(masked_data > 0, other=xp.nan)
 
         # If weighted, use xarray weighted arrays which
         # correctly handle missing values etc.

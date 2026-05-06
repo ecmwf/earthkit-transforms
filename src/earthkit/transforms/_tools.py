@@ -350,7 +350,7 @@ def latitude_weights(dataarray: xr.DataArray, lat_key: str | None = None):
 
     """
     if lat_key is None:
-        lat_key = get_dim_key(dataarray, "y")
+        lat_key = get_dim_key(dataarray, "y", check_coords=True)
 
     lat_array = dataarray.coords.get(lat_key)
     if lat_array is not None:
@@ -658,7 +658,7 @@ def get_spatial_info(dataarray, lat_key=None, lon_key=None):
 
     """
     if lat_key is None:
-        lat_key = get_dim_key(dataarray, "y")
+        lat_key = get_dim_key(dataarray, "y", check_coords=True)
     if lon_key is None:
         lon_key = get_dim_key(dataarray, "x")
 
