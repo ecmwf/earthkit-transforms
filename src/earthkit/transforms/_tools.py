@@ -129,6 +129,69 @@ def time_dim_decorator(func):
     return wrapper
 
 
+def time_shift_decorator(func):
+    """Resolve a non-unique *time_shift* argument before calling *func*.
+
+    Place above the :py:func:`time_dim_decorator`.
+
+    A string value is resolved by looking up the named coordinate on the input
+    *dataarray*. `xarray.DataArray`-type shifts with a single unique value is
+    unwrapped to that scalar. `xarray.DataArray`-typed shifts with multiple
+    values (e.g. per-gridpoint time zone offsets) are handled by grouping the
+    data on the time shift array, applying *func* independently to each group,
+    and merging the results.
+    """
+    _INTERNAL_COORD = f"__{func.__name__}_TIME_SHIFT"
+
+    @functools.wraps(func)
+    def wrapper(
+        dataarray: xr.Dataset | xr.DataArray,
+        *args,
+        time_shift=None,
+        **kwargs,
+    ):
+        if isinstance(time_shift, str):
+            try:
+                time_shift = dataarray.coords[time_shift]
+            except KeyError as e:
+                raise KeyError(
+                    f"time_shift={time_shift!r} was interpreted as a coordinate name, "
+                    f"but it was not found in the available coordinates: {sorted(dataarray.coords)}."
+                ) from e
+        if isinstance(time_shift, xr.DataArray):
+            time_dim = get_dim_key(dataarray, "t")
+            if time_dim in time_shift.dims:
+                raise NotImplementedError(
+                    "Time-varying time shifts (e.g. daylight saving time) are not "
+                    "supported. The 'time_shift' coordinate must not depend on the "
+                    f"time dimension ('{time_dim}')."
+                )
+            unique_shifts = np.unique(time_shift.values)
+            if unique_shifts.size == 1:
+                time_shift = unique_shifts[0]
+            else:
+                if _INTERNAL_COORD in dataarray.coords:
+                    raise RuntimeError(
+                        f"Internal coordinate '{_INTERNAL_COORD}' already exists in "
+                        "the data. Ensure your data does not contain a coordinate "
+                        "with that name."
+                    )
+                # Attach the per-point shift as a coordinate so that each group
+                # carries its own value. Grouping by the shift guarantees a
+                # single unique value per group, so the recursion ends immediately
+                # in the next level via the scalar branch above.
+                return (
+                    dataarray
+                    .assign_coords({_INTERNAL_COORD: time_shift})
+                    .groupby(_INTERNAL_COORD)
+                    .map(wrapper, *args, time_shift=_INTERNAL_COORD, **kwargs)
+                    .drop_vars(_INTERNAL_COORD)
+                )
+        return func(dataarray, *args, time_shift=time_shift, **kwargs)
+
+    return wrapper
+
+
 GROUPBY_KWARGS = ["frequency", "bin_widths"]
 
 _INVALID_CLIMATOLOGY_FREQUENCIES = ["day"]
