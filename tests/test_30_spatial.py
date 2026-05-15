@@ -993,8 +993,9 @@ def test_reduce_with_area_kwarg():
     """spatial.reduce with area= returns correct result."""
     # SAMPLE_ARRAY: lat=[0,60,90], lon=[0,30,60,90], values = rows of 1,2,3
     # area covers lat=0 and lat=60 (mean of 1 and 2 = 1.5)
-    # Note: shapely contains_xy excludes points on the boundary of the polygon
-    area = {"north": 91, "south": -1, "east": 91, "west": -1}
+    # Note: shapely contains_xy excludes points on the boundary of the polygon,
+    # so use north/east=90 to exclude the lat=90/lon=90 boundary points.
+    area = {"north": 90, "south": -1, "east": 90, "west": -1}
     result = spatial.reduce(SAMPLE_ARRAY, area=area, how="mean")
     assert isinstance(result, xr.DataArray)
     np.testing.assert_allclose(result.item(), 1.5)
