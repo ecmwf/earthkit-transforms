@@ -11,6 +11,7 @@ import pytest
 import xarray as xr
 
 from earthkit.transforms._tools import (
+    _is_evenly_spaced,
     get_dim_key,
     get_how,
     get_how_xp,
@@ -300,6 +301,36 @@ def test_get_spatial_info():
     # Check if the correct dimension key is returned
     expected_result = {"lat_key": "lat", "lon_key": "lon", "regular": True, "spatial_dims": ["lat", "lon"]}
     assert expected_result == get_spatial_info(dataarray)
+
+
+def test_get_spatial_info_non_uniform():
+    """1-D lat/lon that are not evenly spaced should return regular=False."""
+    dataarray = xr.DataArray(
+        np.ones((3, 4)),
+        dims=("lat", "lon"),
+        coords={
+            "lat": [0.0, 1.0, 3.0],  # non-uniform spacing
+            "lon": [0.0, 1.0, 2.0, 3.0],  # uniform
+        },
+    )
+    result = get_spatial_info(dataarray)
+    assert result["regular"] is False
+    assert result["spatial_dims"] == ["lat", "lon"]
+
+
+@pytest.mark.parametrize(
+    "values, expected",
+    [
+        ([1.0, 2.0, 3.0, 4.0], True),  # uniform
+        ([0.0, 1.0, 3.0], False),  # non-uniform
+        ([5.0], True),  # single element
+        ([], True),  # empty
+        ([1.0, 2.0 + 1e-12, 3.0], True),  # FP noise within tolerance
+        ([-90.0, -60.0, -30.0, 0.0, 30.0, 60.0, 90.0], True),  # typical lat grid
+    ],
+)
+def test_is_evenly_spaced(values, expected):
+    assert _is_evenly_spaced(np.array(values)) is expected
 
 
 def test_latitude_weights():
