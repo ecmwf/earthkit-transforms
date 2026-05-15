@@ -313,9 +313,7 @@ def _area_to_geodataframe(area: dict) -> gpd.GeoDataFrame:
         raise ValueError(f"area dictionary is missing required keys: {missing}")
 
     if area["west"] > area["east"]:
-        raise ValueError(
-            "Areas that cross the anti-meridian (where 'west' > 'east') are not currently supported."
-        )
+        raise ValueError("Areas that cross the anti-meridian (where 'west' > 'east') are not currently supported.")
 
     polygon = box(area["west"], area["south"], area["east"], area["north"])
     return gpd.GeoDataFrame(geometry=[polygon])
@@ -341,9 +339,7 @@ def area_to_geodataframe_decorator(func):
         positional_geodataframe = args[1] if len(args) >= 2 else None
         keyword_geodataframe = kwargs.get("geodataframe")
 
-        if area is not None and (
-            positional_geodataframe is not None or keyword_geodataframe is not None
-        ):
+        if area is not None and (positional_geodataframe is not None or keyword_geodataframe is not None):
             raise ValueError("Only one of 'area' or 'geodataframe' may be provided, not both.")
 
         if area is not None:
@@ -369,6 +365,7 @@ def mask(
     lon_key: str | None = None,
     chunk: bool = True,
     union_geometries: bool = False,
+    area: dict | None = None,
     **mask_kwargs,
 ) -> xr.Dataset | xr.DataArray:
     """Apply multiple shape masks to some gridded data.
@@ -459,6 +456,7 @@ def reduce(
     dataarray: xr.Dataset | xr.DataArray,
     geodataframe: gpd.GeoDataFrame | None = None,
     mask_arrays: xr.DataArray | list[xr.DataArray] | None = None,
+    area: dict | None = None,
     **kwargs,
 ) -> xr.Dataset | xr.DataArray:
     """Apply a shape object to an xarray.DataArray object using the specified 'how' method.
