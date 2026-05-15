@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import functools
 import logging
 import typing as T
 from copy import deepcopy
@@ -289,10 +290,70 @@ def get_mask_dim_index(
     return mask_dim_index
 
 
+def _area_to_geodataframe(area: dict) -> gpd.GeoDataFrame:
+    """Convert an area dictionary to a GeoDataFrame with a bounding box polygon.
+
+    Parameters
+    ----------
+    area : dict
+        Dictionary with keys ``"north"``, ``"south"``, ``"east"``, ``"west"``
+        defining the bounding box.
+
+    Returns
+    -------
+    gpd.GeoDataFrame
+        A GeoDataFrame containing a single bounding-box polygon.
+
+    """
+    from shapely.geometry import box
+
+    required_keys = {"north", "south", "east", "west"}
+    missing = required_keys - set(area)
+    if missing:
+        raise ValueError(f"area dictionary is missing required keys: {missing}")
+
+    polygon = box(area["west"], area["south"], area["east"], area["north"])
+    return gpd.GeoDataFrame(geometry=[polygon])
+
+
+def area_to_geodataframe_decorator(func):
+    """Decorator that converts an ``area`` kwarg to a ``geodataframe`` kwarg.
+
+    If ``area`` is provided as a dictionary with keys
+    ``{"north", "south", "east", "west"}``, it is converted to a
+    `geopandas.GeoDataFrame` with a single bounding-box polygon and passed
+    as the ``geodataframe`` argument.
+
+    Raises ``ValueError`` if both ``area`` and ``geodataframe`` are provided.
+
+    .. note::
+       Areas that cross the anti-meridian (where ``west > east``) are not
+       currently supported.
+    """
+
+    @functools.wraps(func)
+    def wrapper(*args, area: dict | None = None, **kwargs):
+        geodataframe = kwargs.get("geodataframe")
+        # Also check if geodataframe was passed as a positional arg (2nd arg)
+        if len(args) >= 2:
+            geodataframe = args[1]
+
+        if area is not None and geodataframe is not None:
+            raise ValueError("Only one of 'area' or 'geodataframe' may be provided, not both.")
+
+        if area is not None:
+            kwargs["geodataframe"] = _area_to_geodataframe(area)
+
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
 @format_handler()
+@area_to_geodataframe_decorator
 def mask(
     dataarray: xr.Dataset | xr.DataArray,
-    geodataframe: gpd.geodataframe.GeoDataFrame,
+    geodataframe: gpd.geodataframe.GeoDataFrame | None = None,
     mask_dim: str | None = None,
     lat_key: str | None = None,
     lon_key: str | None = None,
@@ -313,7 +374,13 @@ def mask(
     dataarray :
         Xarray data object (must have geospatial coordinates).
     geodataframe :
-        Geopandas Dataframe containing the polygons for aggregations
+        Geopandas Dataframe containing the polygons for aggregations.
+        Either ``geodataframe`` or ``area`` must be provided, but not both.
+    area : dict, optional
+        Dictionary with keys ``"north"``, ``"south"``, ``"east"``, ``"west"``
+        defining a bounding box. Converted to a single-polygon GeoDataFrame
+        internally. Areas that cross the anti-meridian (``west > east``) are
+        not currently supported.
     mask_dim :
         dimension that will be created to accommodate the masked arrays, default is the index
         of the geodataframe
@@ -342,6 +409,8 @@ def mask(
         Each slice of layer corresponds to a feature in layer.
 
     """
+    if geodataframe is None:
+        raise ValueError("Either 'geodataframe' or 'area' must be provided.")
     spatial_info = get_spatial_info(dataarray, lat_key=lat_key, lon_key=lon_key)
     # Get spatial info required by mask functions:
     mask_kwargs = {**mask_kwargs, **{key: spatial_info[key] for key in ["lat_key", "lon_key", "regular"]}}
@@ -375,6 +444,7 @@ def mask(
 
 
 @format_handler()
+@area_to_geodataframe_decorator
 def reduce(
     dataarray: xr.Dataset | xr.DataArray,
     geodataframe: gpd.GeoDataFrame | None = None,
@@ -390,7 +460,13 @@ def reduce(
     dataarray :
         Xarray data object (must have geospatial coordinates).
     geodataframe :
-        Geopandas Dataframe containing the polygons for aggregations
+        Geopandas Dataframe containing the polygons for aggregations.
+        Cannot be provided together with ``area``.
+    area : dict, optional
+        Dictionary with keys ``"north"``, ``"south"``, ``"east"``, ``"west"``
+        defining a bounding box. Converted to a single-polygon GeoDataFrame
+        internally. Areas that cross the anti-meridian (``west > east``) are
+        not currently supported.
     mask_arrays :
         precomputed mask array[s], if provided this will be used instead of creating a new mask.
         They must be on the same spatial grid as the dataarray.
