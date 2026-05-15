@@ -312,6 +312,11 @@ def _area_to_geodataframe(area: dict) -> gpd.GeoDataFrame:
     if missing:
         raise ValueError(f"area dictionary is missing required keys: {missing}")
 
+    if area["west"] > area["east"]:
+        raise ValueError(
+            "Areas that cross the anti-meridian (where 'west' > 'east') are not currently supported."
+        )
+
     polygon = box(area["west"], area["south"], area["east"], area["north"])
     return gpd.GeoDataFrame(geometry=[polygon])
 
