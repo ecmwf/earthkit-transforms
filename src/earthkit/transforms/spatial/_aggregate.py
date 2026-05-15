@@ -338,16 +338,23 @@ def area_to_geodataframe_decorator(func):
 
     @functools.wraps(func)
     def wrapper(*args, area: dict | None = None, **kwargs):
-        geodataframe = kwargs.get("geodataframe")
-        # Also check if geodataframe was passed as a positional arg (2nd arg)
-        if len(args) >= 2:
-            geodataframe = args[1]
+        positional_geodataframe = args[1] if len(args) >= 2 else None
+        keyword_geodataframe = kwargs.get("geodataframe")
 
-        if area is not None and geodataframe is not None:
+        if area is not None and (
+            positional_geodataframe is not None or keyword_geodataframe is not None
+        ):
             raise ValueError("Only one of 'area' or 'geodataframe' may be provided, not both.")
 
         if area is not None:
-            kwargs["geodataframe"] = _area_to_geodataframe(area)
+            area_geodataframe = _area_to_geodataframe(area)
+            if len(args) >= 2:
+                args = list(args)
+                args[1] = area_geodataframe
+                args = tuple(args)
+                kwargs.pop("geodataframe", None)
+            else:
+                kwargs["geodataframe"] = area_geodataframe
 
         return func(*args, **kwargs)
 
