@@ -965,3 +965,106 @@ def test_spatial_reduce_precomputed_mask_irr_list_two_masks(convention):
     result = spatial.reduce(_MCP_DA, mask_arrays=[mask_a, mask_b], how="mean", lat_key="latitude", lon_key="longitude")
     np.testing.assert_allclose(result.isel(index=0).item(), 3.0)
     np.testing.assert_allclose(result.isel(index=1).item(), 1.0)
+
+
+# ---------------------------------------------------------------------------
+# area kwarg tests — no network required
+# ---------------------------------------------------------------------------
+
+_AREA_FULL = {"north": 90, "south": 0, "east": 90, "west": 0}
+
+
+def test_area_to_geodataframe_creates_geodataframe():
+    """_area_to_geodataframe returns a GeoDataFrame with a single polygon."""
+    gdf = _spatial._area_to_geodataframe(_AREA_FULL)
+    assert isinstance(gdf, gpd.GeoDataFrame)
+    assert len(gdf) == 1
+    bounds = gdf.geometry[0].bounds  # (minx, miny, maxx, maxy)
+    assert bounds == (0, 0, 90, 90)
+
+
+def test_area_to_geodataframe_missing_keys():
+    """_area_to_geodataframe raises ValueError if keys are missing."""
+    with pytest.raises(ValueError, match="missing required keys"):
+        _spatial._area_to_geodataframe({"north": 90, "south": 0})
+
+
+def test_reduce_with_area_kwarg():
+    """spatial.reduce with area= returns correct result."""
+    # SAMPLE_ARRAY: lat=[0,60,90], lon=[0,30,60,90], values = rows of 1,2,3
+    # area covers lat=0 and lat=60 (mean of 1 and 2 = 1.5)
+    # Note: shapely contains_xy excludes points on the boundary of the polygon,
+    # so use north/east=90 to exclude the lat=90/lon=90 boundary points.
+    area = {"north": 90, "south": -1, "east": 90, "west": -1}
+    result = spatial.reduce(SAMPLE_ARRAY, area=area, how="mean")
+    assert isinstance(result, xr.DataArray)
+    np.testing.assert_allclose(result.item(), 1.5)
+
+
+def test_reduce_with_area_subset():
+    """spatial.reduce with area= covering a subset returns correct mean."""
+    # Only lat=60 (row with value 2), all longitudes
+    # shapely.contains_xy is strict (boundary excluded), so use 59-61 range
+    area = {"north": 61, "south": 59, "east": 91, "west": -1}
+    result = spatial.reduce(SAMPLE_ARRAY, area=area, how="mean")
+    np.testing.assert_allclose(result.item(), 2.0)
+
+
+def test_mask_with_area_kwarg():
+    """spatial.mask with area= returns masked data."""
+    area = {"north": 91, "south": 59, "east": 91, "west": -1}
+    result = spatial.mask(SAMPLE_ARRAY, area=area, chunk=False)
+    assert isinstance(result, xr.DataArray)
+    # lat=0 row should be all NaN (outside area)
+    assert np.all(np.isnan(result.sel(latitude=0).values))
+    # lat=60 row should be preserved
+    assert np.all(result.sel(latitude=60).values == 2)
+
+
+def test_area_and_geodataframe_raises_reduce():
+    """spatial.reduce raises ValueError if both area and geodataframe are provided."""
+    gdf = gpd.GeoDataFrame(geometry=[Polygon([(0, 0), (0, 1), (1, 1), (1, 0)])])
+    with pytest.raises(ValueError, match="Only one of"):
+        spatial.reduce(SAMPLE_ARRAY, geodataframe=gdf, area=_AREA_FULL, how="mean")
+
+
+def test_area_and_geodataframe_raises_mask():
+    """spatial.mask raises ValueError if both area and geodataframe are provided."""
+    gdf = gpd.GeoDataFrame(geometry=[Polygon([(0, 0), (0, 1), (1, 1), (1, 0)])])
+    with pytest.raises(ValueError, match="Only one of"):
+        spatial.mask(SAMPLE_ARRAY, geodataframe=gdf, area=_AREA_FULL)
+
+
+def test_area_and_positional_geodataframe_raises_reduce():
+    """spatial.reduce raises ValueError if area and positional geodataframe are both given."""
+    gdf = gpd.GeoDataFrame(geometry=[Polygon([(0, 0), (0, 1), (1, 1), (1, 0)])])
+    with pytest.raises(ValueError, match="Only one of"):
+        spatial.reduce(SAMPLE_ARRAY, gdf, area=_AREA_FULL, how="mean")
+
+
+def test_area_and_positional_geodataframe_raises_mask():
+    """spatial.mask raises ValueError if area and positional geodataframe are both given."""
+    gdf = gpd.GeoDataFrame(geometry=[Polygon([(0, 0), (0, 1), (1, 1), (1, 0)])])
+    with pytest.raises(ValueError, match="Only one of"):
+        spatial.mask(SAMPLE_ARRAY, gdf, area=_AREA_FULL)
+
+
+def test_mask_no_geodataframe_no_area_raises():
+    """spatial.mask raises ValueError if neither geodataframe nor area is provided."""
+    with pytest.raises(ValueError, match="Either"):
+        spatial.mask(SAMPLE_ARRAY)
+
+
+def test_area_none_passthrough_reduce():
+    """spatial.reduce with area=None (default) behaves normally."""
+    result = spatial.reduce(SAMPLE_ARRAY, how="mean")
+    np.testing.assert_allclose(result.item(), 2.0)
+
+
+def test_reduce_dataset_with_area():
+    """spatial.reduce on a Dataset with area= returns a Dataset."""
+    ds = xr.Dataset({"var": SAMPLE_ARRAY})
+    area = {"north": 91, "south": -1, "east": 91, "west": -1}
+    result = spatial.reduce(ds, area=area, how="mean")
+    assert isinstance(result, xr.Dataset)
+    assert "var" in result
