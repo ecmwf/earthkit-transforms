@@ -23,7 +23,6 @@ from earthkit.transforms.temporal import reduce as _temporal_reduce
 
 
 @format_handler()
-@_tools.time_shift_decorator
 @_tools.time_dim_decorator
 @_tools.groupby_kwargs_decorator(climatology=True)
 @_tools.season_order_decorator
@@ -613,7 +612,6 @@ def monthly_std(*_args, **_kwargs) -> xr.Dataset | xr.DataArray:
 
 
 @format_handler()
-@_tools.time_shift_decorator
 @_tools.time_dim_decorator
 @_tools.groupby_kwargs_decorator(climatology=True)
 @_tools.season_order_decorator

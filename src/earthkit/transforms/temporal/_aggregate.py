@@ -84,7 +84,6 @@ def standardise_time(
 
 
 @format_handler()
-@_tools.time_shift_decorator
 @_tools.time_dim_decorator
 def reduce(
     dataarray: xr.Dataset | xr.DataArray,
@@ -368,7 +367,6 @@ def sum(
 
 
 @format_handler()
-@_tools.time_shift_decorator
 @_tools.time_dim_decorator
 def daily_reduce(
     dataarray: xr.Dataset | xr.DataArray,
@@ -664,7 +662,6 @@ def daily_sum(*_args, **kwargs):
 
 
 @format_handler()
-@_tools.time_shift_decorator
 @_tools.time_dim_decorator
 def monthly_reduce(
     dataarray: xr.Dataset | xr.DataArray,
@@ -982,7 +979,6 @@ def monthly_sum(
 
 
 @format_handler()
-@_tools.time_shift_decorator
 @_tools.time_dim_decorator
 def rolling_reduce(
     dataarray: xr.Dataset | xr.DataArray,
