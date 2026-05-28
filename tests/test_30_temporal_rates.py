@@ -12,9 +12,9 @@ from earthkit.transforms._tools import earthkit_remote_test_data_file
 ek_data.settings.set("cache-policy", "user")
 
 TO_XARRAY_KWARGS = {
-    "valid_time": {"time_dim_mode": "valid_time"},
+    "valid_time": {"time_dims": ["valid_time"]},
     "forecast": {
-        "time_dim_mode": "forecast",
+        "time_dims": ["forecast_reference_time", "step"],
         "allow_holes": True,
         "ensure_dims": ["forecast_reference_time"],
     },

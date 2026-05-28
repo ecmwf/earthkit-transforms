@@ -413,7 +413,7 @@ def latitude_weights(dataarray: xr.DataArray, lat_key: str | None = None):
 
     """
     if lat_key is None:
-        lat_key = get_dim_key(dataarray, "y")
+        lat_key = get_dim_key(dataarray, "y", check_coords=True)
 
     lat_array = dataarray.coords.get(lat_key)
     if lat_array is not None:
@@ -626,6 +626,7 @@ def get_dim_key(
     dataarray: xr.Dataset | xr.DataArray,
     axis: str,
     raise_error: bool = False,
+    check_coords: bool = False,
 ) -> str:
     """Return the key of the dimension.
 
@@ -663,6 +664,26 @@ def get_dim_key(
         if standard_axis_key in dataarray.dims:
             return standard_axis_key
 
+    if check_coords:
+        # Now repeat with coordinates
+        # First check if the axis value is in any coord:
+        for coord in dataarray.coords:
+            if "axis" in dataarray[coord].attrs and dataarray[coord].attrs["axis"].lower() == axis.lower():
+                return str(coord)
+
+        # Then check if any dims have CF recognised standard names,
+        #  Prioritised in order of the STANDARD_AXIS_CF_NAMES list order
+        for standard_name in STANDARD_AXIS_CF_NAMES.get(axis.lower(), []):
+            for dim in dataarray.coords:
+                if dataarray[dim].attrs.get("standard_name") == standard_name:
+                    return str(dim)
+
+        # Then check if any dims match our "standard" axis,
+        #  Prioritised in order of the STANDARD_AXIS_KEYS list order
+        for standard_axis_key in STANDARD_AXIS_KEYS.get(axis.lower(), []):
+            if standard_axis_key in dataarray.dims:
+                return standard_axis_key
+
     # We have not been able to detect, so raise an error
     if raise_error:
         raise ValueError(f"Unable to find dimension key for axis '{axis}' in dataarray with dims: {dataarray.dims}.")
@@ -670,12 +691,36 @@ def get_dim_key(
     return axis
 
 
+def _is_evenly_spaced(coord) -> bool:
+    """Check whether a 1-D coordinate array has uniform spacing.
+
+    Parameters
+    ----------
+    coord : array-like
+        A 1-D array of coordinate values.
+
+    Returns
+    -------
+    bool
+        ``True`` if all consecutive differences are equal (within
+        floating-point tolerance), ``False`` otherwise.
+        Arrays with fewer than 2 elements are trivially uniform.
+
+    """
+    values = np.asarray(coord)
+    if values.size < 2:
+        return True
+    diffs = np.diff(values)
+    return bool(np.allclose(diffs, diffs[0]))
+
+
 def get_spatial_info(dataarray, lat_key=None, lon_key=None):
     """Return a dictionary of spatial metadata for a DataArray.
 
     Detects latitude and longitude coordinate names, their associated
-    dimensions, and whether the grid is regular (1-D lat/lon coordinates)
-    or irregular (shared dimensions, e.g. obs or curvilinear grids).
+    dimensions, and whether the grid is regular (1-D, evenly-spaced
+    lat/lon coordinates) or irregular (shared dimensions, or
+    non-uniform spacing).
 
     Parameters
     ----------
@@ -695,12 +740,13 @@ def get_spatial_info(dataarray, lat_key=None, lon_key=None):
 
         - ``'lat_key'`` (str): name of the latitude coordinate.
         - ``'lon_key'`` (str): name of the longitude coordinate.
-        - ``'regular'`` (bool): ``True`` if the grid is regular, ``False`` if irregular.
+        - ``'regular'`` (bool): ``True`` if the grid is regular (latitude and longitude are 1-D and
+          evenly spaced), ``False`` if irregular.
         - ``'spatial_dims'`` (list[str]): list of spatial dimension names.
 
     """
     if lat_key is None:
-        lat_key = get_dim_key(dataarray, "y")
+        lat_key = get_dim_key(dataarray, "y", check_coords=True)
     if lon_key is None:
         lon_key = get_dim_key(dataarray, "x")
 
@@ -717,7 +763,9 @@ def get_spatial_info(dataarray, lat_key=None, lon_key=None):
     if lat_dims == lon_dims:
         regular = False
     elif (lat_dims == (lat_key,)) and (lon_dims) == (lon_key,):
-        regular = True
+        regular = _is_evenly_spaced(dataarray.coords[lat_key].values) and _is_evenly_spaced(
+            dataarray.coords[lon_key].values
+        )
     else:
         raise ValueError(
             "The geospatial dimensions have not not been correctly detected:\n"
