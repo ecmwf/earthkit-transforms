@@ -94,7 +94,7 @@ def time_dim_decorator(func):
         dataarray: xr.Dataset | xr.DataArray,
         *args,
         time_dim: str | None = None,
-        time_shift: dict | str | pd.Timedelta | None = None,
+        time_shift: dict | str | pd.Timedelta | xr.DataArray | None = None,
         remove_partial_periods: bool = False,
         **kwargs,
     ):
@@ -121,6 +121,7 @@ def time_dim_decorator(func):
             # are processed with a split-apply-combine pattern
             if unique_shifts.size == 1:
                 time_shift = unique_shifts[0]
+                assert not isinstance(time_shift, xr.DataArray)
             else:
                 _INTERNAL_COORD = f"__{func.__name__}_TIME_SHIFT"
                 if _INTERNAL_COORD in dataarray.coords:
@@ -134,10 +135,16 @@ def time_dim_decorator(func):
                 # single unique value per group, so the recursion ends immediately
                 # in the next level via the unique_shifts.size == 1 branch.
                 return (
-                    dataarray
-                    .assign_coords({_INTERNAL_COORD: time_shift})
+                    dataarray.assign_coords({_INTERNAL_COORD: time_shift})
                     .groupby(_INTERNAL_COORD)
-                    .map(wrapper, *args, time_shift=_INTERNAL_COORD, remove_partial_periods=remove_partial_periods, **kwargs)
+                    .map(
+                        wrapper,
+                        *args,
+                        time_dim=time_dim,
+                        time_shift=_INTERNAL_COORD,
+                        remove_partial_periods=remove_partial_periods,
+                        **kwargs,
+                    )
                     .drop_vars(_INTERNAL_COORD)
                 )
 

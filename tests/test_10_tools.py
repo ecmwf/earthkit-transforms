@@ -8,7 +8,6 @@ try:
 except ImportError:
     cp = None
 import pandas as pd
-import pytest
 import xarray as xr
 
 from earthkit.transforms._tools import (
@@ -111,39 +110,28 @@ def test_time_dim_decorator_zero_shift_with_trim():
 
 _TIME_SHIFTS = [np.timedelta64(-2, "h"), np.timedelta64(0, "h"), np.timedelta64(1, "h")]
 
+
 @pytest.mark.parametrize("shift", _TIME_SHIFTS)
 def test_time_dim_decorator_time_shift_str_coord_value_scalar(shift):
-    da = xr.DataArray([1, 2, 3], dims=["time"], coords={
-        "time": pd.date_range("2000-01-01", periods=3),
-        "tz": shift
-    })
+    da = xr.DataArray([1, 2, 3], dims=["time"], coords={"time": pd.date_range("2000-01-01", periods=3), "tz": shift})
     result = time_dim_decorator(dummy_func2)(da, time_shift="tz")
-    np.testing.assert_equal(
-        result.coords["time"].values,
-        da.coords["time"].values + shift
-    )
+    np.testing.assert_equal(result.coords["time"].values, da.coords["time"].values + shift)
+
 
 @pytest.mark.parametrize("shift", _TIME_SHIFTS)
 def test_time_dim_decorator_time_shift_str_coord_value_takes_precedent_over_timedelta(shift):
-    da = xr.DataArray([1, 2, 3], dims=["time"], coords={
-        "time": pd.date_range("2000-01-01", periods=3),
-        "4h": shift
-    })
+    da = xr.DataArray([1, 2, 3], dims=["time"], coords={"time": pd.date_range("2000-01-01", periods=3), "4h": shift})
     result = time_dim_decorator(dummy_func2)(da, time_shift="4h")
-    np.testing.assert_equal(
-        result.coords["time"].values,
-        da.coords["time"].values + shift
-    )
+    np.testing.assert_equal(result.coords["time"].values, da.coords["time"].values + shift)
+
 
 @pytest.mark.parametrize("shift", _TIME_SHIFTS)
 def test_time_dim_decorator_time_shift_dataarray_value_scalar(shift):
     da = xr.DataArray([1, 2, 3], dims=["time"], coords={"time": pd.date_range("2000-01-01", periods=3)})
     da_shift = xr.DataArray(shift)
     result = time_dim_decorator(dummy_func2)(da, time_shift=da_shift)
-    np.testing.assert_equal(
-        result.coords["time"].values,
-        da.coords["time"].values + shift
-    )
+    np.testing.assert_equal(result.coords["time"].values, da.coords["time"].values + shift)
+
 
 @pytest.mark.parametrize("shift", _TIME_SHIFTS)
 def test_time_dim_decorator_time_shift_dataarray_value_unique(shift):
@@ -152,17 +140,11 @@ def test_time_dim_decorator_time_shift_dataarray_value_unique(shift):
     da = xr.DataArray(
         np.ones((4, 2)),
         dims=["time", "lat"],
-        coords={
-            "time": ("time", time),
-            "lat": ("lat", lat),
-            "shift": ("lat", [shift, shift])
-        },
+        coords={"time": ("time", time), "lat": ("lat", lat), "shift": ("lat", [shift, shift])},
     )
     result = time_dim_decorator(dummy_func2)(da, time_shift="shift")
-    np.testing.assert_equal(
-        result.coords["time"].values,
-        da.coords["time"].values + shift
-    )
+    np.testing.assert_equal(result.coords["time"].values, da.coords["time"].values + shift)
+
 
 def test_time_dim_decorator_time_shift_dataarray_value_multiple():
     time = pd.date_range("2020-01-01", periods=4, freq="h")
@@ -171,11 +153,7 @@ def test_time_dim_decorator_time_shift_dataarray_value_multiple():
     da = xr.DataArray(
         np.ones((4, 2)),
         dims=["time", "lat"],
-        coords={
-            "time": ("time", time),
-            "lat": ("lat", lat),
-            "shift": ("lat", shift)
-        },
+        coords={"time": ("time", time), "lat": ("lat", lat), "shift": ("lat", shift)},
     )
 
     recorded = []
