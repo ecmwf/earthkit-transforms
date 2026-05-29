@@ -999,13 +999,6 @@ def rolling_reduce(
         Name of the time dimension, or coordinate, in the xarray object,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
-        A time shift to apply to the data prior to calculation, e.g. to change
-        the local time zone. It can be provided as any object that can be
-        understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
-        `pandas.Timedelta`. An :class:`xarray.DataArray` may be used to specify,
-        e.g., spatially-varying per-gridpoint time zone offsets. A string is
-        interpreted as the name of a coordinate on the input data. Default is None.
     min_periods : integer
         The minimum number of observations in the window required to have a value
         (otherwise result is NaN). Default is to set **min_periods** equal to the size of the window.
