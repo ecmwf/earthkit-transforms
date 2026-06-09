@@ -8,7 +8,6 @@ are encouraged to read the documentation of the methods used in the notebooks
 to get a deeper understanding of how they work and how to use them effectively.
 
 .. toctree::
-   :caption: How-to/Examples/Use-cases
    :maxdepth: 2
 
    temporal/index.rst
