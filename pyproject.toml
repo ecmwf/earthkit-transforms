@@ -43,6 +43,7 @@ ci = [
   "pandas-stubs",
   "types-PyYAML",
   "earthkit-data>=1.0.0rc4",
+  "geopandas",
   "rasterio"  # Requires GDAL
 ]
 docs = [
@@ -70,6 +71,7 @@ docs = [
   "setuptools",
   "statsmodels",
   "reverse-geocode",
+  "geopandas",
   "rasterio",
   "earthkit-plots>=1.0.0rc0",
   "earthkit-utils>=1.0.0rc0",
