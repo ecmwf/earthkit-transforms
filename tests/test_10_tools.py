@@ -118,12 +118,13 @@ def test_time_dim_decorator_time_shift_str_coord_value_scalar(shift):
     np.testing.assert_equal(result.coords["time"].values, da.coords["time"].values + shift)
 
 
-@pytest.mark.parametrize("shift", _TIME_SHIFTS)
-def test_time_dim_decorator_time_shift_str_coord_value_takes_precedent_over_timedelta(shift):
-    da = xr.DataArray([1, 2, 3], dims=["time"], coords={"time": pd.date_range("2000-01-01", periods=3), "4h": shift})
+def test_time_dim_decorator_time_shift_str_as_timedelta_takes_precedence_over_coord_reference():
+    da = xr.DataArray([1, 2, 3], dims=["time"], coords={"time": pd.date_range("2000-01-01", periods=3), "4h": pd.Timedelta("1h")})
     result = time_dim_decorator(dummy_func2)(da, time_shift="4h")
-    np.testing.assert_equal(result.coords["time"].values, da.coords["time"].values + shift)
-
+    np.testing.assert_equal(result.coords["time"].values, da.coords["time"].values + pd.Timedelta("4h"))
+    # DataArray-typed time_shift allows to resolve ambiguity
+    result = time_dim_decorator(dummy_func2)(da, time_shift=da["4h"])
+    np.testing.assert_equal(result.coords["time"].values, da.coords["time"].values + pd.Timedelta("1h"))
 
 @pytest.mark.parametrize("shift", _TIME_SHIFTS)
 def test_time_dim_decorator_time_shift_dataarray_value_scalar(shift):

@@ -105,10 +105,13 @@ def time_dim_decorator(func):
                 # Not able to find time dimension in object so let fail its own way
                 func(dataarray, *args, **kwargs)
 
-        # Interpret string-type time_shift values as coordinate references if
-        # there is a match. Other string-type values are processed later.
-        if isinstance(time_shift, str) and time_shift in dataarray.coords:
-            time_shift = dataarray.coords[time_shift]
+        # Timedelta interpretation of time_shift takes precedence over coordinate lookup
+        if isinstance(time_shift, str):
+            try:
+                time_shift = pd.Timedelta(time_shift)
+            except ValueError:
+                time_shift = dataarray.coords[time_shift]
+
         if isinstance(time_shift, xr.DataArray):
             if time_dim in time_shift.dims:
                 raise NotImplementedError(
