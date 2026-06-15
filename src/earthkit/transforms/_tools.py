@@ -119,37 +119,31 @@ def time_dim_decorator(func):
                     "supported. The 'time_shift' coordinate must not depend on the "
                     f"time dimension ('{time_dim}')."
                 )
+            # Split into groups of unique time_shift and process individually
             unique_shifts = np.unique(time_shift.values)
-            # Single-value shifts don't need dedicated logic, multi-value shifts
-            # are processed with a split-apply-combine pattern
-            if unique_shifts.size == 1:
-                time_shift = unique_shifts[0]
-                assert not isinstance(time_shift, xr.DataArray)
-            else:
-                _INTERNAL_COORD = f"__{func.__name__}_TIME_SHIFT"
-                if _INTERNAL_COORD in dataarray.coords:
-                    raise RuntimeError(
-                        f"Internal coordinate '{_INTERNAL_COORD}' already exists in "
-                        "the data. Ensure your data does not contain a coordinate "
-                        "with that name."
-                    )
-                # Attach the per-point shift as a coordinate so that each group
-                # carries its own value. Grouping by the shift guarantees a
-                # single unique value per group, so the recursion ends immediately
-                # in the next level via the unique_shifts.size == 1 branch.
+            if unique_shifts.size > 1:
+                # Attach time_shift as a coordinate so it is available in the
+                # mapped (recursive) calls
+                time_shift_coord = "__TIME_SHIFT"
+                while time_shift_coord in dataarray.coords:
+                    time_shift_coord = "_" + time_shift_coord
                 return (
-                    dataarray.assign_coords({_INTERNAL_COORD: time_shift})
-                    .groupby(_INTERNAL_COORD)
+                    dataarray.assign_coords({time_shift_coord: time_shift})
+                    .groupby(time_shift_coord)
                     .map(
                         wrapper,
                         args=args,
                         time_dim=time_dim,
-                        time_shift=_INTERNAL_COORD,
+                        time_shift=time_shift_coord,
                         remove_partial_periods=remove_partial_periods,
                         **kwargs,
                     )
-                    .drop_vars(_INTERNAL_COORD)
+                    .drop_vars(time_shift_coord)
                 )
+            # Break the recursion for unique time_shift
+            else:
+                time_shift = unique_shifts[0]
+                assert not isinstance(time_shift, xr.DataArray)
 
         if time_shift is not None:
             # Create timedelta from dict
