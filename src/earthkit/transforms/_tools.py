@@ -142,7 +142,7 @@ def time_dim_decorator(func):
                     .groupby(_INTERNAL_COORD)
                     .map(
                         wrapper,
-                        *args,
+                        args=args,
                         time_dim=time_dim,
                         time_shift=_INTERNAL_COORD,
                         remove_partial_periods=remove_partial_periods,
