@@ -12,3 +12,4 @@ and standard deviation.
 
    howto_calculate_daily_mean_era5.ipynb
    howto_calculate_monthly_mean_era5.ipynb
+   howto_compute_in_local_time.ipynb
