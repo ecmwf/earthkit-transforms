@@ -394,9 +394,10 @@ def daily_reduce(
         A time shift to apply to the data prior to calculation, e.g. to change
         the local time zone. It can be provided as any object that can be
         understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
-        `pandas.Timedelta`. An :class:`xarray.DataArray` may be used to specify,
-        e.g., spatially-varying per-gridpoint time zone offsets. A string is
-        interpreted as the name of a coordinate on the input data. Default is None.
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -478,9 +479,10 @@ def daily_mean(*_args, **kwargs) -> xr.Dataset | xr.DataArray:
         A time shift to apply to the data prior to calculation, e.g. to change
         the local time zone. It can be provided as any object that can be
         understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
-        `pandas.Timedelta`. An :class:`xarray.DataArray` may be used to specify,
-        e.g., spatially-varying per-gridpoint time zone offsets. A string is
-        interpreted as the name of a coordinate on the input data. Default is None.
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -511,9 +513,10 @@ def daily_median(*_args, **kwargs):
         A time shift to apply to the data prior to calculation, e.g. to change
         the local time zone. It can be provided as any object that can be
         understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
-        `pandas.Timedelta`. An :class:`xarray.DataArray` may be used to specify,
-        e.g., spatially-varying per-gridpoint time zone offsets. A string is
-        interpreted as the name of a coordinate on the input data. Default is None.
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -544,9 +547,10 @@ def daily_max(*_args, **kwargs):
         A time shift to apply to the data prior to calculation, e.g. to change
         the local time zone. It can be provided as any object that can be
         understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
-        `pandas.Timedelta`. An :class:`xarray.DataArray` may be used to specify,
-        e.g., spatially-varying per-gridpoint time zone offsets. A string is
-        interpreted as the name of a coordinate on the input data. Default is None.
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -577,9 +581,10 @@ def daily_min(*_args, **kwargs):
         A time shift to apply to the data prior to calculation, e.g. to change
         the local time zone. It can be provided as any object that can be
         understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
-        `pandas.Timedelta`. An :class:`xarray.DataArray` may be used to specify,
-        e.g., spatially-varying per-gridpoint time zone offsets. A string is
-        interpreted as the name of a coordinate on the input data. Default is None.
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -610,9 +615,10 @@ def daily_std(*_args, **kwargs):
         A time shift to apply to the data prior to calculation, e.g. to change
         the local time zone. It can be provided as any object that can be
         understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
-        `pandas.Timedelta`. An :class:`xarray.DataArray` may be used to specify,
-        e.g., spatially-varying per-gridpoint time zone offsets. A string is
-        interpreted as the name of a coordinate on the input data. Default is None.
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -643,9 +649,10 @@ def daily_sum(*_args, **kwargs):
         A time shift to apply to the data prior to calculation, e.g. to change
         the local time zone. It can be provided as any object that can be
         understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
-        `pandas.Timedelta`. An :class:`xarray.DataArray` may be used to specify,
-        e.g., spatially-varying per-gridpoint time zone offsets. A string is
-        interpreted as the name of a coordinate on the input data. Default is None.
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -689,9 +696,10 @@ def monthly_reduce(
         A time shift to apply to the data prior to calculation, e.g. to change
         the local time zone. It can be provided as any object that can be
         understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
-        `pandas.Timedelta`. An :class:`xarray.DataArray` may be used to specify,
-        e.g., spatially-varying per-gridpoint time zone offsets. A string is
-        interpreted as the name of a coordinate on the input data. Default is None.
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -780,9 +788,10 @@ def monthly_mean(
         A time shift to apply to the data prior to calculation, e.g. to change
         the local time zone. It can be provided as any object that can be
         understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
-        `pandas.Timedelta`. An :class:`xarray.DataArray` may be used to specify,
-        e.g., spatially-varying per-gridpoint time zone offsets. A string is
-        interpreted as the name of a coordinate on the input data. Default is None.
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -816,9 +825,10 @@ def monthly_median(
         A time shift to apply to the data prior to calculation, e.g. to change
         the local time zone. It can be provided as any object that can be
         understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
-        `pandas.Timedelta`. An :class:`xarray.DataArray` may be used to specify,
-        e.g., spatially-varying per-gridpoint time zone offsets. A string is
-        interpreted as the name of a coordinate on the input data. Default is None.
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -852,9 +862,10 @@ def monthly_min(
         A time shift to apply to the data prior to calculation, e.g. to change
         the local time zone. It can be provided as any object that can be
         understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
-        `pandas.Timedelta`. An :class:`xarray.DataArray` may be used to specify,
-        e.g., spatially-varying per-gridpoint time zone offsets. A string is
-        interpreted as the name of a coordinate on the input data. Default is None.
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -888,9 +899,10 @@ def monthly_max(
         A time shift to apply to the data prior to calculation, e.g. to change
         the local time zone. It can be provided as any object that can be
         understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
-        `pandas.Timedelta`. An :class:`xarray.DataArray` may be used to specify,
-        e.g., spatially-varying per-gridpoint time zone offsets. A string is
-        interpreted as the name of a coordinate on the input data. Default is None.
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -924,9 +936,10 @@ def monthly_std(
         A time shift to apply to the data prior to calculation, e.g. to change
         the local time zone. It can be provided as any object that can be
         understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
-        `pandas.Timedelta`. An :class:`xarray.DataArray` may be used to specify,
-        e.g., spatially-varying per-gridpoint time zone offsets. A string is
-        interpreted as the name of a coordinate on the input data. Default is None.
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -960,9 +973,10 @@ def monthly_sum(
         A time shift to apply to the data prior to calculation, e.g. to change
         the local time zone. It can be provided as any object that can be
         understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
-        `pandas.Timedelta`. An :class:`xarray.DataArray` may be used to specify,
-        e.g., spatially-varying per-gridpoint time zone offsets. A string is
-        interpreted as the name of a coordinate on the input data. Default is None.
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
