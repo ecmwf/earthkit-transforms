@@ -65,7 +65,7 @@ docs = [
   "statsmodels",
   "reverse-geocode",
   "earthkit-plots>=1.0.0rc0",
-  "earthkit-utils>=1.0.0rc0"
+  "matplotlib<=3.10.8"  # Temporary fix for ek-plots
 ]
 
 [tool.coverage.run]
