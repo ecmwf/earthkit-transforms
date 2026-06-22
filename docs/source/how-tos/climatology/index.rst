@@ -11,3 +11,4 @@ data with geometries, and calculating area means.
    :maxdepth: 1
 
    howto_climatology_mean_era5.ipynb
+   howto_climate_stripes.ipynb
