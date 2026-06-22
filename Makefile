@@ -26,12 +26,14 @@ clean-pip-env:
 	python3 -m venv .venv
 	.venv/bin/pip install --upgrade pip setuptools wheel pre-commit mypy
 	.venv/bin/pip install -e ".[docs]"
+	.venv/bin/pre-commit install --install-hooks
 	echo to activate the environment, run: . .venv/bin/activate
 
 clean-uv-env:
 	rm -rf .venv
 	uv venv --python 3.12 .venv
 	uv pip install -e ".[docs]"
+	uv pre-commit install --install-hooks
 	echo to activate the environment, run: . .venv/bin/activate
 
 clean-conda-env:
