@@ -36,23 +36,16 @@ all = [
   "rasterio"  # Requires GDAL
 ]
 ci = [
+  "earthkit-transforms[all]",
   "pre-commit",
   "mypy",
   "pytest",
   "pytest-cov",
   "pandas-stubs",
-  "types-PyYAML",
-  "earthkit-data>=1.0.0rc4",
-  "geopandas",
-  "rasterio"  # Requires GDAL
+  "types-PyYAML"
 ]
 docs = [
-  "pre-commit",
-  "mypy",
-  "pytest",
-  "pytest-cov",
-  "pandas-stubs",
-  "types-PyYAML",
+  "earthkit-transforms[ci]",
   "ipykernel",
   "Pygments>=2.6.1",
   "Sphinx",
@@ -71,11 +64,8 @@ docs = [
   "setuptools",
   "statsmodels",
   "reverse-geocode",
-  "geopandas",
-  "rasterio",
   "earthkit-plots>=1.0.0rc0",
-  "earthkit-utils>=1.0.0rc0",
-  "earthkit-data>=1.0.0rc4"
+  "earthkit-utils>=1.0.0rc0"
 ]
 
 [tool.coverage.run]
