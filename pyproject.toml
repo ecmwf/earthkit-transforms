@@ -73,7 +73,8 @@ docs = [
   "rasterio",
   "earthkit-plots>=1.0.0rc0",
   "earthkit-utils>=1.0.0rc0",
-  "earthkit-data>=1.0.0rc4"
+  "earthkit-data>=1.0.0rc4",
+  "matplotlib<=3.10.8"  # Temporary fix for ek-plots
 ]
 
 [tool.coverage.run]
