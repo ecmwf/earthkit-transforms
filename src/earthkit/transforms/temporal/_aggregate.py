@@ -390,10 +390,14 @@ def daily_reduce(
         Name of the time dimension, or coordinate, in the xarray object,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-    time_shift : (optional) None, timedelta or dict
-        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
-        as kwargs to `pandas.Timedelta`. Default is None.
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change
+        the local time zone. It can be provided as any object that can be
+        understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -471,10 +475,14 @@ def daily_mean(*_args, **kwargs) -> xr.Dataset | xr.DataArray:
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-    time_shift : (optional) None, timedelta or dict
-        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
-        as kwargs to `pandas.Timedelta`. Default is None.
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change
+        the local time zone. It can be provided as any object that can be
+        understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -501,10 +509,14 @@ def daily_median(*_args, **kwargs):
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-    time_shift : (optional) None, timedelta or dict
-        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
-        as kwargs to `pandas.Timedelta`. Default is None.
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change
+        the local time zone. It can be provided as any object that can be
+        understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -531,10 +543,14 @@ def daily_max(*_args, **kwargs):
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-    time_shift : (optional) None, timedelta or dict
-        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
-        as kwargs to `pandas.Timedelta`. Default is None.
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change
+        the local time zone. It can be provided as any object that can be
+        understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -561,10 +577,14 @@ def daily_min(*_args, **kwargs):
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-    time_shift : (optional) None, timedelta or dict
-        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
-        as kwargs to `pandas.Timedelta`. Default is None.
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change
+        the local time zone. It can be provided as any object that can be
+        understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -591,10 +611,14 @@ def daily_std(*_args, **kwargs):
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-    time_shift : (optional) None, timedelta or dict
-        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
-        as kwargs to `pandas.Timedelta`. Default is None.
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change
+        the local time zone. It can be provided as any object that can be
+        understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -621,10 +645,14 @@ def daily_sum(*_args, **kwargs):
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-    time_shift : (optional) None, timedelta or dict
-        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
-        as kwargs to `pandas.Timedelta`. Default is None.
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change
+        the local time zone. It can be provided as any object that can be
+        understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -664,10 +692,14 @@ def monthly_reduce(
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-    time_shift : None, timedelta or dict, optional
-        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
-        as kwargs to `pandas.Timedelta`. Default is None.
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change
+        the local time zone. It can be provided as any object that can be
+        understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -752,10 +784,14 @@ def monthly_mean(
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-    time_shift : (optional) None, timedelta or dict
-        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
-        as kwargs to `pandas.Timedelta`. Default is None.
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change
+        the local time zone. It can be provided as any object that can be
+        understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -785,10 +821,14 @@ def monthly_median(
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-    time_shift : (optional) None, timedelta or dict
-        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
-        as kwargs to `pandas.Timedelta`. Default is None.
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change
+        the local time zone. It can be provided as any object that can be
+        understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -818,10 +858,14 @@ def monthly_min(
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-    time_shift : (optional) None, timedelta or dict
-        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
-        as kwargs to `pandas.Timedelta`. Default is None.
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change
+        the local time zone. It can be provided as any object that can be
+        understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -851,10 +895,14 @@ def monthly_max(
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-    time_shift : (optional) None, timedelta or dict
-        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
-        as kwargs to `pandas.Timedelta`. Default is None.
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change
+        the local time zone. It can be provided as any object that can be
+        understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -884,10 +932,14 @@ def monthly_std(
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-    time_shift : (optional) None, timedelta or dict
-        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
-        as kwargs to `pandas.Timedelta`. Default is None.
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change
+        the local time zone. It can be provided as any object that can be
+        understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.
@@ -917,10 +969,14 @@ def monthly_sum(
         Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-    time_shift : (optional) None, timedelta or dict
-        A time shift to apply to the data prior to calculation, e.g. to change the local time zone.
-        It can be provided as any object that can be understood by `pandas.Timedelta`, a dictionary is passed
-        as kwargs to `pandas.Timedelta`. Default is None.
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change
+        the local time zone. It can be provided as any object that can be
+        understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
     remove_partial_periods : bool
         If True and a time_shift has been applied, the first and last time steps are removed to ensure
         equality in sampling periods. Default is False.

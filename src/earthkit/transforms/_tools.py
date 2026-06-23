@@ -94,7 +94,7 @@ def time_dim_decorator(func):
         dataarray: xr.Dataset | xr.DataArray,
         *args,
         time_dim: str | None = None,
-        time_shift: dict | str | pd.Timedelta | None = None,
+        time_shift: dict | str | pd.Timedelta | xr.DataArray | None = None,
         remove_partial_periods: bool = False,
         **kwargs,
     ):
@@ -104,6 +104,46 @@ def time_dim_decorator(func):
             except Exception:
                 # Not able to find time dimension in object so let fail its own way
                 func(dataarray, *args, **kwargs)
+
+        # Timedelta interpretation of time_shift takes precedence over coordinate lookup
+        if isinstance(time_shift, str):
+            try:
+                time_shift = pd.Timedelta(time_shift)
+            except ValueError:
+                time_shift = dataarray.coords[time_shift]
+
+        if isinstance(time_shift, xr.DataArray):
+            if time_dim in time_shift.dims:
+                raise NotImplementedError(
+                    "Time-varying time shifts (e.g. daylight saving time) are not "
+                    "supported. The 'time_shift' coordinate must not depend on the "
+                    f"time dimension ('{time_dim}')."
+                )
+            # Split into groups of unique time_shift and process individually
+            unique_shifts = np.unique(time_shift.values)
+            if unique_shifts.size > 1:
+                # Attach time_shift as a coordinate so it is available in the
+                # mapped (recursive) calls
+                time_shift_coord = "__TIME_SHIFT"
+                while time_shift_coord in dataarray.coords:
+                    time_shift_coord = "_" + time_shift_coord
+                return (
+                    dataarray.assign_coords({time_shift_coord: time_shift})
+                    .groupby(time_shift_coord)
+                    .map(
+                        wrapper,
+                        args=args,
+                        time_dim=time_dim,
+                        time_shift=time_shift_coord,
+                        remove_partial_periods=remove_partial_periods,
+                        **kwargs,
+                    )
+                    .drop_vars(time_shift_coord)
+                )
+            # Break the recursion for unique time_shift
+            else:
+                time_shift = unique_shifts[0]
+                assert not isinstance(time_shift, xr.DataArray)
 
         if time_shift is not None:
             # Create timedelta from dict
