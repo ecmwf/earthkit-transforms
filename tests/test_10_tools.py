@@ -1,13 +1,13 @@
 from typing import Any
 
 import numpy as np
+import pytest
 
 try:
     import cupy as cp
 except ImportError:
     cp = None
 import pandas as pd
-import pytest
 import xarray as xr
 
 from earthkit.transforms._tools import (
@@ -90,6 +90,126 @@ def test_time_dim_decorator_time_shift_provided_trim_shifted():
     # Check if the time dimension is correctly shifted, and the start and end dates are removed
     expected_coords = pd.date_range("2000-01-03", periods=1)
     assert all(result.coords["time"].values == expected_coords)
+
+
+def test_time_dim_decorator_no_shift_with_trim():
+    dataarray = xr.DataArray([1, 2, 3], dims=["time"], coords={"time": pd.date_range("2000-01-01", periods=3)})
+    # No time_shift provided -> remove_partial_periods ignored
+    result1 = time_dim_decorator(dummy_func2)(dataarray, remove_partial_periods=True)
+    result2 = time_dim_decorator(dummy_func2)(dataarray, remove_partial_periods=False)
+    xr.testing.assert_identical(result1, result2)
+
+
+def test_time_dim_decorator_zero_shift_with_trim():
+    dataarray = xr.DataArray([1, 2, 3], dims=["time"], coords={"time": pd.date_range("2000-01-01", periods=3)})
+    # Zero time_shift -> nothing trimmed but time_shift recorded
+    result = time_dim_decorator(dummy_func2)(dataarray, time_shift=pd.Timedelta(0), remove_partial_periods=True)
+    assert "time_shift" in result.coords["time"].attrs
+    xr.testing.assert_equal(result, dataarray)
+
+
+_TIME_SHIFTS = [np.timedelta64(-2, "h"), np.timedelta64(0, "h"), np.timedelta64(1, "h")]
+
+
+@pytest.mark.parametrize("shift", _TIME_SHIFTS)
+def test_time_dim_decorator_time_shift_str_coord_value_scalar(shift):
+    da = xr.DataArray([1, 2, 3], dims=["time"], coords={"time": pd.date_range("2000-01-01", periods=3), "tz": shift})
+    result = time_dim_decorator(dummy_func2)(da, time_shift="tz")
+    np.testing.assert_equal(result.coords["time"].values, da.coords["time"].values + shift)
+
+
+def test_time_dim_decorator_time_shift_str_as_timedelta_takes_precedence_over_coord_reference():
+    da = xr.DataArray([1, 2, 3], dims=["time"], coords={"time": pd.date_range("2000-01-01", periods=3), "4h": pd.Timedelta("1h")})
+    result = time_dim_decorator(dummy_func2)(da, time_shift="4h")
+    np.testing.assert_equal(result.coords["time"].values, da.coords["time"].values + pd.Timedelta("4h"))
+    # DataArray-typed time_shift allows to resolve ambiguity
+    result = time_dim_decorator(dummy_func2)(da, time_shift=da["4h"])
+    np.testing.assert_equal(result.coords["time"].values, da.coords["time"].values + pd.Timedelta("1h"))
+
+@pytest.mark.parametrize("shift", _TIME_SHIFTS)
+def test_time_dim_decorator_time_shift_dataarray_value_scalar(shift):
+    da = xr.DataArray([1, 2, 3], dims=["time"], coords={"time": pd.date_range("2000-01-01", periods=3)})
+    da_shift = xr.DataArray(shift)
+    result = time_dim_decorator(dummy_func2)(da, time_shift=da_shift)
+    np.testing.assert_equal(result.coords["time"].values, da.coords["time"].values + shift)
+
+
+@pytest.mark.parametrize("shift", _TIME_SHIFTS)
+def test_time_dim_decorator_time_shift_dataarray_value_unique(shift):
+    time = pd.date_range("2020-01-01", periods=4, freq="h")
+    lat = [0, 1]
+    da = xr.DataArray(
+        np.ones((4, 2)),
+        dims=["time", "lat"],
+        coords={"time": ("time", time), "lat": ("lat", lat), "shift": ("lat", [shift, shift])},
+    )
+    result = time_dim_decorator(dummy_func2)(da, time_shift="shift")
+    np.testing.assert_equal(result.coords["time"].values, da.coords["time"].values + shift)
+
+
+def test_time_dim_decorator_time_shift_dataarray_value_multiple_maintains_coordinate_order():
+    time = pd.date_range("2020-01-01", periods=3, freq="h")
+    lat = [0, 1, 2, 3, 4]
+    shift = [np.timedelta64(x % 3, "h") for x in lat]  # shift groups are fragmented
+    da = xr.DataArray(
+        np.repeat(np.arange(len(time)), len(lat)).reshape((len(time), len(lat))),
+        dims=["time", "lat"],
+        coords={"time": ("time", time), "lat": ("lat", lat), "shift": ("lat", shift)},
+    )
+    result = time_dim_decorator(dummy_func2)(da, time_shift="shift")
+    np.testing.assert_equal(result.coords["lat"].values, da.coords["lat"].values)
+    np.testing.assert_equal(
+        result.values,
+        [
+            [0, np.nan, np.nan, 0, np.nan],
+            [1, 0, np.nan, 1, 0],
+            [2, 1, 0, 2, 1],
+            [np.nan, 2, 1, np.nan, 2],
+            [np.nan, np.nan, 2, np.nan, np.nan],
+        ],
+    )
+
+
+def test_time_dim_decorator_time_shift_dataarray_value_multiple_without_trim():
+    time = pd.date_range("2020-01-01", periods=4, freq="h")
+    lat = [-2, 0, 1]
+    shift = [np.timedelta64(x, "h") for x in lat]
+    da = xr.DataArray(
+        np.repeat(np.arange(len(time)), len(lat)).reshape((len(time), len(lat))),
+        dims=["time", "lat"],
+        coords={"time": ("time", time), "lat": ("lat", lat), "shift": ("lat", shift)},
+    )
+    result = time_dim_decorator(dummy_func2)(da, time_shift="shift", remove_partial_periods=False)
+    assert result.dims == da.dims
+    np.testing.assert_equal(result.coords["time"].values, pd.date_range("2019-12-31 22:00", periods=7, freq="h"))
+    np.testing.assert_equal(
+        result.values,
+        [
+            [0, np.nan, np.nan],
+            [1, np.nan, np.nan],
+            [2, 0, np.nan],
+            [3, 1, 0],
+            [np.nan, 2, 1],
+            [np.nan, 3, 2],
+            [np.nan, np.nan, 3],
+        ],
+    )
+
+
+def test_time_dim_decorator_time_shift_multiple_with_trim():
+    time = pd.date_range("2020-01-01", periods=4, freq="h")
+    lat = [-2, 0, 1]
+    shift = [np.timedelta64(x, "h") for x in lat]
+    da = xr.DataArray(
+        np.repeat(np.arange(len(time)), len(lat)).reshape((len(time), len(lat))),
+        dims=["time", "lat"],
+        coords={"time": ("time", time), "lat": ("lat", lat), "shift": ("lat", shift)},
+    )
+    result = time_dim_decorator(dummy_func2)(da, time_shift="shift", remove_partial_periods=True)
+    assert result.dims == da.dims
+    np.testing.assert_equal(
+        result.values, [[1, np.nan, np.nan], [2, 0, np.nan], [np.nan, 1, np.nan], [np.nan, 2, 1], [np.nan, 3, 2]]
+    )
 
 
 # Define a dummy function to decorate
