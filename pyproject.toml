@@ -19,8 +19,7 @@ classifiers = [
 dependencies = [
   "xarray>=2022.3.0",
   "numpy>=1.18",
-  "earthkit-utils>=1.0.0rc0",
-  "geopandas"
+  "earthkit-utils>=1.0.0rc0"
 ]
 description = "Aggregation tools for meteorological and climate data."
 dynamic = ["version"]
@@ -33,25 +32,20 @@ requires-python = ">=3.10"
 [project.optional-dependencies]
 all = [
   "earthkit-data>=1.0.0rc4",
+  "geopandas",
   "rasterio"  # Requires GDAL
 ]
 ci = [
+  "earthkit-transforms[all]",
   "pre-commit",
   "mypy",
   "pytest",
   "pytest-cov",
   "pandas-stubs",
-  "types-PyYAML",
-  "earthkit-data>=1.0.0rc4",
-  "rasterio"  # Requires GDAL
+  "types-PyYAML"
 ]
 docs = [
-  "pre-commit",
-  "mypy",
-  "pytest",
-  "pytest-cov",
-  "pandas-stubs",
-  "types-PyYAML",
+  "earthkit-transforms[ci]",
   "ipykernel",
   "Pygments>=2.6.1",
   "Sphinx",
@@ -70,10 +64,7 @@ docs = [
   "setuptools",
   "statsmodels",
   "reverse-geocode",
-  "rasterio",
   "earthkit-plots>=1.0.0rc0",
-  "earthkit-utils>=1.0.0rc0",
-  "earthkit-data>=1.0.0rc4",
   "matplotlib<=3.10.8"  # Temporary fix for ek-plots
 ]
 
