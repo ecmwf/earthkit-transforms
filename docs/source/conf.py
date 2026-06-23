@@ -210,10 +210,6 @@ html_theme_options = {
     ],
 }
 
-_EARTHKIT_PACKAGES_URL = (
-    f"https://raw.githubusercontent.com/ecmwf/earthkit/refs/heads/{source_branch}/docs/earthkit-packages.yml"
-)
-
 
 def setup(app):
     from earthkit_packages import _write_earthkit_packages_js
