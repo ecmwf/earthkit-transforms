@@ -204,8 +204,9 @@ html_theme_options = {
 }
 
 _EARTHKIT_PACKAGES_URL = (
-    "https://raw.githubusercontent.com/ecmwf/earthkit/refs/heads/develop/docs/earthkit-packages.yml"
+    f"https://raw.githubusercontent.com/ecmwf/earthkit/refs/heads/{source_branch}/docs/earthkit-packages.yml"
 )
+
 
 def _write_earthkit_packages_js(app):
     """Fetch earthkit-packages.yml from remote and write a JS data file into the output _static dir.
