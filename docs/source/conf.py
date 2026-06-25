@@ -14,10 +14,8 @@ on_rtd = os.environ.get("READTHEDOCS") == "True"
 
 if on_rtd:
     version = os.environ.get("READTHEDOCS_VERSION", "latest")
-    release = version
 else:
     version = "dev"
-    release = "dev"
 
 rtd_version = version if version != "latest" else "develop"
 rtd_version_type = os.environ.get("READTHEDOCS_VERSION_TYPE", "branch")
@@ -212,6 +210,6 @@ html_theme_options = {
 
 
 def setup(app):
-    from .earthkit_packages import _write_earthkit_packages_js
+    from earthkit_packages import _write_earthkit_packages_js
 
     app.connect("builder-inited", lambda app: _write_earthkit_packages_js(app, ek_branch))
