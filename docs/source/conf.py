@@ -38,6 +38,7 @@ else:
 
 src_path = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "src"))
 sys.path.insert(0, src_path)
+sys.path.insert(0, os.path.abspath("./"))
 
 project = "earthkit-transforms"
 module_prefix = project.replace("-", ".")
