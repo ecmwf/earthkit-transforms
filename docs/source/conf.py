@@ -212,6 +212,6 @@ html_theme_options = {
 
 
 def setup(app):
-    from earthkit_packages import _write_earthkit_packages_js
+    from .earthkit_packages import _write_earthkit_packages_js
 
     app.connect("builder-inited", lambda app: _write_earthkit_packages_js(app, ek_branch))
