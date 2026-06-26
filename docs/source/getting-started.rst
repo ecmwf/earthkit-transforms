@@ -9,7 +9,7 @@ the installation of earthkit-transforms.
 
 .. code:: bash
 
-   pip install earthkit-transforms>=1.0.0rc0
+   pip install earthkit-transforms
 
 To make use of the interoperable functionality you should ensure that
 you have installed the *earthkit-data* dependency.
