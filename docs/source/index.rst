@@ -1,4 +1,4 @@
-Earthkit transforms documentation
+Earthkit Transforms Documentation
 =================================
 
 **earthkit-transforms** is a library of software tools to support people
