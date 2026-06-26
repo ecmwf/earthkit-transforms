@@ -1,20 +1,41 @@
+# Copyright 2024-, European Centre for Medium Range Weather Forecasts.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import functools
 import importlib
-import inspect
 import logging
+import posixpath
 import types
 import typing as T
-from functools import wraps
 
 import numpy as np
 import pandas as pd
 import xarray as xr
-from earthkit.data import transform
-from earthkit.data.utils.module_inputs_wrapper import _ensure_iterable, _ensure_tuple, signature_mapping
-from earthkit.data.wrappers import Wrapper
 from earthkit.utils.array import array_namespace
 
 logger = logging.getLogger(__name__)
+
+
+# Define a function to construct remote test data file paths
+_REMOTE_TEST_DATA_URL = "https://sites.ecmwf.int/repository/earthkit-data/test-data/"
+
+
+def earthkit_remote_test_data_file(*args):
+    # Use POSIX-style joining to build URLs safely across platforms.
+    # Strip leading slashes so that no argument is treated as absolute.
+    parts = [str(a).lstrip("/") for a in args]
+    return posixpath.join(_REMOTE_TEST_DATA_URL, *parts)
+
 
 #: Mapping from pandas frequency strings to xarray time groups
 _PANDAS_FREQUENCIES = {
@@ -24,10 +45,15 @@ _PANDAS_FREQUENCIES = {
     "ME": "month",
     "MS": "month",
     "H": "hour",
+    "YE": "year",
 }
 # Note this is not 100% reversible, 3 pandas freqs map to xarray's "month",
 # but "month" will only map to "MS"
-_PANDAS_FREQUENCIES_R = {v: k for k, v in _PANDAS_FREQUENCIES.items()}
+_PANDAS_FREQUENCIES_R = {
+    **{v: k for k, v in _PANDAS_FREQUENCIES.items()},
+    # Add some additional aliases for reverse mapping
+    **{"month_start": "MS", "month_end": "ME", "week": "W", "day": "D"},
+}
 
 #: The maximum limit of climatology time groups
 _BIN_MAXES = {
@@ -36,6 +62,7 @@ _BIN_MAXES = {
     "weekofyear": 53,
     "month": 12,
     "season": 4,
+    "year": 1,
 }
 
 
@@ -67,7 +94,7 @@ def time_dim_decorator(func):
         dataarray: xr.Dataset | xr.DataArray,
         *args,
         time_dim: str | None = None,
-        time_shift: dict | str | pd.Timedelta | None = None,
+        time_shift: dict | str | pd.Timedelta | xr.DataArray | None = None,
         remove_partial_periods: bool = False,
         **kwargs,
     ):
@@ -77,6 +104,46 @@ def time_dim_decorator(func):
             except Exception:
                 # Not able to find time dimension in object so let fail its own way
                 func(dataarray, *args, **kwargs)
+
+        # Timedelta interpretation of time_shift takes precedence over coordinate lookup
+        if isinstance(time_shift, str):
+            try:
+                time_shift = pd.Timedelta(time_shift)
+            except ValueError:
+                time_shift = dataarray.coords[time_shift]
+
+        if isinstance(time_shift, xr.DataArray):
+            if time_dim in time_shift.dims:
+                raise NotImplementedError(
+                    "Time-varying time shifts (e.g. daylight saving time) are not "
+                    "supported. The 'time_shift' coordinate must not depend on the "
+                    f"time dimension ('{time_dim}')."
+                )
+            # Split into groups of unique time_shift and process individually
+            unique_shifts = np.unique(time_shift.values)
+            if unique_shifts.size > 1:
+                # Attach time_shift as a coordinate so it is available in the
+                # mapped (recursive) calls
+                time_shift_coord = "__TIME_SHIFT"
+                while time_shift_coord in dataarray.coords:
+                    time_shift_coord = "_" + time_shift_coord
+                return (
+                    dataarray.assign_coords({time_shift_coord: time_shift})
+                    .groupby(time_shift_coord)
+                    .map(
+                        wrapper,
+                        args=args,
+                        time_dim=time_dim,
+                        time_shift=time_shift_coord,
+                        remove_partial_periods=remove_partial_periods,
+                        **kwargs,
+                    )
+                    .drop_vars(time_shift_coord)
+                )
+            # Break the recursion for unique time_shift
+            else:
+                time_shift = unique_shifts[0]
+                assert not isinstance(time_shift, xr.DataArray)
 
         if time_shift is not None:
             # Create timedelta from dict
@@ -104,20 +171,60 @@ def time_dim_decorator(func):
 
 GROUPBY_KWARGS = ["frequency", "bin_widths"]
 
+_INVALID_CLIMATOLOGY_FREQUENCIES = ["day"]
+VALID_CLIMATOLOGY_FREQUENCIES = ["dayofyear", "week", "weekofyear", "month"]
 
-def groupby_kwargs_decorator(func):
-    @functools.wraps(func)
-    def wrapper(*args, groupby_kwargs: dict | None = None, **kwargs):
-        groupby_kwargs = groupby_kwargs or {}
-        new_kwargs = {}
-        for k, v in kwargs.copy().items():
-            if k in GROUPBY_KWARGS:
-                groupby_kwargs.setdefault(k, v)
-            else:
-                new_kwargs[k] = v
-        return func(*args, groupby_kwargs=groupby_kwargs, **new_kwargs)
 
-    return wrapper
+def groupby_kwargs_decorator(func: T.Callable | None = None, *, climatology: bool = False):
+    """Collect groupby kwargs and optionally validates climatology frequencies.
+
+    Can be used either as a simple decorator or as a decorator factory::
+
+        @groupby_kwargs_decorator
+        def f(...): ...
+
+        @groupby_kwargs_decorator()
+        def f(...): ...
+
+        @groupby_kwargs_decorator(climatology=True)
+        def f(...): ...
+
+    Parameters
+    ----------
+    climatology : bool
+        When True, raises a ValueError if the resolved ``frequency`` value is
+        listed in ``_INVALID_CLIMATOLOGY_FREQUENCIES``.
+
+    """
+
+    def decorator(f):
+        @functools.wraps(f)
+        def wrapper(*args, groupby_kwargs: dict | None = None, **kwargs):
+            groupby_kwargs = groupby_kwargs or {}
+            new_kwargs = {}
+            for k, v in kwargs.copy().items():
+                if k in GROUPBY_KWARGS:
+                    groupby_kwargs.setdefault(k, v)
+                else:
+                    new_kwargs[k] = v
+            if climatology:
+                freq = groupby_kwargs.get("frequency")
+                if freq in _INVALID_CLIMATOLOGY_FREQUENCIES:
+                    valid = VALID_CLIMATOLOGY_FREQUENCIES + [None]
+                    raise ValueError(
+                        f"frequency={freq!r} is not accepted for climatology calculations. "
+                        f"Please select one of: {valid}"
+                    )
+            return f(*args, groupby_kwargs=groupby_kwargs, **new_kwargs)
+
+        return wrapper
+
+    if func is None:
+        # Called as a decorator factory: @groupby_kwargs_decorator(...) or groupby_kwargs_decorator(...)(func)
+        return decorator
+
+    # Called directly as a decorator: @groupby_kwargs_decorator or groupby_kwargs_decorator(func)
+    return decorator(func)
 
 
 def season_order_decorator(func):
@@ -125,7 +232,7 @@ def season_order_decorator(func):
     def wrapper(*args, **kwargs):
         result = func(*args, **kwargs)
         if kwargs.get("frequency", "NOTseason") in ["season"]:
-            result.reindex(season=["DJF", "MAM", "JJA", "SON"])
+            result = result.reindex(season=["DJF", "MAM", "JJA", "SON"])
         return result
 
     return wrapper
@@ -147,8 +254,8 @@ def array_namespace_from_object(data_object: T.Any) -> types.ModuleType:
     Raises
     ------
     TypeError
-        If the input data_object contains an compatible array interface,
-        e.g. a xr.Dataset with mixed array namespaces.
+        If the input data_object contains an incompatible array interface,
+        e.g. a xarray.Dataset with mixed array namespaces.
 
     """
     if isinstance(data_object, xr.DataArray):
@@ -181,14 +288,14 @@ def nanaverage(data, weights=None, **kwargs):
 
     Parameters
     ----------
-    data : array
+    data : array-like
         Data to average.
-    weights:
+    weights : array-like or None, optional
         Weights to apply to the data for averaging.
         Weights will be normalised and must correspond to the
         shape of the data array and axis/axes that is/are
         averaged over.
-    axis:
+    axis : int or tuple of int, optional
         axis/axes to compute the nanaverage over.
     kwargs:
         any other xp.nansum kwargs
@@ -227,7 +334,29 @@ def nanaverage(data, weights=None, **kwargs):
 
 
 def standard_weights(dataarray: xr.DataArray, weights: str, **kwargs):
-    """Implement any standard weights functions included in earthkit-transforms."""
+    """Return a weights DataArray for a recognised weighting method.
+
+    Parameters
+    ----------
+    dataarray : xarray.DataArray
+        The data object for which to compute weights.
+    weights : str
+        Name of the weighting method. Currently accepted values: ``'latitude'`` or ``'lat'``.
+    **kwargs
+        Additional keyword arguments passed to the underlying weighting function
+        (e.g. ``lat_key`` to override the detected latitude coordinate name).
+
+    Returns
+    -------
+    xarray.DataArray
+        Weights array compatible with the spatial coordinates of ``dataarray``.
+
+    Raises
+    ------
+    NotImplementedError
+        If ``weights`` is not a recognised weighting method.
+
+    """
     if weights in ["latitude", "lat"]:
         lat_weight_kwargs = {key: value for key, value in kwargs.items() if key in ["lat_key"]}
         return latitude_weights(dataarray, **lat_weight_kwargs)
@@ -236,12 +365,32 @@ def standard_weights(dataarray: xr.DataArray, weights: str, **kwargs):
 
 
 def latitude_weights(dataarray: xr.DataArray, lat_key: str | None = None):
-    """xarray.DataArray wrapper for latitude_weights.
+    """Return cosine-of-latitude weights for the given DataArray.
 
-    Detects the spatial dimensions latitude must be a coordinate of the dataarray.
+    Detects the spatial dimensions; latitude must be a coordinate of the dataarray.
+
+    Parameters
+    ----------
+    dataarray : xarray.DataArray
+        The data object whose latitude coordinate is used to compute weights.
+    lat_key : str, optional
+        Name of the latitude coordinate. If not provided, the coordinate is
+        detected automatically using CF conventions and known key names.
+
+    Returns
+    -------
+    xarray.DataArray
+        Array of cosine(latitude) weights with the same latitude coordinates
+        as ``dataarray``.
+
+    Raises
+    ------
+    KeyError
+        If the latitude coordinate cannot be found in the dataarray.
+
     """
     if lat_key is None:
-        lat_key = get_dim_key(dataarray, "y")
+        lat_key = get_dim_key(dataarray, "y", check_coords=True)
 
     lat_array = dataarray.coords.get(lat_key)
     if lat_array is not None:
@@ -454,12 +603,13 @@ def get_dim_key(
     dataarray: xr.Dataset | xr.DataArray,
     axis: str,
     raise_error: bool = False,
+    check_coords: bool = False,
 ) -> str:
     """Return the key of the dimension.
 
     Parameters
     ----------
-    dataarray : xr.Dataset or xr.DataArray
+    dataarray : xarray.Dataset or xarray.DataArray
         The data to search for the dimension in.
     axis : str
         The axis to search for. This should be a CF standard axis key like 'x', 'y', 'z' or 't',
@@ -491,6 +641,26 @@ def get_dim_key(
         if standard_axis_key in dataarray.dims:
             return standard_axis_key
 
+    if check_coords:
+        # Now repeat with coordinates
+        # First check if the axis value is in any coord:
+        for coord in dataarray.coords:
+            if "axis" in dataarray[coord].attrs and dataarray[coord].attrs["axis"].lower() == axis.lower():
+                return str(coord)
+
+        # Then check if any dims have CF recognised standard names,
+        #  Prioritised in order of the STANDARD_AXIS_CF_NAMES list order
+        for standard_name in STANDARD_AXIS_CF_NAMES.get(axis.lower(), []):
+            for dim in dataarray.coords:
+                if dataarray[dim].attrs.get("standard_name") == standard_name:
+                    return str(dim)
+
+        # Then check if any dims match our "standard" axis,
+        #  Prioritised in order of the STANDARD_AXIS_KEYS list order
+        for standard_axis_key in STANDARD_AXIS_KEYS.get(axis.lower(), []):
+            if standard_axis_key in dataarray.dims:
+                return standard_axis_key
+
     # We have not been able to detect, so raise an error
     if raise_error:
         raise ValueError(f"Unable to find dimension key for axis '{axis}' in dataarray with dims: {dataarray.dims}.")
@@ -498,10 +668,62 @@ def get_dim_key(
     return axis
 
 
+def _is_evenly_spaced(coord) -> bool:
+    """Check whether a 1-D coordinate array has uniform spacing.
+
+    Parameters
+    ----------
+    coord : array-like
+        A 1-D array of coordinate values.
+
+    Returns
+    -------
+    bool
+        ``True`` if all consecutive differences are equal (within
+        floating-point tolerance), ``False`` otherwise.
+        Arrays with fewer than 2 elements are trivially uniform.
+
+    """
+    values = np.asarray(coord)
+    if values.size < 2:
+        return True
+    diffs = np.diff(values)
+    return bool(np.allclose(diffs, diffs[0]))
+
+
 def get_spatial_info(dataarray, lat_key=None, lon_key=None):
-    # Figure out the keys for the latitude and longitude variables
+    """Return a dictionary of spatial metadata for a DataArray.
+
+    Detects latitude and longitude coordinate names, their associated
+    dimensions, and whether the grid is regular (1-D, evenly-spaced
+    lat/lon coordinates) or irregular (shared dimensions, or
+    non-uniform spacing).
+
+    Parameters
+    ----------
+    dataarray : xarray.DataArray or xarray.Dataset
+        The data object to inspect.
+    lat_key : str, optional
+        Name of the latitude coordinate. If not provided, it is detected
+        automatically.
+    lon_key : str, optional
+        Name of the longitude coordinate. If not provided, it is detected
+        automatically.
+
+    Returns
+    -------
+    dict
+        A dictionary with keys:
+
+        - ``'lat_key'`` (str): name of the latitude coordinate.
+        - ``'lon_key'`` (str): name of the longitude coordinate.
+        - ``'regular'`` (bool): ``True`` if the grid is regular (latitude and longitude are 1-D and
+          evenly spaced), ``False`` if irregular.
+        - ``'spatial_dims'`` (list[str]): list of spatial dimension names.
+
+    """
     if lat_key is None:
-        lat_key = get_dim_key(dataarray, "y")
+        lat_key = get_dim_key(dataarray, "y", check_coords=True)
     if lon_key is None:
         lon_key = get_dim_key(dataarray, "x")
 
@@ -518,7 +740,9 @@ def get_spatial_info(dataarray, lat_key=None, lon_key=None):
     if lat_dims == lon_dims:
         regular = False
     elif (lat_dims == (lat_key,)) and (lon_dims) == (lon_key,):
-        regular = True
+        regular = _is_evenly_spaced(dataarray.coords[lat_key].values) and _is_evenly_spaced(
+            dataarray.coords[lon_key].values
+        )
     else:
         raise ValueError(
             "The geospatial dimensions have not not been correctly detected:\n"
@@ -538,7 +762,8 @@ def _pandas_frequency_and_bins(
     frequency: str,
 ) -> tuple[str, int | None]:
     freq = frequency.lstrip("0123456789")
-    bins = int(frequency[: -len(freq)]) or None
+    prefix = frequency[: -len(freq)] if len(freq) < len(frequency) else ""
+    bins = int(prefix) if prefix else None
     freq = _PANDAS_FREQUENCIES.get(freq.lstrip(" "), frequency)
     return freq, bins
 
@@ -549,6 +774,32 @@ def groupby_time(
     bin_widths: int | None = None,
     time_dim: str = "time",
 ):
+    """Group a DataArray or Dataset by a time frequency.
+
+    Parameters
+    ----------
+    dataarray : xarray.DataArray or xarray.Dataset
+        The data object to group.
+    frequency : str, optional
+        The time frequency to group by (e.g. ``'month'``, ``'dayofyear'``,
+        ``'weekofyear'``). If not provided, it is inferred from the data.
+    bin_widths : int, optional
+        Width of bins to use when grouping. If provided, :func:`groupby_bins`
+        is used instead of a simple ``groupby``.
+    time_dim : str, optional
+        Name of the time dimension. Defaults to ``'time'``.
+
+    Returns
+    -------
+    xr.core.groupby.DataArrayGroupBy or xr.core.groupby.DatasetGroupBy
+        A grouped data object ready for reduction.
+
+    Raises
+    ------
+    ValueError
+        If the frequency cannot be inferred from the data or is not valid.
+
+    """
     if frequency is None:
         try:
             frequency = xr.infer_freq(dataarray.time)
@@ -558,12 +809,12 @@ def groupby_time(
             )
         frequency, possible_bins = _pandas_frequency_and_bins(frequency)
         bin_widths = bin_widths or possible_bins
-
+    _frequency = _PANDAS_FREQUENCIES.get(frequency, frequency)
     if bin_widths is not None:
-        grouped_data = groupby_bins(dataarray, frequency, bin_widths, time_dim=time_dim)
+        grouped_data = groupby_bins(dataarray, _frequency, bin_widths, time_dim=time_dim)
     else:
         try:
-            grouped_data = dataarray.groupby(f"{time_dim}.{frequency}")
+            grouped_data = dataarray.groupby(f"{time_dim}.{_frequency}")
         except AttributeError:
             raise ValueError(
                 f"Invalid frequency '{frequency}' - see xarray documentation for a full list of valid frequencies."
@@ -578,6 +829,32 @@ def groupby_bins(
     bin_widths: list[int] | int = 1,
     time_dim: str = "time",
 ):
+    """Group a DataArray or Dataset by binned time values.
+
+    Parameters
+    ----------
+    dataarray : xarray.DataArray or xarray.Dataset
+        The data object to group.
+    frequency : str
+        The time component to bin (e.g. ``'month'``, ``'dayofyear'``).
+    bin_widths : list of int or int, optional
+        If an ``int``, defines the uniform width of each bin (edges are
+        generated from 0 to the maximum value for ``frequency``). If a list
+        or tuple, it is used directly as the bin edges. Defaults to ``1``.
+    time_dim : str, optional
+        Name of the time dimension. Defaults to ``'time'``.
+
+    Returns
+    -------
+    xr.core.groupby.DataArrayGroupBy or xr.core.groupby.DatasetGroupBy
+        A grouped data object ready for reduction.
+
+    Raises
+    ------
+    ValueError
+        If the frequency is not valid.
+
+    """
     if not isinstance(bin_widths, (list, tuple)):
         max_value = _BIN_MAXES[frequency]
         bin_widths = list(range(0, max_value + 1, bin_widths))
@@ -588,86 +865,6 @@ def groupby_bins(
             f"Invalid frequency '{frequency}' - see xarray documentation for a full list of valid frequencies."
         )
     return grouped_data
-
-
-def transform_inputs_decorator(
-    kwarg_types: T.Dict[str, T.Any] = {},
-    convert_types: T.Union[None, T.Tuple[T.Any], T.Dict[str, T.Tuple[T.Any]]] = None,
-) -> T.Callable:
-    """Transform the inputs to a function to match the requirements.
-
-    Parameters
-    ----------
-    kwarg_types : Dict[str, type]
-        Mapping of accepted object types for each arg/kwarg
-    convert_types : Tuple[type] or Dict[str, Tuple[type]]
-        Data types to try to convert. If a dict, applies per-argument.
-
-    Returns
-    -------
-    Callable
-        Wrapped function.
-
-    """
-    if convert_types is None:
-        convert_types = {}
-
-    def decorator(function: T.Callable) -> T.Callable:
-        def _wrapper(_kwarg_types, _convert_types, *args, **kwargs):
-            _kwarg_types = {**_kwarg_types}
-            signature = inspect.signature(function)
-            mapping = signature_mapping(signature, _kwarg_types)
-
-            # Store positional arg names for extraction later
-            arg_names = []
-            for arg, name in zip(args, signature.parameters):
-                arg_names.append(name)
-                kwargs[name] = arg
-
-            convert_kwargs = [k for k in kwargs if k in mapping]
-
-            # Filter for convert_types
-            if _convert_types:
-                if not isinstance(_convert_types, dict):
-                    _convert_types = {key: _convert_types for key in convert_kwargs}
-
-                convert_kwargs = [
-                    k for k in convert_kwargs if isinstance(kwargs[k], _ensure_tuple(_convert_types.get(k, ())))
-                ]
-
-            # Transform args/kwargs
-            for key in convert_kwargs:
-                value = kwargs[key]
-                types_allowed = _ensure_iterable(mapping[key])
-                if type(value) not in types_allowed:
-                    for target_type in types_allowed:
-                        try:
-                            kwargs[key] = transform(value, target_type)
-                        except Exception:
-                            continue
-                        break
-
-            # Expand Wrapper objects
-            for k, v in list(kwargs.items()):
-                if isinstance(v, Wrapper):
-                    try:
-                        kwargs[k] = v.data
-                    except Exception:
-                        pass
-
-            # Extract positional args again
-            args = [kwargs.pop(name) for name in arg_names]
-            return function(*args, **kwargs)
-
-        @wraps(function)
-        def wrapper(*args, _auto_inputs_transform=True, **kwargs):
-            if not _auto_inputs_transform:
-                return function(*args, **kwargs)
-            return _wrapper(kwarg_types, convert_types, *args, **kwargs)
-
-        return wrapper
-
-    return decorator
 
 
 def timedelta_to_largest_unit(td: pd.Timedelta) -> str:

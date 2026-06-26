@@ -3,11 +3,11 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
-from earthkit.data.testing import earthkit_remote_test_data_file
 from shapely.geometry import Polygon
 
 # from earthkit.data.core.temporary import temp_directory
 from earthkit import data as ek_data
+from earthkit.transforms._tools import earthkit_remote_test_data_file
 from earthkit.transforms.aggregate import spatial
 
 try:
@@ -80,7 +80,8 @@ def test_spatial_masks_with_ek_objects(era5_data, nuts_data, expected_result_typ
     masked_data = spatial.mask(era5_data, nuts_data)
     assert isinstance(masked_data, expected_result_type)
     assert "index" in masked_data.dims
-    assert len(masked_data["index"]) == len(nuts_data)
+    nuts_pandas = ek_data.from_object(nuts_data).to_pandas()
+    assert len(masked_data["index"]) == len(nuts_pandas)
 
 
 @pytest.mark.parametrize(
@@ -123,7 +124,8 @@ def test_spatial_reduce_with_geometry(era5_data, nuts_data, expected_result_type
     reduced_data = spatial.reduce(era5_data, nuts_data)
     assert isinstance(reduced_data, expected_result_type)
     assert all([dim in ["forecast_reference_time", "index"] for dim in reduced_data.dims])
-    assert len(reduced_data["index"]) == len(nuts_data)
+    nuts_pandas = ek_data.from_object(nuts_data).to_pandas()
+    assert len(reduced_data["index"]) == len(nuts_pandas)
 
 
 @pytest.mark.skipif(
@@ -163,14 +165,16 @@ def test_spatial_reduce_with_geometry_and_latitude_weights(era5_data, nuts_data,
     reduced_data = spatial.reduce(era5_data, nuts_data, weights="latitude")
     assert isinstance(reduced_data, expected_result_type)
     assert all([dim in ["forecast_reference_time", "index"] for dim in reduced_data.dims])
-    assert len(reduced_data["index"]) == len(nuts_data)
+    nuts_pandas = ek_data.from_object(nuts_data).to_pandas()
+    assert len(reduced_data["index"]) == len(nuts_pandas)
 
     # Ensure weights works with an abstract name for latitude
     era5_data = era5_data.rename({"latitude": "elephant"})
     reduced_data = spatial.reduce(era5_data, nuts_data, weights="latitude", lat_key="elephant")
     assert isinstance(reduced_data, expected_result_type)
     assert all([dim in ["forecast_reference_time", "index"] for dim in reduced_data.dims])
-    assert len(reduced_data["index"]) == len(nuts_data)
+    nuts_pandas = ek_data.from_object(nuts_data).to_pandas()
+    assert len(reduced_data["index"]) == len(nuts_pandas)
 
 
 @pytest.mark.skipif(

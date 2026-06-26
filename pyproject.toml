@@ -1,6 +1,6 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["setuptools>=64", "setuptools_scm>=8"]
+requires = ["setuptools>=77", "setuptools_scm>=8"]
 
 [project]
 classifiers = [
@@ -9,56 +9,69 @@ classifiers = [
   "Operating System :: OS Independent",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Scientific/Engineering"
 ]
 dependencies = [
-  "array-api-compat",
   "xarray>=2022.3.0",
   "numpy>=1.18",
-  "earthkit-data>=0.11.2,<1.0",
-  "earthkit-utils<1.0",
-  "geopandas"
+  "earthkit-utils>=1"
 ]
 description = "Aggregation tools for meteorological and climate data."
 dynamic = ["version"]
 license = "Apache-2.0"
+license-files = ["LICENSE"]
 name = "earthkit-transforms"
 readme = "README.md"
+requires-python = ">=3.10"
 
 [project.optional-dependencies]
 all = [
-  # Additional, heavy, dependencies required by the complete package
-  "earthkit-data[all]>=0.11.2,<1.0",
+  "earthkit-data>=1",
+  "geopandas",
   "rasterio"  # Requires GDAL
+]
+ci = [
+  "earthkit-transforms[all]",
+  "pre-commit",
+  "mypy",
+  "pytest",
+  "pytest-cov",
+  "pandas-stubs",
+  "types-PyYAML"
 ]
 docs = [
+  "earthkit-transforms[ci]",
   "ipykernel",
-  "docutils",
   "Pygments>=2.6.1",
   "Sphinx",
-  "sphinx-rtd-theme",
-  "nbsphinx",
-  "nbconvert",
-  "sphinx-autoapi",
+  "docutils",
+  "entrypoints",
   "filelock",
+  "furo",
+  "sphinx-design",
+  "nbconvert",
+  "nbsphinx",
   "myst-parser",
+  "tqdm",
+  "pandoc",
+  "pypandoc-binary",
+  "PyYAML",
+  "setuptools",
   "statsmodels",
-  "matplotlib",
-  "earthkit-plots<1.0",
-  "rasterio"
-]
-rasterio = [
-  "rasterio"  # Requires GDAL
+  "reverse-geocode",
+  "earthkit-plots>=1"
 ]
 
 [tool.coverage.run]
 branch = true
 
 [tool.mypy]
-exclude = '^tests/legacy-api/'
+exclude = '(^tests/legacy-api/|^build/)'
 ignore_missing_imports = true
 
 [tool.ruff]
