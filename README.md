@@ -10,20 +10,20 @@
     <img src="https://github.com/ecmwf/codex/raw/refs/heads/main/ESEE/foundation_badge.svg" alt="ECMWF Software EnginE">
   </a>
   <a href="https://github.com/ecmwf/codex/raw/refs/heads/main/Project Maturity">
-    <img src="https://github.com/ecmwf/codex/raw/refs/heads/main/Project Maturity/incubating_badge.svg" alt="Maturity Level">
+    <img src="https://github.com/ecmwf/codex/raw/refs/heads/main/Project Maturity/graduated_badge.svg" alt="Maturity Level">
   </a>
-  <!-- <a href="https://codecov.io/gh/ecmwf/earthkit-data">
-    <img src="https://codecov.io/gh/ecmwf/earthkit-data/branch/main/graph/badge.svg" alt="Code Coverage">
-  </a> -->
+  <a href="https://codecov.io/gh/ecmwf/earthkit-transforms">
+    <img src="https://codecov.io/gh/ecmwf/earthkit-transforms/branch/main/graph/badge.svg" alt="Code Coverage">
+  </a>
   <a href="https://opensource.org/licenses/apache-2-0">
     <img src="https://img.shields.io/badge/Licence-Apache 2.0-blue.svg" alt="Licence">
   </a>
   <a href="https://github.com/ecmwf/earthkit-transforms/releases">
     <img src="https://img.shields.io/github/v/release/ecmwf/earthkit-transforms?color=purple&label=Release" alt="Latest Release">
   </a>
-  <!-- <a href="https://earthkit-data.readthedocs.io/en/latest/?badge=latest">
-    <img src="https://readthedocs.org/projects/earthkit-data/badge/?version=latest" alt="Documentation Status">
-  </a> -->
+  <a href="https://earthkit-transforms.readthedocs.io/en/latest/?badge=latest">
+    <img src="https://readthedocs.org/projects/earthkit-transforms/badge/?version=latest" alt="Documentation Status">
+  </a>
 </p>
 
 <p align="center">
@@ -35,7 +35,7 @@
 </p>
 
 > [!IMPORTANT]
-> This software is **Incubating** and subject to ECMWF's guidelines on [Software Maturity](https://github.com/ecmwf/codex/raw/refs/heads/main/Project%20Maturity).
+> This software is **Graduated** and subject to ECMWF's guidelines on [Software Maturity](https://github.com/ecmwf/codex/raw/refs/heads/main/Project%20Maturity).
 
 **earthkit-transforms** is a library of software tools to support people working with climate and meteorology data.
 
@@ -65,23 +65,44 @@ Please refer the [earthkit-transforms readthedocs page](https://earthkit-transfo
 
 ## Workflow for developers/contributors
 
-For best experience create a new conda environment (e.g. DEVELOP) with latest stable version of Python (version 3.13 at time of writing):
+For best experience create a new environment with latest stable version of Python. The Makefile provides
+commands for creating a development environment with all dependencies installed in editable mode, plus
+pre-commit hooks. Choose the option that matches your preferred tooling:
 
+**Using pip + venv:**
+
+```bash
+make clean-pip-env
+. .venv/bin/activate
 ```
-conda create -n DEVELOP -c conda-forge python=3.13
-conda activate DEVELOP
+
+**Using uv:**
+
+```bash
+make clean-uv-env
+. .venv/bin/activate
 ```
 
-Before pushing to GitHub, run the following commands:
+**Using conda:**
 
-1. Update conda environment: `make conda-env-update`
-1. Install this package: `pip install -e .`
-1. Run quality assurance checks: `make default`
+```bash
+make clean-conda-env
+conda activate ./.conda
+```
+
+Once your environment is active, common development tasks are also available via the Makefile:
+
+```bash
+make qa            # run pre-commit checks on all files
+make unit-tests    # run the test suite with coverage
+make type-check    # run mypy type checking
+make docs-build    # build the documentation
+```
 
 ## Licence
 
 ```
-Copyright 2022, European Centre for Medium Range Weather Forecasts.
+Copyright 2026, European Centre for Medium Range Weather Forecasts.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

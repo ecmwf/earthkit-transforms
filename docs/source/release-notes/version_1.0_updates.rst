@@ -24,12 +24,15 @@ Other changes:
 * Standardised interfaces and decorators for version1.0 release by @EddyCMWF in #88
 * Remove direct ek-data dependency by @EddyCMWF in #89
 * Update anomaly default behaviour by @EddyCMWF in #90
+* Multiple time zone support in the time_dim_decorator by @chpolste in #107
 * Update docs by @EddyCMWF in #95, #97, #98, #99, #100, #101, #102
+
 
 New Contributors
 ----------------
 
 * @mcocdawc made their first contribution in #87
+* @chpolste made their first contribution in  #107
 
 **Full Changelog**: https://github.com/ecmwf/earthkit-transforms/compare/0.5.4...1.0.0
 
