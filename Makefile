@@ -31,13 +31,13 @@ clean-pip-env:
 
 clean-uv-env:
 	rm -rf .venv
-	uv venv --python 3.12 .venv
+	uv venv --python 3.13 .venv
 	uv pip install -e ".[docs]"
 	uv pre-commit install --install-hooks
 	echo to activate the environment, run: . .venv/bin/activate
 
 clean-conda-env:
-	conda create -y -p ./.conda -c conda-forge python=3.12
+	conda create -y -p ./.conda -c conda-forge python=3.13
 	conda run -p ./.conda pip install -e ".[docs]"
 	conda run -p ./.conda pre-commit install --install-hooks
 	echo to activate the environment, run: conda activate ./.conda

@@ -65,18 +65,39 @@ Please refer the [earthkit-transforms readthedocs page](https://earthkit-transfo
 
 ## Workflow for developers/contributors
 
-For best experience create a new conda environment (e.g. DEVELOP) with latest stable version of Python (version 3.13 at time of writing):
+For best experience create a new environment with latest stable version of Python. The Makefile provides
+commands for creating a development environment with all dependencies installed in editable mode, plus
+pre-commit hooks. Choose the option that matches your preferred tooling:
 
+**Using pip + venv:**
+
+```bash
+make clean-pip-env
+. .venv/bin/activate
 ```
-conda create -n DEVELOP -c conda-forge python=3.13
-conda activate DEVELOP
+
+**Using uv:**
+
+```bash
+make clean-uv-env
+. .venv/bin/activate
 ```
 
-Before pushing to GitHub, run the following commands:
+**Using conda:**
 
-1. Update conda environment: `make conda-env-update`
-1. Install this package: `pip install -e .`
-1. Run quality assurance checks: `make default`
+```bash
+make clean-conda-env
+conda activate ./.conda
+```
+
+Once your environment is active, common development tasks are also available via the Makefile:
+
+```bash
+make qa            # run pre-commit checks on all files
+make unit-tests    # run the test suite with coverage
+make type-check    # run mypy type checking
+make docs-build    # build the documentation
+```
 
 ## Licence
 
