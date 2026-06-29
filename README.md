@@ -12,18 +12,18 @@
   <a href="https://github.com/ecmwf/codex/raw/refs/heads/main/Project Maturity">
     <img src="https://github.com/ecmwf/codex/raw/refs/heads/main/Project Maturity/graduated_badge.svg" alt="Maturity Level">
   </a>
-  <!-- <a href="https://codecov.io/gh/ecmwf/earthkit-data">
-    <img src="https://codecov.io/gh/ecmwf/earthkit-data/branch/main/graph/badge.svg" alt="Code Coverage">
-  </a> -->
+  <a href="https://codecov.io/gh/ecmwf/earthkit-transforms">
+    <img src="https://codecov.io/gh/ecmwf/earthkit-transforms/branch/main/graph/badge.svg" alt="Code Coverage">
+  </a>
   <a href="https://opensource.org/licenses/apache-2-0">
     <img src="https://img.shields.io/badge/Licence-Apache 2.0-blue.svg" alt="Licence">
   </a>
   <a href="https://github.com/ecmwf/earthkit-transforms/releases">
     <img src="https://img.shields.io/github/v/release/ecmwf/earthkit-transforms?color=purple&label=Release" alt="Latest Release">
   </a>
-  <!-- <a href="https://earthkit-data.readthedocs.io/en/latest/?badge=latest">
-    <img src="https://readthedocs.org/projects/earthkit-data/badge/?version=latest" alt="Documentation Status">
-  </a> -->
+  <a href="https://earthkit-transforms.readthedocs.io/en/latest/?badge=latest">
+    <img src="https://readthedocs.org/projects/earthkit-transforms/badge/?version=latest" alt="Documentation Status">
+  </a>
 </p>
 
 <p align="center">
