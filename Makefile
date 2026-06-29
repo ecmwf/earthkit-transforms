@@ -1,7 +1,6 @@
 PROJECT := earthkit-transforms
-CONDA := conda
-CONDAFLAGS :=
 COV_REPORT := html
+NBSPHINX_EXECUTE := auto
 
 default: qa unit-tests
 qa:
@@ -19,19 +18,26 @@ legacy-api-unit-tests:
 type-check:
 	python -m mypy . --no-namespace-packages
 
-conda-env-update:
-	$(CONDA) install -y -c conda-forge conda-merge
-	$(CONDA) run conda-merge environment.yml ci/environment-ci.yml > ci/combined-environment-ci.yml
-	$(CONDA) env update $(CONDAFLAGS) -f ci/combined-environment-ci.yml
-
-docker-build:
-	docker build -t $(PROJECT) .
-
-docker-run:
-	docker run --rm -ti -v $(PWD):/srv $(PROJECT)
-
-template-update:
-	pre-commit run --all-files cruft -c .pre-commit-config-cruft.yaml
-
 docs-build:
-	cd docs && rm -fr _api && make clean && make html
+	cd docs && make clean && make html SPHINXOPTS="-D nbsphinx_execute=$(NBSPHINX_EXECUTE)"
+
+clean-pip-env:
+	rm -rf .venv
+	python3 -m venv .venv
+	.venv/bin/pip install --upgrade pip setuptools wheel pre-commit mypy
+	.venv/bin/pip install -e ".[docs]"
+	.venv/bin/pre-commit install --install-hooks
+	echo to activate the environment, run: . .venv/bin/activate
+
+clean-uv-env:
+	rm -rf .venv
+	uv venv --python 3.13 .venv
+	uv pip install -e ".[docs]"
+	uv pre-commit install --install-hooks
+	echo to activate the environment, run: . .venv/bin/activate
+
+clean-conda-env:
+	conda create -y -p ./.conda -c conda-forge python=3.13
+	conda run -p ./.conda pip install -e ".[docs]"
+	conda run -p ./.conda pre-commit install --install-hooks
+	echo to activate the environment, run: conda activate ./.conda

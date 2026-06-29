@@ -1,5 +1,4 @@
-# Copyright 2025, European Centre for Medium Range Weather Forecasts.
-#
+# Copyright 2024-, European Centre for Medium Range Weather Forecasts.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -16,6 +15,7 @@ import typing as T
 
 import pandas as pd
 import xarray as xr
+from earthkit.utils.decorators import format_handler
 
 from earthkit.transforms import _tools
 
@@ -33,13 +33,13 @@ def deaccumulate(
 
     Parameters
     ----------
-    dataarray : xr.DataArray | xr.Dataset
+    dataarray : xarray.DataArray | xarray.Dataset
         Data accumulated along time to be converted into rate (per time step).
-    step : timedelta | str , optional
+    step : timedelta | str, optional
         Interval between consecutive time steps.
         If a string, it should be a valid pandas time frequency string (e.g., '15min', '3h', '1 day').
-        If not provided, the will be inferred from the data.
-    rate_label: str = "", optional
+        If not provided, it will be inferred from the data.
+    rate_label : str, optional
         Suffix to append to the name and long_name of the output dataarray.
     xp : T.Any
         The array namespace to use for the reduction. If None, it will be inferred from the dataarray.
@@ -48,12 +48,14 @@ def deaccumulate(
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
     accumulation_type : str, optional
-        Type of accumulation used in the input data. Default is "start_of_forecast". Options are:
+        Type of accumulation used in the input data. Default is "start_of_forecast".
+
+        Options are:
+
         - "start_of_step": accumulation restarts at the beginning of each time step.
         - "start_of_forecast": accumulation starts at the beginning of the forecast and continues
           throughout the forecast period.
         - "start_of_day": accumulation restarts at the beginning of each day (00:00 UTC).
-        Default is "start_of_step".
     from_first_step : bool, optional
         Only used if `accumulation_type` is "start_of_forecast". If True, the first time step's rate is
         calculated by dividing the first accumulation value by the step duration. Default is False.
@@ -63,8 +65,8 @@ def deaccumulate(
 
     Returns
     -------
-    xr.DataArray | xr.Dataset
-        Data object with deaccumulation data.
+    xarray.DataArray | xarray.Dataset
+        Data object with deaccumulated data.
 
     """
     if "rate_units" in _kwargs:
@@ -76,7 +78,7 @@ def deaccumulate(
 
 
 @_tools.time_dim_decorator
-@_tools.transform_inputs_decorator()
+@format_handler()
 def accumulation_to_rate(
     dataarray: xr.Dataset | xr.DataArray,
     *_args,
@@ -91,19 +93,19 @@ def accumulation_to_rate(
 
     Parameters
     ----------
-    dataarray : xr.DataArray | xr.Dataset
+    dataarray : xarray.DataArray | xarray.Dataset
         Data accumulated along time to be converted into rate (per second).
-    step : timedelta | str , optional
+    step : timedelta | str, optional
         Interval between consecutive time steps.
         If a string, it should be a valid pandas time frequency string (e.g., '15min', '3h', '1 day').
-        If not provided, the will be inferred from the data.
+        If not provided, it will be inferred from the data.
     rate_units : timedelta | str, optional
         Units for the output rate. If a string, it must be a valid pandas time frequency string
         (e.g., '15min', '3h', '1 day') or simple units like 'seconds', 'minutes', 'hours', 'days'.
         If set to 'step_length', the rate will be accumulation per time step ("deaccumulated") and the
         returned object will preserve the units and long_name attributes of the input dataarray.
         The default is 'seconds'.
-    rate_label: str | None = None, optional
+    rate_label : str or None, optional
         Suffix to append to the name of the output dataarray. If None, defaults to
         'rate' or 'per_step' depending on the rate_units.
     xp : T.Any
@@ -113,12 +115,14 @@ def accumulation_to_rate(
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
     accumulation_type : str, optional
-        Type of accumulation used in the input data. Default is "start_of_step". Options are:
+        Type of accumulation used in the input data. Default is "start_of_step".
+
+        Options are:
+
         - "start_of_step": accumulation restarts at the beginning of each time step.
         - "start_of_forecast": accumulation starts at the beginning of the forecast and continues
           throughout the forecast period.
         - "start_of_day": accumulation restarts at the beginning of each day (00:00 UTC).
-        Default is "start_of_step".
     from_first_step : bool, optional
         Only used if `accumulation_type` is "start_of_forecast". If True, the first time step's rate is
         calculated by dividing the first accumulation value by the step duration. Default is False.
@@ -128,7 +132,7 @@ def accumulation_to_rate(
 
     Returns
     -------
-    xr.DataArray | xr.Dataset
+    xarray.DataArray | xarray.Dataset
         Data object with rate calculated based on the accumulation data.
 
     """
@@ -169,26 +173,30 @@ def _accumulation_to_rate_dataarray(
 
     Parameters
     ----------
-    dataarray : xr.DataArray
+    dataarray : xarray.DataArray
         Data accumulated along time to be converted into rate (per second).
     accumulation_type : str, optional
-        Type of accumulation used in the input data. Options are:
+        Type of accumulation used in the input data.
+
+        Options are:
+
         - "start_of_step": accumulation restarts at the beginning of each time step.
         - "start_of_forecast": accumulation starts at the beginning of the forecast and continues
           throughout the forecast period.
         - "start_of_day": accumulation restarts at the beginning of each day (00:00 UTC).
+
         Default is "start_of_step".
-    step : timedelta | str , optional
+    step : timedelta | str, optional
         Interval between consecutive time steps.
         If a string, it should be a valid pandas time frequency string (e.g., '15min', '3h', '1 day').
-        If not provided, the will be inferred from the data.
+        If not provided, it will be inferred from the data.
     rate_units : timedelta | str, optional
         Units for the output rate. If a string, it must be a valid pandas time frequency string
         (e.g., '15min', '3h', '1 day') or simple units like 'seconds', 'minutes', 'hours', 'days'.
         If set to 'step_length', the rate will be accumulation per time step ("deaccumulated") and the
         returned object will preserve the units and long_name attributes of the input dataarray.
         The default is 'seconds'.
-    rate_label: str | None = None, optional
+    rate_label : str or None, optional
         Suffix to append to the name of the output dataarray name, as _{rate_label}.
         If None, defaults to 'rate' or 'per_step' depending on the rate_units.
     xp : T.Any
@@ -210,7 +218,7 @@ def _accumulation_to_rate_dataarray(
 
     Returns
     -------
-    xr.DataArray
+    xarray.DataArray
         Data object with rate calculated based on the accumulation data.
 
     """
