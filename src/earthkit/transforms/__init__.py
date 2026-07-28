@@ -29,6 +29,7 @@ from earthkit.transforms import (
 )
 
 from ._aggregate import reduce, resample, rolling_reduce
+from ._convolve import convolve
 
 # For backwards compatibility
 tools = _tools
@@ -45,4 +46,5 @@ __all__ = [
     "reduce",
     "rolling_reduce",
     "resample",
+    "convolve",
 ]

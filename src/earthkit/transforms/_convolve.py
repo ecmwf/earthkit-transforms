@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import warnings
+from typing import Literal
 
 import xarray as xr
 
@@ -19,7 +20,56 @@ from earthkit.transforms._aggregate import how_label_rename
 from earthkit.utils.array import array_namespace
 
 
-def convolve(dataarray, *_args, **kwargs):
+def convolve(
+    dataarray: xr.DataArray | xr.Dataset,
+    *_args,
+    **kwargs
+):
+    r"""Convolve an xarray.dataarray or xarray.dataset with a 1-D window along a dimension.
+
+    Parameters
+    ----------
+    dataarray : xarray.DataArray | xarray.Dataset
+        First input to the convolution.
+    window : array_like
+        Second input to the convolution, a 1-D kernel.
+    dim : str
+        Dimension along which to convolve the inputs.
+    how_boundary : {"zeropad", "periodic"}, default: "zeropad"
+        How the signal is extended where the window overhangs an edge:
+
+        - ``"zeropad"``: the signal is extended with zeros.
+        - ``"periodic"``: the signal wraps around.
+    how_method : {"direct", "fft"}, default: "direct"
+        How the convolution is evaluated:
+
+        - ``"direct"``: implementation as a windowed dot product. Preserves the
+          input dtype and propagates ``NaN`` locally.
+        - ``"fft"``: evaluated in the frequency domain via the convolution
+          theorem. Faster for long windows, but casts all inputs to float and
+          spreads ``NaN`` values across the entire convolution axis.
+    how_label : str | None
+        Label to append to the name of the variable in the convoluted object,
+        default is nothing.
+
+    Returns
+    -------
+    xarray.DataArray
+        The result of the convolution.
+
+    Notes
+    -----
+    For a signal :math:`f` of length :math:`n` and a window :math:`g` of length
+    :math:`k`, the output along ``dim`` is the centered discrete convolution
+
+    .. math::
+
+        (f * g)_i = \sum_{j=0}^{k-1} g_j \, f_{i + s - j},
+        \qquad s = \left\lfloor \frac{k - 1}{2} \right\rfloor,
+
+    for :math:`i = 0, \dots, n - 1`. Note that signal and window indices run in
+    opposite directions to obtain true convolution instead of cross-correlation.
+    """
     if isinstance(dataarray, xr.Dataset):
         out_ds = xr.Dataset().assign_attrs(dataarray.attrs)
         for var in dataarray.data_vars:
@@ -31,37 +81,38 @@ def convolve(dataarray, *_args, **kwargs):
 
 
 def _convolve_dataarray(
-    dataarray,
-    window,
-    dim,
+    dataarray: xr.DataArray,
+    window: "array_like",
+    dim: str,
     *,
-    how_boundary="zeropad",
-    how_method="direct",
-    how_label=None
+    how_boundary: Literal["zeropad"] | Literal["periodic"] = "zeropad",
+    how_method: Literal["direct"] | Literal["fft"] = "direct",
+    how_label: str = None
 ):
-    """Convolution.
+    r"""Convolve a data array with a 1-D window along a single dimension.
 
     Parameters
     ----------
     dataarray : xarray.DataArray
         First input to the convolution.
     window : array_like
-        Second input to the convolution.
+        Second input to the convolution, a 1-D kernel.
     dim : str
         Dimension along which to convolve the inputs.
-    how_boundary : "zeropad" | "periodic"
-        Boundary handling.
-    how_method : "direct" | "fft"
-        Implementation of convolution. FFT-based convolution only works for
-        float-type inputs without NaNs.
+    how_boundary : {"zeropad", "periodic"}, default: "zeropad"
+        How the signal is extended where the window overhangs an edge.
+    how_method : {"direct", "fft"}, default: "direct"
+        How the convolution is evaluated.
     how_label : str | None
-        Label to append to the name of the variable in the convoluted object, default is nothing
+        Label to append to the name of the variable in the convoluted object,
+        default is nothing.
 
     Returns
     -------
     xarray.DataArray
+        The result of the convolution.
     """
-    xp = array_namespace(dataarray.data, window)
+    xp = array_namespace(dataarray.data)
 
     window = xp.asarray(window)
     assert window.ndim == 1
@@ -76,7 +127,8 @@ def _convolve_dataarray(
 
 
 def _convolve_dataarray_direct_zeropad(dataarray, window, dim):
-    window = window[::-1].copy()  # Reverse kernel to get convolution from dot-product
+    # Reverse kernel to get true convolution from dot-product
+    window = window[::-1].copy()
     k = window.size
     window_dim = f"__convolve_dim_{dim}"
     window_da = xr.DataArray(window, dims=[window_dim])
@@ -90,10 +142,11 @@ def _convolve_dataarray_direct_zeropad(dataarray, window, dim):
 def _convolve_array_fft(signal, window, axis, n):
     if signal.dtype.kind != "f" or window.dtype.kind != "f":
         warnings.warn("fft-based convolution casts inputs to float")
-    xp = array_namespace(signal, window)
+    xp = array_namespace(signal)
+    window = xp.asarray(window)
     window_axis_pad = (xp.newaxis,) * (signal.ndim - axis - 1)
     fft_sig = xp.fft.rfft(signal, axis=axis, n=n)
-    fft_win = xp.fft.rfft(window, n=n)[:, *window_axis_pad]  # TODO py311 only
+    fft_win = xp.fft.rfft(window, n=n)[(slice(None), *window_axis_pad)]
     return xp.fft.irfft(fft_sig * fft_win, axis=axis, n=n)
 
 
