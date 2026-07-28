@@ -112,16 +112,25 @@ def _convolve_dataarray(
     xarray.DataArray
         The result of the convolution.
     """
-    xp = array_namespace(dataarray.data)
+    if dim not in dataarray.dims:
+        raise ValueError(f"dim={dim!r} not found in dataarray dimensions {dataarray.dims}")
 
+    xp = array_namespace(dataarray.data)
     window = xp.asarray(window)
-    assert window.ndim == 1
+    if window.ndim != 1:
+        raise ValueError(f"window must be 1-dimensional, got window.ndim={window.ndim}")
+    if window.size == 0:
+        raise ValueError("window must be non-empty")
 
     method = (how_method, how_boundary)
     if method not in _CONVOLVE_METHODS:
-        raise NotImplementedError(method)
-    convolved = _CONVOLVE_METHODS[method](dataarray, window, dim)
+        available = ", ".join(f"{m!r} and {b!r}" for m, b in _CONVOLVE_METHODS)
+        raise ValueError(
+            f"Unsupported combination how_method and how_boundary: {how_method!r} and {how_boundary!r}. "
+            f"Available combinations are: {available}"
+        )
 
+    convolved = _CONVOLVE_METHODS[method](dataarray, window, dim)
     convolved = how_label_rename(convolved, how_label=how_label)
     return convolved
 
@@ -141,7 +150,7 @@ def _convolve_dataarray_direct_zeropad(dataarray, window, dim):
 
 def _convolve_array_fft(signal, window, axis, n):
     if signal.dtype.kind != "f" or window.dtype.kind != "f":
-        warnings.warn("fft-based convolution casts inputs to float")
+        warnings.warn("FFT-based convolution casts inputs to float")
     xp = array_namespace(signal)
     window = xp.asarray(window)
     window_axis_pad = (xp.newaxis,) * (signal.ndim - axis - 1)

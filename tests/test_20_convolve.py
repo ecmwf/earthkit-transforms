@@ -57,7 +57,7 @@ def test_convolve_matches_impulse_response(how_method, how_boundary, window):
 
 
 @pytest.mark.parametrize("window_values", ([1.0, 2.0, 3.0], [1.0, 2.0, 3.0, 4.0]))
-def test_zeropad_direct_and_fft_agree(data_1d, window_values):
+def test_convolve_zeropad_direct_and_fft_agree(data_1d, window_values):
     window = np.array(window_values)
     direct = convolve(data_1d, window, "t", how_method="direct", how_boundary="zeropad")
     fft = convolve(data_1d, window, "t", how_method="fft", how_boundary="zeropad")
@@ -77,20 +77,30 @@ def test_convolve_along_dim(how_method, how_boundary, dim, data_3d, window):
 
 
 @pytest.mark.parametrize("how_method, how_boundary", VALID_COMBINATIONS)
-def test_how_label_renames_dataarray(how_method, how_boundary, data_1d, window):
+def test_convolve_how_label_renames_dataarray(how_method, how_boundary, data_1d, window):
     named = data_1d.rename("temperature")
     result = convolve(named, window, "t", how_method=how_method, how_boundary=how_boundary, how_label="smoothed")
     assert result.name == "temperature_smoothed"
 
 
 @pytest.mark.parametrize("how_method, how_boundary", VALID_COMBINATIONS)
-def test_how_label_none_leaves_name_unchanged(how_method, how_boundary, data_1d, window):
+def test_convolve_how_label_none_leaves_name_unchanged(how_method, how_boundary, data_1d, window):
     named = data_1d.rename("temperature")
     result = convolve(named, window, "t", how_method=how_method, how_boundary=how_boundary)
     assert result.name == "temperature"
 
 
-def test_direct_convolution_preserves_integer_dtype():
+def test_convolve_raises_for_multidimensional_window(data_1d):
+    with pytest.raises(ValueError, match="1-dimensional"):
+        convolve(data_1d, np.ones((2, 2)), "t")
+
+
+def test_convolve_raises_for_empty_window(data_1d):
+    with pytest.raises(ValueError, match="non-empty"):
+        convolve(data_1d, [], "t")
+
+
+def test_convolve_direct_convolution_preserves_integer_dtype():
     data = xr.DataArray(np.arange(9), dims=["t"])
     window = np.array([1, 1, 1])
     result = convolve(data, window, "t", how_method="direct", how_boundary="zeropad")
