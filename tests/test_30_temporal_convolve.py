@@ -35,3 +35,25 @@ def test_temporal_convolve(in_data, expected_return_type):
         # Test dataarray from here
         convolved_data = convolved_data["2t"]
     assert convolved_data.dims == ("forecast_reference_time", "latitude", "longitude")
+
+
+@pytest.fixture
+def time_series():
+    return xr.DataArray(np.ones(20, dtype=float), dims=["time"], coords={"time": np.arange(20)})
+
+
+@pytest.mark.parametrize("k", [1, 2, 3, 4, 5, 6])
+def test_temporal_convolve_remove_partial_periods_bounds(time_series, k):
+    window = np.ones(k, dtype=float) / k  # normalised
+    result = temporal.convolve(time_series, window, remove_partial_periods=True)
+    assert result.sizes["time"] == time_series.sizes["time"] - k + 1
+    np.testing.assert_array_almost_equal(result.values, 1.0)
+
+
+@pytest.mark.parametrize("k", [1, 2, 3, 4, 5, 6])
+def test_temporal_convolve_keeps_full_bounds_by_default(time_series, k):
+    window = np.ones(k)
+    result = temporal.convolve(time_series, window, time_dim="time")
+    assert result.sizes["time"] == time_series.sizes["time"]
+    assert result.time.values[0] == time_series.time.values[0]
+    assert result.time.values[-1] == time_series.time.values[-1]

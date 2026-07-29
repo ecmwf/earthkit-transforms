@@ -26,10 +26,12 @@ def convolve(
     window: "array_like",
     *_args,
     time_dim: str | None = None,
-    how_boundary: Literal["zeropad"] = "zeropad",
+    remove_partial_periods: bool = False,
     **kwargs,
 ) -> xr.Dataset | xr.DataArray:
-    """Convolution along the time dimension.
+    """Centred convolution along the time dimension.
+
+    Time series are zero-padded at the boundaries.
 
     Parameters
     ----------
@@ -41,10 +43,6 @@ def convolve(
         Name of the time dimension, or coordinate, in the xarray object,
         default behaviour is to deduce time dimension from
         attributes of coordinates, then fall back to `"time"`.
-    how_boundary : {"zeropad", "periodic"}, default: "zeropad"
-        How the signal is extended where the window overhangs:
-
-        - ``"zeropad"``: the signal is extended with zeros.
     how_method : {"auto", "direct", "fft"}, default: "auto"
         How the convolution is evaluated:
 
@@ -57,12 +55,21 @@ def convolve(
     how_label : str | None
         Label to append to the name of the variable in the convoluted object,
         default is nothing.
+    remove_partial_periods : bool
+        If True, remove time steps affected by padding at the start and end.
+        Default is False.
 
     Returns
     -------
     xarray.DataArray | xarray.Dataset
         dataarray convolved with the given window along the time dimension.
     """
-    kwargs["dim"] = _tools.get_dim_key(dataarray, "t") if time_dim is None else time_dim
-    kwargs["how_boundary"] = how_boundary
-    return _convolve(dataarray, window, *_args, **kwargs)
+    dim = _tools.get_dim_key(dataarray, "t") if time_dim is None else time_dim
+    kwargs["dim"] = dim
+    kwargs["how_boundary"] = "zeropad"
+    result = _convolve(dataarray, window, *_args, **kwargs)
+    if remove_partial_periods and (k := len(window)) > 1:
+        start = k // 2
+        end = -((k - 1) // 2) or None  # avoid -0 for k==2
+        result = result.isel({dim: slice(start, end)})
+    return result
