@@ -120,8 +120,10 @@ def _convolve_dataarray(
         raise ValueError("window must be non-empty")
 
     if how_method == "auto":
-        # FFT is float-only, so choose direct method when result has any other type
-        how_method_proposed = "fft" if dataarray.dtype.kind == "f" or window.dtype.kind == "f" else "direct"
+        # FFT is float-only and cannot operate along a dim split into multiple chunks
+        is_float = dataarray.dtype.kind == "f" or window.dtype.kind == "f"
+        is_multi_chunked = len(dataarray.chunksizes.get(dim, ())) > 1
+        how_method_proposed = "fft" if is_float and not is_multi_chunked else "direct"
         if (how_method_proposed, how_boundary) not in _CONVOLVE_METHODS:
             raise RuntimeError(
                 f"Unable to auto-select a method for input and boundary {how_boundary!r}. "
