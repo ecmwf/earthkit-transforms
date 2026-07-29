@@ -32,7 +32,7 @@ def convolve(dataarray: xr.DataArray | xr.Dataset, *_args, **kwargs):
     dim : str
         Dimension along which to convolve the inputs.
     how_boundary : {"zeropad", "periodic"}, default: "zeropad"
-        How the signal is extended where the window overhangs an edge:
+        How the signal is extended where the window overhangs:
 
         - ``"zeropad"``: the signal is extended with zeros.
         - ``"periodic"``: the signal wraps around.
@@ -97,7 +97,7 @@ def _convolve_dataarray(
     dim : str
         Dimension along which to convolve the inputs.
     how_boundary : {"zeropad", "periodic"}, default: "zeropad"
-        How the signal is extended where the window overhangs an edge.
+        How the signal is extended where the window overhangs.
     how_method : {"auto", "direct", "fft"}, default: "auto"
         How the convolution is evaluated.
     how_label : str | None
