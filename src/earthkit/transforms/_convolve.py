@@ -40,9 +40,10 @@ def convolve(
 
         - ``"zeropad"``: the signal is extended with zeros.
         - ``"periodic"``: the signal wraps around.
-    how_method : {"direct", "fft"}, default: "direct"
+    how_method : {"auto", "direct", "fft"}, default: "auto"
         How the convolution is evaluated:
 
+        - ``"auto"``: automatically select a method based on the inputs.
         - ``"direct"``: implementation as a windowed dot product. Preserves the
           input dtype and propagates ``NaN`` locally.
         - ``"fft"``: evaluated in the frequency domain via the convolution
@@ -86,7 +87,7 @@ def _convolve_dataarray(
     dim: str,
     *,
     how_boundary: Literal["zeropad"] | Literal["periodic"] = "zeropad",
-    how_method: Literal["direct"] | Literal["fft"] = "direct",
+    how_method: Literal["auto"] | Literal["direct"] | Literal["fft"] = "auto",
     how_label: str = None
 ):
     r"""Convolve a data array with a 1-D window along a single dimension.
@@ -101,7 +102,7 @@ def _convolve_dataarray(
         Dimension along which to convolve the inputs.
     how_boundary : {"zeropad", "periodic"}, default: "zeropad"
         How the signal is extended where the window overhangs an edge.
-    how_method : {"direct", "fft"}, default: "direct"
+    how_method : {"auto", "direct", "fft"}, default: "auto"
         How the convolution is evaluated.
     how_label : str | None
         Label to append to the name of the variable in the convoluted object,
@@ -122,11 +123,21 @@ def _convolve_dataarray(
     if window.size == 0:
         raise ValueError("window must be non-empty")
 
+    if how_method == "auto":
+        # FFT is float-only, so choose direct method when result has any other type
+        how_method_proposed = "fft" if dataarray.dtype.kind == "f" or window.dtype.kind == "f" else "direct"
+        if (how_method_proposed, how_boundary) not in _CONVOLVE_METHODS:
+            raise ValueError(
+                f"Unable to auto-select a method for input and boundary {how_boundary!r}. "
+                "Please select a method and boundary combination explicitly."
+            )
+        how_method = how_method_proposed
+
     method = (how_method, how_boundary)
     if method not in _CONVOLVE_METHODS:
         available = ", ".join(f"{m!r} and {b!r}" for m, b in _CONVOLVE_METHODS)
         raise ValueError(
-            f"Unsupported combination how_method and how_boundary: {how_method!r} and {how_boundary!r}. "
+            f"Unsupported combination of method and boundary: {how_method!r} and {how_boundary!r}. "
             f"Available combinations are: {available}"
         )
 
@@ -151,8 +162,7 @@ def _convolve_dataarray_direct_zeropad(dataarray, window, dim):
 def _convolve_array_fft(signal, window, axis, n):
     if signal.dtype.kind != "f" or window.dtype.kind != "f":
         warnings.warn("FFT-based convolution casts inputs to float")
-    xp = array_namespace(signal)
-    window = xp.asarray(window)
+    xp = array_namespace(signal, window)
     window_axis_pad = (xp.newaxis,) * (signal.ndim - axis - 1)
     fft_sig = xp.fft.rfft(signal, axis=axis, n=n)
     fft_win = xp.fft.rfft(window, n=n)[(slice(None), *window_axis_pad)]

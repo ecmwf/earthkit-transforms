@@ -100,10 +100,11 @@ def test_convolve_raises_for_empty_window(data_1d):
         convolve(data_1d, [], "t")
 
 
-def test_convolve_direct_convolution_preserves_integer_dtype():
+@pytest.mark.parametrize("how_method", ["auto", "direct"])
+def test_convolve_preserves_integer_dtype(how_method):
     data = xr.DataArray(np.arange(9), dims=["t"])
     window = np.array([1, 1, 1])
-    result = convolve(data, window, "t", how_method="direct", how_boundary="zeropad")
+    result = convolve(data, window, "t", how_method=how_method, how_boundary="zeropad")
     assert result.dtype.kind == "i"
     expected = np.array([1, 3, 6, 9, 12, 15, 18, 21, 15])
     np.testing.assert_array_equal(result.values, expected)
