@@ -20,11 +20,7 @@ from earthkit.transforms._aggregate import how_label_rename
 from earthkit.utils.array import array_namespace
 
 
-def convolve(
-    dataarray: xr.DataArray | xr.Dataset,
-    *_args,
-    **kwargs
-):
+def convolve(dataarray: xr.DataArray | xr.Dataset, *_args, **kwargs):
     r"""Convolve an xarray.dataarray or xarray.dataset with a 1-D window along a dimension.
 
     Parameters
@@ -47,7 +43,7 @@ def convolve(
         - ``"direct"``: implementation as a windowed dot product. Preserves the
           input dtype and propagates ``NaN`` locally.
         - ``"fft"``: evaluated in the frequency domain via the convolution
-          theorem. Faster for long windows, but casts all inputs to float and
+          theorem. Fastest for longer windows. Casts all inputs to float and
           spreads ``NaN`` values across the entire convolution axis.
     how_label : str | None
         Label to append to the name of the variable in the convoluted object,
@@ -88,7 +84,7 @@ def _convolve_dataarray(
     *,
     how_boundary: Literal["zeropad"] | Literal["periodic"] = "zeropad",
     how_method: Literal["auto"] | Literal["direct"] | Literal["fft"] = "auto",
-    how_label: str = None
+    how_label: str = None,
 ):
     r"""Convolve a data array with a 1-D window along a single dimension.
 
@@ -127,7 +123,7 @@ def _convolve_dataarray(
         # FFT is float-only, so choose direct method when result has any other type
         how_method_proposed = "fft" if dataarray.dtype.kind == "f" or window.dtype.kind == "f" else "direct"
         if (how_method_proposed, how_boundary) not in _CONVOLVE_METHODS:
-            raise ValueError(
+            raise RuntimeError(
                 f"Unable to auto-select a method for input and boundary {how_boundary!r}. "
                 "Please select a method and boundary combination explicitly."
             )
@@ -147,22 +143,22 @@ def _convolve_dataarray(
 
 
 def _convolve_dataarray_direct_zeropad(dataarray, window, dim):
-    # Reverse kernel to get true convolution from dot-product
-    window = window[::-1].copy()
+    """Rolling dot product-based convolution with zero-padding at the boundary."""
+    window = window[::-1].copy()  # reverse kernel for true convolution
     k = window.size
     window_dim = f"__convolve_dim_{dim}"
     window_da = xr.DataArray(window, dims=[window_dim])
-    zero = dataarray.dtype.type(0)
-    rolled = dataarray.rolling({dim: k}, center=True).construct(window_dim, fill_value=zero)
-    result = (rolled * window_da).sum(dim=window_dim, skipna=False)
-    # Multiplying by the (unnamed) window_da drops .name; restore it
-    return result.rename(dataarray.name)
+    return (
+        dataarray.rolling({dim: k}, center=True)
+        .construct(window_dim, fill_value=dataarray.dtype.type(0))
+        .dot(window_da, dim=window_dim)
+    )
 
 
-def _convolve_array_fft(signal, window, axis, n):
+def _convolve_array_fft(signal, window, axis, n, xp):
+    """Generic FFT-based convolution."""
     if signal.dtype.kind != "f" or window.dtype.kind != "f":
         warnings.warn("FFT-based convolution casts inputs to float")
-    xp = array_namespace(signal, window)
     window_axis_pad = (xp.newaxis,) * (signal.ndim - axis - 1)
     fft_sig = xp.fft.rfft(signal, axis=axis, n=n)
     fft_win = xp.fft.rfft(window, n=n)[(slice(None), *window_axis_pad)]
@@ -170,11 +166,13 @@ def _convolve_array_fft(signal, window, axis, n):
 
 
 def _convolve_dataarray_fft_zeropad(dataarray, window, dim):
+    """FFT-based convolution with zero-padding at the boundary."""
+    xp = array_namespace(dataarray.data, window)
     nsig = dataarray.sizes[dim]
     nwin = window.size
     nfft = nsig + nwin - 1
     axis = dataarray.get_axis_num(dim)
-    convolved = _convolve_array_fft(dataarray.data, window, axis=axis, n=nfft)
+    convolved = _convolve_array_fft(dataarray.data, window, axis=axis, n=nfft, xp=xp)
     # Consistent with direct implementation and centering convention of xarray
     start = (nwin - 1) // 2
     slicer = [slice(None)] * dataarray.ndim
@@ -183,11 +181,12 @@ def _convolve_dataarray_fft_zeropad(dataarray, window, dim):
 
 
 def _convolve_dataarray_fft_periodic(dataarray, window, dim):
+    """FFT-based convolution with periodic boundary condition."""
     xp = array_namespace(dataarray.data, window)
     nsig = dataarray.sizes[dim]
     start = (window.size - 1) // 2
     axis = dataarray.get_axis_num(dim)
-    convolved = _convolve_array_fft(dataarray.data, window, axis=axis, n=nsig)
+    convolved = _convolve_array_fft(dataarray.data, window, axis=axis, n=nsig, xp=xp)
     convolved = xp.roll(convolved, -start, axis=axis)
     return dataarray.copy(data=convolved)
 

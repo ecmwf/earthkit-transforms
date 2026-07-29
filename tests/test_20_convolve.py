@@ -67,9 +67,7 @@ def test_convolve_fft_periodic_matches_analytical_sinusoid():
     # Same frequency, rescaled and phase-shifted by the window's frequency
     # response plus a phase term from the centering roll
     response = np.fft.rfft(window, n=n)[freq]
-    expected = np.abs(response) * np.cos(
-        2 * np.pi * freq * t / n + np.angle(response) + 2 * np.pi * freq * start / n
-    )
+    expected = np.abs(response) * np.cos(2 * np.pi * freq * t / n + np.angle(response) + 2 * np.pi * freq * start / n)
     result = convolve(data, window, "t", how_method="fft", how_boundary="periodic")
     np.testing.assert_allclose(result.values, expected, atol=1e-8)
 
