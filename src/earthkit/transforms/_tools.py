@@ -691,7 +691,9 @@ def _is_evenly_spaced(coord) -> bool:
     return bool(np.allclose(diffs, diffs[0]))
 
 
-def get_spatial_info(dataarray, lat_key=None, lon_key=None):
+def get_spatial_info(
+    dataarray: xr.Dataset | xr.DataArray, lat_key: T.Optional[str] = None, lon_key: T.Optional[str] = None
+):
     """Return a dictionary of spatial metadata for a DataArray.
 
     Detects latitude and longitude coordinate names, their associated
@@ -729,8 +731,15 @@ def get_spatial_info(dataarray, lat_key=None, lon_key=None):
 
     # Get the geospatial dimensions of the data. In the case of regular data this
     #  will be 'lat' and 'lon'. For irregular data it could be any dimensions
-    lat_dims = dataarray.coords[lat_key].dims
-    lon_dims = dataarray.coords[lon_key].dims
+    try:
+        lat_dims = dataarray.coords[lat_key].dims
+        lon_dims = dataarray.coords[lon_key].dims
+    except KeyError as e:
+        raise KeyError(
+            f"Unable to find latitude or longitude coordinates in the dataarray. "
+            f"lat_key: {lat_key}; lon_key: {lon_key}. "
+            f"Available coordinates: {list(dataarray.coords.keys())}"
+        ) from e
     spatial_dims = [dim for dim in lat_dims] + [dim for dim in lon_dims if dim not in lat_dims]
 
     # Assert that latitude and longitude have the same dimensions
