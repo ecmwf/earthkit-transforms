@@ -13,6 +13,7 @@
 
 from typing import TypeVar
 
+import numpy as np
 import xarray as xr
 from earthkit.utils.decorators import format_handler
 from numpy.typing import ArrayLike
@@ -20,17 +21,14 @@ from numpy.typing import ArrayLike
 from earthkit.transforms import _tools
 from earthkit.transforms._convolve import convolve as _convolve
 
-T = TypeVar("T", xr.Dataset, xr.DataArray)
-
-
 @format_handler()
 def convolve(
-    dataarray: T,
-    window: ArrayLike,
+    dataarray: xr.Dataset | xr.DataArray,
+    window: np.typing.ArrayLike,
     time_dim: str | None = None,
     remove_partial_periods: bool = False,
     **kwargs,
-) -> T:
+) -> xr.Dataset | xr.DataArray:
     """Centred convolution along the time dimension.
 
     Time series are zero-padded at the boundaries.
@@ -70,7 +68,7 @@ def convolve(
     kwargs["dim"] = dim
     kwargs["how_boundary"] = "zeropad"
     result = _convolve(dataarray, window, **kwargs)
-    if remove_partial_periods and (k := len(window)) > 1:
+    if remove_partial_periods and (k := np.asarray(window).size) > 1:
         start = k // 2
         end = -((k - 1) // 2) or None  # avoid -0 for k==2
         result = result.isel({dim: slice(start, end)})

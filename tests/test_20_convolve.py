@@ -93,7 +93,7 @@ def test_convolve_along_dim(how_method, how_boundary, dim, data_3d, window):
 
 @pytest.mark.parametrize("how_method", ["auto", "direct"])
 def test_convolve_preserves_integer_dtype_for_all_integer_input(how_method):
-    data = xr.DataArray(np.arange(9), dims=["t"], dtype=int)
+    data = xr.DataArray(np.arange(9, dtype=int), dims=["t"])
     window = np.array([1, 1, 1], dtype=int)
     result = convolve(data, window, "t", how_method=how_method, how_boundary="zeropad")
     assert result.dtype.kind == "i"

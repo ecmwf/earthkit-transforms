@@ -12,15 +12,17 @@
 # limitations under the License.
 
 import warnings
-from typing import Literal, TypeVar
+from typing import Callable, Literal, Mapping, TypeVar
 
+import numpy as np
 import xarray as xr
 from earthkit.utils.array import array_namespace
-from numpy.typing import ArrayLike
 
 from earthkit.transforms._aggregate import how_label_rename
 
 T = TypeVar("T", xr.DataArray, xr.Dataset)
+BoundaryT = Literal["zeropad", "periodic"]
+MethodT = Literal["auto", "direct", "fft"]
 
 
 def convolve(dataarray: T, *_args, **kwargs) -> T:
@@ -81,11 +83,11 @@ def convolve(dataarray: T, *_args, **kwargs) -> T:
 
 def _convolve_dataarray(
     dataarray: xr.DataArray,
-    window: ArrayLike,
+    window: np.typing.ArrayLike,
     dim: str,
     *,
-    how_boundary: Literal["zeropad"] | Literal["periodic"] = "zeropad",
-    how_method: Literal["auto"] | Literal["direct"] | Literal["fft"] = "auto",
+    how_boundary: BoundaryT = "zeropad",
+    how_method: MethodT = "auto",
     how_label: str | None = None,
 ) -> xr.DataArray:
     r"""Convolve a data array with a 1-D window along a single dimension.
@@ -115,17 +117,17 @@ def _convolve_dataarray(
         raise ValueError(f"dim={dim!r} not found in dataarray dimensions {dataarray.dims}")
 
     xp = array_namespace(dataarray.data)
-    window = xp.asarray(window)
-    if window.ndim != 1:
-        raise ValueError(f"window must be 1-dimensional, got window.ndim={window.ndim}")
-    if window.size == 0:
+    kernel = xp.asarray(window)
+    if kernel.ndim != 1:
+        raise ValueError(f"window must be 1-dimensional, got window.ndim={kernel.ndim}")
+    if kernel.size == 0:
         raise ValueError("window must be non-empty")
 
     if how_method == "auto":
         # FFT is float-only and cannot operate along a dim split into multiple chunks
-        is_float = dataarray.dtype.kind == "f" or window.dtype.kind == "f"
+        is_float = dataarray.dtype.kind == "f" or kernel.dtype.kind == "f"
         is_multi_chunked = len(dataarray.chunksizes.get(dim, ())) > 1
-        how_method_proposed = "fft" if is_float and not is_multi_chunked else "direct"
+        how_method_proposed: MethodT = "fft" if is_float and not is_multi_chunked else "direct"
         if (how_method_proposed, how_boundary) not in _CONVOLVE_METHODS:
             raise RuntimeError(
                 f"Unable to auto-select a method for input and boundary {how_boundary!r}. "
@@ -141,61 +143,61 @@ def _convolve_dataarray(
             f"Available combinations are: {available}"
         )
 
-    convolved = _CONVOLVE_METHODS[method](dataarray, window, dim)
+    convolved = _CONVOLVE_METHODS[method](dataarray, kernel, dim)
     convolved = how_label_rename(convolved, how_label=how_label)
     return convolved
 
 
-def _convolve_dataarray_direct_zeropad(dataarray, window, dim):
+def _convolve_dataarray_direct_zeropad(dataarray, kernel, dim):
     """Rolling dot product-based convolution with zero-padding at the boundary."""
-    window = window[::-1].copy()  # reverse kernel for true convolution
-    k = window.size
-    window_dim = f"__convolve_dim_{dim}"
-    window_da = xr.DataArray(window, dims=[window_dim])
+    kernel = kernel[::-1].copy()  # reverse kernel for true convolution
+    k = kernel.size
+    kernel_dim = f"__convolve_dim_{dim}"
+    kernel_da = xr.DataArray(kernel, dims=[kernel_dim])
     return (
         dataarray.rolling({dim: k}, center=True)
-        .construct(window_dim, fill_value=dataarray.dtype.type(0))
-        .dot(window_da, dim=window_dim)
+        .construct(kernel_dim, fill_value=dataarray.dtype.type(0))
+        .dot(kernel_da, dim=kernel_dim)
     )
 
 
-def _convolve_array_fft(signal, window, axis, n, xp):
+def _convolve_array_fft(signal, kernel, axis, n, xp):
     """Generic FFT-based convolution."""
-    if signal.dtype.kind != "f" or window.dtype.kind != "f":
+    if signal.dtype.kind != "f" or kernel.dtype.kind != "f":
         warnings.warn("FFT-based convolution casts inputs to float")
-    window_axis_pad = (xp.newaxis,) * (signal.ndim - axis - 1)
+    kernel_axis_pad = (xp.newaxis,) * (signal.ndim - axis - 1)
     fft_sig = xp.fft.rfft(signal, axis=axis, n=n)
-    fft_win = xp.fft.rfft(window, n=n)[(slice(None), *window_axis_pad)]
-    return xp.fft.irfft(fft_sig * fft_win, axis=axis, n=n)
+    fft_ker = xp.fft.rfft(kernel, n=n)[(slice(None), *kernel_axis_pad)]
+    return xp.fft.irfft(fft_sig * fft_ker, axis=axis, n=n)
 
 
-def _convolve_dataarray_fft_zeropad(dataarray, window, dim):
+def _convolve_dataarray_fft_zeropad(dataarray, kernel, dim):
     """FFT-based convolution with zero-padding at the boundary."""
-    xp = array_namespace(dataarray.data, window)
+    xp = array_namespace(dataarray.data, kernel)
     nsig = dataarray.sizes[dim]
-    nwin = window.size
-    nfft = nsig + nwin - 1
+    nker = kernel.size
+    nfft = nsig + nker - 1
     axis = dataarray.get_axis_num(dim)
-    convolved = _convolve_array_fft(dataarray.data, window, axis=axis, n=nfft, xp=xp)
+    convolved = _convolve_array_fft(dataarray.data, kernel, axis=axis, n=nfft, xp=xp)
     # Consistent with direct implementation and centering convention of xarray
-    start = (nwin - 1) // 2
+    start = (nker - 1) // 2
     slicer = [slice(None)] * dataarray.ndim
     slicer[axis] = slice(start, start + nsig)
     return dataarray.copy(data=convolved[tuple(slicer)])
 
 
-def _convolve_dataarray_fft_periodic(dataarray, window, dim):
+def _convolve_dataarray_fft_periodic(dataarray, kernel, dim):
     """FFT-based convolution with periodic boundary condition."""
-    xp = array_namespace(dataarray.data, window)
+    xp = array_namespace(dataarray.data, kernel)
     nsig = dataarray.sizes[dim]
-    start = (window.size - 1) // 2
+    start = (kernel.size - 1) // 2
     axis = dataarray.get_axis_num(dim)
-    convolved = _convolve_array_fft(dataarray.data, window, axis=axis, n=nsig, xp=xp)
+    convolved = _convolve_array_fft(dataarray.data, kernel, axis=axis, n=nsig, xp=xp)
     convolved = xp.roll(convolved, -start, axis=axis)
     return dataarray.copy(data=convolved)
 
 
-_CONVOLVE_METHODS = {
+_CONVOLVE_METHODS: Mapping[tuple[MethodT, BoundaryT], Callable] = {
     ("direct", "zeropad"): _convolve_dataarray_direct_zeropad,
     ("fft", "zeropad"): _convolve_dataarray_fft_zeropad,
     ("fft", "periodic"): _convolve_dataarray_fft_periodic,
