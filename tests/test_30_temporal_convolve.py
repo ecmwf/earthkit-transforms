@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-
 import xarray as xr
 
 from earthkit import data as ek_data
@@ -52,7 +51,7 @@ def test_temporal_convolve_remove_partial_periods_bounds(time_series, k):
 
 @pytest.mark.parametrize("k", [1, 2, 3, 4, 5, 6])
 def test_temporal_convolve_keeps_full_bounds_by_default(time_series, k):
-    window = np.ones(k)
+    window = np.ones(k, dtype=float)
     result = temporal.convolve(time_series, window, time_dim="time")
     assert result.sizes["time"] == time_series.sizes["time"]
     assert result.time.values[0] == time_series.time.values[0]

@@ -4,7 +4,6 @@ import xarray as xr
 
 from earthkit.transforms._convolve import convolve
 
-
 VALID_COMBINATIONS = [
     ("direct", "zeropad"),
     ("fft", "zeropad"),
@@ -93,9 +92,9 @@ def test_convolve_along_dim(how_method, how_boundary, dim, data_3d, window):
 
 
 @pytest.mark.parametrize("how_method", ["auto", "direct"])
-def test_convolve_preserves_integer_dtype(how_method):
-    data = xr.DataArray(np.arange(9), dims=["t"])
-    window = np.array([1, 1, 1])
+def test_convolve_preserves_integer_dtype_for_all_integer_input(how_method):
+    data = xr.DataArray(np.arange(9), dims=["t"], dtype=int)
+    window = np.array([1, 1, 1], dtype=int)
     result = convolve(data, window, "t", how_method=how_method, how_boundary="zeropad")
     assert result.dtype.kind == "i"
     expected = np.array([1, 3, 6, 9, 12, 15, 18, 21, 15])
@@ -118,7 +117,7 @@ def test_convolve_how_label_none_leaves_name_unchanged(how_method, how_boundary,
 
 def test_convolve_raises_for_multidimensional_window(data_1d):
     with pytest.raises(ValueError, match="1-dimensional"):
-        convolve(data_1d, np.ones((2, 2)), "t")
+        convolve(data_1d, np.ones((2, 2), dtype=float), "t")
 
 
 def test_convolve_raises_for_empty_window(data_1d):

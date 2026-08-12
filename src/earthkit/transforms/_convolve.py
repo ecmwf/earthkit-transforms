@@ -12,15 +12,18 @@
 # limitations under the License.
 
 import warnings
-from typing import Literal
+from typing import Literal, TypeVar
 
 import xarray as xr
+from earthkit.utils.array import array_namespace
+from numpy.typing import ArrayLike
 
 from earthkit.transforms._aggregate import how_label_rename
-from earthkit.utils.array import array_namespace
+
+T = TypeVar("T", xr.DataArray, xr.Dataset)
 
 
-def convolve(dataarray: xr.DataArray | xr.Dataset, *_args, **kwargs):
+def convolve(dataarray: T, *_args, **kwargs) -> T:
     r"""Convolve an xarray.dataarray or xarray.dataset with a 1-D window along a dimension.
 
     Parameters
@@ -40,19 +43,18 @@ def convolve(dataarray: xr.DataArray | xr.Dataset, *_args, **kwargs):
         How the convolution is evaluated:
 
         - ``"auto"``: automatically select a method based on the inputs.
-        - ``"direct"``: implementation as a windowed dot product. Preserves the
-          input dtype and propagates ``NaN`` locally.
+        - ``"direct"``: implementation as a windowed dot product. Propagates
+          ``NaN`` values locally.
         - ``"fft"``: evaluated in the frequency domain via the convolution
           theorem. Fastest for longer windows. Casts all inputs to float and
           spreads ``NaN`` values across the entire convolution axis.
-    how_label : str | None
+    how_label : str | None, default: None
         Label to append to the name of the variable in the convoluted object,
         default is nothing.
 
     Returns
     -------
-    xarray.DataArray
-        The result of the convolution.
+    xarray.DataArray or xarray.Dataset (as provided)
 
     Notes
     -----
@@ -79,13 +81,13 @@ def convolve(dataarray: xr.DataArray | xr.Dataset, *_args, **kwargs):
 
 def _convolve_dataarray(
     dataarray: xr.DataArray,
-    window: "array_like",
+    window: ArrayLike,
     dim: str,
     *,
     how_boundary: Literal["zeropad"] | Literal["periodic"] = "zeropad",
     how_method: Literal["auto"] | Literal["direct"] | Literal["fft"] = "auto",
-    how_label: str = None,
-):
+    how_label: str | None = None,
+) -> xr.DataArray:
     r"""Convolve a data array with a 1-D window along a single dimension.
 
     Parameters
@@ -100,14 +102,14 @@ def _convolve_dataarray(
         How the signal is extended where the window overhangs.
     how_method : {"auto", "direct", "fft"}, default: "auto"
         How the convolution is evaluated.
-    how_label : str | None
+    how_label : str | None, default: None
         Label to append to the name of the variable in the convoluted object,
         default is nothing.
 
     Returns
     -------
     xarray.DataArray
-        The result of the convolution.
+        Result of the convolution.
     """
     if dim not in dataarray.dims:
         raise ValueError(f"dim={dim!r} not found in dataarray dimensions {dataarray.dims}")

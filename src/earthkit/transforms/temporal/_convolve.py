@@ -11,24 +11,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Literal
+from typing import TypeVar
 
 import xarray as xr
 from earthkit.utils.decorators import format_handler
+from numpy.typing import ArrayLike
 
 from earthkit.transforms import _tools
 from earthkit.transforms._convolve import convolve as _convolve
 
+T = TypeVar("T", xr.Dataset, xr.DataArray)
+
 
 @format_handler()
 def convolve(
-    dataarray: xr.Dataset | xr.DataArray,
-    window: "array_like",
-    *_args,
+    dataarray: T,
+    window: ArrayLike,
     time_dim: str | None = None,
     remove_partial_periods: bool = False,
     **kwargs,
-) -> xr.Dataset | xr.DataArray:
+) -> T:
     """Centred convolution along the time dimension.
 
     Time series are zero-padded at the boundaries.
@@ -47,27 +49,27 @@ def convolve(
         How the convolution is evaluated:
 
         - ``"auto"``: automatically select a method based on the inputs.
-        - ``"direct"``: implementation as a windowed dot product. Preserves the
-          input dtype and propagates ``NaN`` locally.
+        - ``"direct"``: implementation as a windowed dot product. Propagates
+          ``NaN`` values locally.
         - ``"fft"``: evaluated in the frequency domain via the convolution
           theorem. Fastest for longer windows. Casts all inputs to float and
           spreads ``NaN`` values across the time axis.
-    how_label : str | None
+    how_label : str | None, default: None
         Label to append to the name of the variable in the convoluted object,
         default is nothing.
-    remove_partial_periods : bool
+    remove_partial_periods : bool, default: False
         If True, remove time steps affected by padding at the start and end.
-        Default is False.
+    **kwargs
+        Keyword arguments passed to :func:`earthkit.transforms.convolve`.
 
     Returns
     -------
-    xarray.DataArray | xarray.Dataset
-        dataarray convolved with the given window along the time dimension.
+    xarray.DataArray or xarray.Dataset (as provided)
     """
     dim = _tools.get_dim_key(dataarray, "t") if time_dim is None else time_dim
     kwargs["dim"] = dim
     kwargs["how_boundary"] = "zeropad"
-    result = _convolve(dataarray, window, *_args, **kwargs)
+    result = _convolve(dataarray, window, **kwargs)
     if remove_partial_periods and (k := len(window)) > 1:
         start = k // 2
         end = -((k - 1) // 2) or None  # avoid -0 for k==2
