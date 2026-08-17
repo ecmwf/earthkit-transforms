@@ -47,6 +47,38 @@ Providing both ``area`` and ``geodataframe`` raises a ``ValueError``.
    supported.
 
 
+Specifying the spatial variables
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The spatial methods (:func:`mask` and :func:`reduce`) operate over the latitude and
+longitude coordinates of the data object. By default these coordinates are detected
+automatically from the metadata of the data object, so in most cases you do not need to
+provide them explicitly. The detection looks, in order, for:
+
+1. A coordinate whose ``axis`` attribute is ``"Y"`` (latitude) or ``"X"`` (longitude).
+2. A coordinate whose ``standard_name`` attribute is a CF spatial name, e.g.
+   ``"latitude"``/``"grid_latitude"`` or ``"longitude"``/``"grid_longitude"``.
+3. A coordinate whose name matches one of the recognised names, i.e. ``"latitude"`` or
+   ``"lat"`` for latitude, and ``"longitude"``, ``"long"`` or ``"lon"`` for longitude.
+
+If the coordinates cannot be detected automatically - for example when your data uses
+non-standard names - or if the automatic detection selects the wrong coordinate, you can
+override it using the ``lat_key`` and ``lon_key`` keyword arguments:
+
+.. code-block:: python
+
+    ekt.spatial.reduce(
+        ds,
+        area={"north": 60, "south": 30, "east": 40, "west": -10},
+        lat_key="y_coord",
+        lon_key="x_coord",
+    )
+
+Both ``lat_key`` and ``lon_key`` are accepted by :func:`mask` and :func:`reduce`. A worked
+example is available in the how-to guide
+:doc:`../how-tos/spatial/howto_specify_lat_lon_keys`.
+
+
 In addition to the above functions, the spatial module also includes several methods
 for computing the intermedieate steps of the aggregation process. These methods are
 documented in the API reference guide: :doc:`../autodocs/earthkit.transforms.spatial`
