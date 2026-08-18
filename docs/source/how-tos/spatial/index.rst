@@ -13,3 +13,4 @@ subsets of data.
    howto_mask_era5_with_geometry.ipynb
    howto_spatial_mean_era5_geometry.ipynb
    howto_spatial_mean_era5_area.ipynb
+   howto_specify_lat_lon_keys.ipynb

@@ -6,14 +6,41 @@ for transforming data with respect to the temporal coordinate(s).
 This includes aggregating the data in time dimension to a single value,
 daily values, or monthly values and calculating rates from accumulated data.
 
+Specifying the time dimension
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Every temporal method operates along a single time dimension (or coordinate). By default
+this dimension is detected automatically from the metadata of the data object, so in most
+cases you do not need to provide it explicitly. The detection follows this order:
+
+1. A dimension whose ``axis`` attribute is ``"T"``.
+2. A dimension whose ``standard_name`` attribute is a CF time name, i.e. one of
+   ``"time"``, ``"valid_time"`` or ``"forecast_reference_time"``.
+3. A dimension whose name matches one of the recognised time names ``"time"``,
+   ``"valid_time"`` or ``"forecast_reference_time"``.
+
+If none of these can be found, or if the automatically detected dimension is not the one
+you want to aggregate over, you can override the detection using the ``time_dim`` parameter.
+This is common when your data uses a non-standard name for the time coordinate (for example
+``"forecast_time"`` or ``"step"``), or when the object contains more than one time-like
+coordinate and you need to select a specific one::
+
+   # Aggregate along a coordinate named "forecast_time"
+   earthkit.transforms.temporal.daily_mean(dataarray, time_dim="forecast_time")
+
+The ``time_dim`` parameter is accepted by every function in the temporal module, including
+``reduce``, the ``mean``/``sum``/``min``/``max``/``std`` aggregations, the ``daily_*`` and
+``monthly_*`` methods, and ``accumulation_to_rate``. A worked example is available in the
+how-to guide :doc:`../how-tos/temporal/howto_specify_time_dim`.
+
 Aggregation methods
-^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^
 
 To aggregate the data in time dimension to a single value you can use the `temporal.reduce`,
 `temporal.mean`, `temporal.sum`, `temporal.min`, `temporal.max` functions. These functions
 take an xarray data object and return the aggregated value of the data. The time dimension
 is automatically detected based on the metadata of the data object, to override this you can
-use the `time_dim` parameter.
+use the `time_dim` parameter (see `Specifying the time dimension`_ above).
 
 .. dropdown:: Show API documentation for ``reduce``
 
