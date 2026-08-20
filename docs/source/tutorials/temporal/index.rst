@@ -9,3 +9,4 @@ Temporal tutorials
    03-seas5-daily-statistics.ipynb
    04-era5-bespoke-how-function.ipynb
    05-accumulation-to-rate-examples.ipynb
+   06-fft-spectral-analysis.ipynb

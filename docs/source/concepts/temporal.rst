@@ -114,3 +114,48 @@ The options are:
 
    .. autofunction:: earthkit.transforms.temporal.accumulation_to_rate
       :no-index:
+
+
+Spectral analysis (FFT)
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+The temporal module provides entry points for computing the discrete Fourier Transform (FFT)
+of a data object along its time dimension. Use `temporal.fft` for the forward transform and
+`temporal.ifft` for the inverse transform. As with the other temporal methods, the time
+dimension is automatically detected from the metadata of the data object and can be overridden
+with the `time_dim` parameter.
+
+The transforms are implemented using the Python array API standard, applying the ``fft``/``ifft``
+methods of the array namespace of the input data. This means the computation runs on the native
+backend of the data (for example NumPy or a GPU-backed array library) and returns
+``xarray.DataArray``/``xarray.Dataset`` objects.
+
+For the forward transform, the time dimension is replaced by a ``frequency`` dimension. The
+frequency coordinate is derived from the spacing of the time coordinate, expressed in Hz (i.e.
+cycles per second), unless a different `sample_spacing` is provided. The result is complex-valued.
+The inverse transform, `temporal.ifft`, operates on the ``frequency`` dimension and returns the
+data to the time domain::
+
+   spectrum = earthkit.transforms.temporal.fft(dataarray)
+   restored = earthkit.transforms.temporal.ifft(
+       spectrum, time_coord=dataarray["time"]
+   )
+
+A generic entry point that operates along a user-specified dimension is also available in the
+`earthkit.transforms._fourier` module as `earthkit.transforms._fourier.fft` and
+`earthkit.transforms._fourier.ifft`, for example to compute the FFT along a spatial dimension.
+The generic module additionally provides ``xarray`` wrappers for the full
+set of functions in the ``fft`` extension of the Python array API standard, including the
+real-valued transforms (`rfft`/`irfft`), the Hermitian transforms (`hfft`/`ihfft`), the
+n-dimensional transforms (`fftn`/`ifftn`/`rfftn`/`irfftn`), the sample-frequency helpers
+(`fftfreq`/`rfftfreq`) and the spectrum shifts (`fftshift`/`ifftshift`).
+
+.. dropdown:: Show API documentation for ``fft``
+
+   .. autofunction:: earthkit.transforms.temporal.fft
+      :no-index:
+
+.. dropdown:: Show API documentation for ``ifft``
+
+   .. autofunction:: earthkit.transforms.temporal.ifft
+      :no-index:

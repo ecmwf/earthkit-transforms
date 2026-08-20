@@ -42,6 +42,7 @@ from ._aggregate import (
     std,
     sum,
 )
+from ._fourier import fft, ifft
 from ._rates import accumulation_to_rate, deaccumulate
 
 __all__ = [
@@ -70,4 +71,6 @@ __all__ = [
     "standardise_time",
     "accumulation_to_rate",
     "deaccumulate",
+    "fft",
+    "ifft",
 ]
