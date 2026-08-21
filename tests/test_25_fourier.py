@@ -92,6 +92,59 @@ def test_temporal_fft_ifft_roundtrip():
 
 
 # ------------------------------------------------------------------------------------------
+# Convenience `period` coordinate on temporal wrappers
+# ------------------------------------------------------------------------------------------
+def _assert_period_matches_frequency(result, units="s"):
+    assert "period" in result.coords
+    assert result["period"].dims == ("frequency",)
+    freqs = result["frequency"].values
+    periods = result["period"].values
+    nonzero = freqs != 0.0
+    np.testing.assert_allclose(periods[nonzero], 1.0 / freqs[nonzero])
+    # The zero-frequency term has no finite period.
+    assert np.all(np.isnan(periods[~nonzero]))
+    assert result["period"].attrs.get("units") == units
+
+
+def test_temporal_fft_adds_period_coordinate():
+    da = _temporal_dataarray(n=48)
+    result = ekt.temporal.fft(da)
+    _assert_period_matches_frequency(result, units="s")
+
+
+def test_temporal_rfft_adds_period_coordinate():
+    da = _temporal_dataarray(n=48)
+    result = ekt.temporal.rfft(da)
+    _assert_period_matches_frequency(result, units="s")
+
+
+def test_temporal_ihfft_adds_period_coordinate():
+    da = _temporal_dataarray(n=48)
+    result = ekt.temporal.ihfft(da)
+    _assert_period_matches_frequency(result, units="s")
+
+
+def test_temporal_fftfreq_adds_period_coordinate_without_units():
+    freqs = ekt.temporal.fftfreq(10, sample_spacing=3600.0)
+    _assert_period_matches_frequency(freqs, units=None)
+
+
+def test_temporal_rfftfreq_adds_period_coordinate_without_units():
+    freqs = ekt.temporal.rfftfreq(10, sample_spacing=3600.0)
+    _assert_period_matches_frequency(freqs, units=None)
+
+
+def test_temporal_fft_period_identifies_dominant_cycle():
+    # 24-hour cycle sampled hourly -> dominant period of 24 h (86400 s).
+    da = _temporal_dataarray(n=48, freq_per_hour=1 / 24)
+    result = ekt.temporal.fft(da)
+    power = np.abs(result)
+    positive = power.where(result["frequency"] > 0, drop=True)
+    dominant_period = positive["period"].isel(frequency=positive.argmax("frequency"))
+    assert float(dominant_period) == pytest.approx(24 * 3600.0, rel=1e-6)
+
+
+# ------------------------------------------------------------------------------------------
 # Array API standard coverage: rfft / irfft / hfft / ihfft
 # ------------------------------------------------------------------------------------------
 def test_rfft_output_length_and_roundtrip():
@@ -193,6 +246,29 @@ def test_fft_single_point_coordinate_uses_unit_spacing():
     result = _fourier.fft(da, dim="x")
     assert result.sizes["frequency"] == 1
     np.testing.assert_allclose(result["frequency"].values, np.fft.fftfreq(1, d=1.0))
+
+
+def test_fft_irregular_spacing_warns(caplog):
+    # Coordinate with a non-uniform step (0, 1, 2, 4)
+    da = xr.DataArray(np.arange(4.0), coords={"x": [0.0, 1.0, 2.0, 4.0]}, dims=("x",), name="signal")
+    with caplog.at_level("WARNING"):
+        _fourier.fft(da, dim="x")
+    assert any("not regularly spaced" in record.message for record in caplog.records)
+
+
+def test_fft_regular_spacing_does_not_warn(caplog):
+    da = _signal_dataarray(n=32, dt=2.0, freq=0.1)
+    with caplog.at_level("WARNING"):
+        _fourier.fft(da, dim="x")
+    assert not any("regularly spaced" in record.message for record in caplog.records)
+
+
+def test_fft_explicit_sample_spacing_skips_spacing_check(caplog):
+    # Irregular coordinate, but an explicit sample_spacing bypasses inference (no warning)
+    da = xr.DataArray(np.arange(4.0), coords={"x": [0.0, 1.0, 2.0, 4.0]}, dims=("x",), name="signal")
+    with caplog.at_level("WARNING"):
+        _fourier.fft(da, dim="x", sample_spacing=1.0)
+    assert not any("regularly spaced" in record.message for record in caplog.records)
 
 
 # ------------------------------------------------------------------------------------------

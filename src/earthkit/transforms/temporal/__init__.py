@@ -42,7 +42,22 @@ from ._aggregate import (
     std,
     sum,
 )
-from ._fourier import fft, ifft
+from ._fourier import (
+    fft,
+    fftfreq,
+    fftn,
+    fftshift,
+    hfft,
+    ifft,
+    ifftn,
+    ifftshift,
+    ihfft,
+    irfft,
+    irfftn,
+    rfft,
+    rfftfreq,
+    rfftn,
+)
 from ._rates import accumulation_to_rate, deaccumulate
 
 __all__ = [
@@ -73,4 +88,16 @@ __all__ = [
     "deaccumulate",
     "fft",
     "ifft",
+    "rfft",
+    "irfft",
+    "hfft",
+    "ihfft",
+    "fftn",
+    "ifftn",
+    "rfftn",
+    "irfftn",
+    "fftfreq",
+    "rfftfreq",
+    "fftshift",
+    "ifftshift",
 ]

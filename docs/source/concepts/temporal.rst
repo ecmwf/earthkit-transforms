@@ -119,17 +119,20 @@ The options are:
 Spectral analysis (FFT)
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-The temporal module provides entry points for computing the discrete Fourier Transform (FFT)
-of a data object along its time dimension. Use `temporal.fft` for the forward transform and
-`temporal.ifft` for the inverse transform. As with the other temporal methods, the time
-dimension is automatically detected from the metadata of the data object and can be overridden
-with the `time_dim` parameter.
+The temporal module provides a full set of entry points for computing the discrete Fourier
+Transform (FFT) of a data object along its time dimension. These are ``xarray`` wrappers for
+the functions in the ``fft`` extension of the Python array API standard. As with the other
+temporal methods, the time dimension is automatically detected from the metadata of the data
+object and can be overridden with the `time_dim` parameter.
 
-The transforms are implemented using the Python array API standard, applying the ``fft``/``ifft``
+The transforms are implemented using the Python array API standard, applying the corresponding
 methods of the array namespace of the input data. This means the computation runs on the native
 backend of the data (for example NumPy or a GPU-backed array library) and returns
 ``xarray.DataArray``/``xarray.Dataset`` objects.
 
+**Complex transforms**
+
+Use `temporal.fft` for the forward transform and `temporal.ifft` for the inverse transform.
 For the forward transform, the time dimension is replaced by a ``frequency`` dimension. The
 frequency coordinate is derived from the spacing of the time coordinate, expressed in Hz (i.e.
 cycles per second), unless a different `sample_spacing` is provided. The result is complex-valued.
@@ -141,14 +144,29 @@ data to the time domain::
        spectrum, time_coord=dataarray["time"]
    )
 
-A generic entry point that operates along a user-specified dimension is also available in the
-`earthkit.transforms._fourier` module as `earthkit.transforms._fourier.fft` and
-`earthkit.transforms._fourier.ifft`, for example to compute the FFT along a spatial dimension.
-The generic module additionally provides ``xarray`` wrappers for the full
-set of functions in the ``fft`` extension of the Python array API standard, including the
-real-valued transforms (`rfft`/`irfft`), the Hermitian transforms (`hfft`/`ihfft`), the
-n-dimensional transforms (`fftn`/`ifftn`/`rfftn`/`irfftn`), the sample-frequency helpers
-(`fftfreq`/`rfftfreq`) and the spectrum shifts (`fftshift`/`ifftshift`).
+**Real and Hermitian transforms**
+
+For real-valued input, `temporal.rfft` returns only the non-negative frequency terms and
+`temporal.irfft` performs the corresponding inverse. The Hermitian transforms `temporal.hfft`
+and `temporal.ihfft` are provided for signals with Hermitian symmetry.
+
+**N-dimensional transforms**
+
+The n-dimensional transforms `temporal.fftn`, `temporal.ifftn`, `temporal.rfftn` and
+`temporal.irfftn` are also available. When the transform dimensions are not given explicitly, the
+forward transforms default to operating over the detected time dimension.
+
+**Frequency helpers and spectrum shifts**
+
+The sample-frequency helpers `temporal.fftfreq` and `temporal.rfftfreq` return the sample
+frequencies as ``xarray.DataArray`` objects, and the spectrum shifts `temporal.fftshift` and
+`temporal.ifftshift` reorder a spectrum so that the zero-frequency component is centred.
+
+A generic set of entry points that operate along a user-specified dimension is also available in
+the `earthkit.transforms._fourier` module, for example to compute the FFT along a spatial
+dimension. It exposes the same set of functions (`fft`/`ifft`, `rfft`/`irfft`, `hfft`/`ihfft`,
+`fftn`/`ifftn`/`rfftn`/`irfftn`, `fftfreq`/`rfftfreq` and `fftshift`/`ifftshift`) without the
+automatic time-dimension detection.
 
 .. dropdown:: Show API documentation for ``fft``
 
@@ -158,4 +176,64 @@ n-dimensional transforms (`fftn`/`ifftn`/`rfftn`/`irfftn`), the sample-frequency
 .. dropdown:: Show API documentation for ``ifft``
 
    .. autofunction:: earthkit.transforms.temporal.ifft
+      :no-index:
+
+.. dropdown:: Show API documentation for ``rfft``
+
+   .. autofunction:: earthkit.transforms.temporal.rfft
+      :no-index:
+
+.. dropdown:: Show API documentation for ``irfft``
+
+   .. autofunction:: earthkit.transforms.temporal.irfft
+      :no-index:
+
+.. dropdown:: Show API documentation for ``hfft``
+
+   .. autofunction:: earthkit.transforms.temporal.hfft
+      :no-index:
+
+.. dropdown:: Show API documentation for ``ihfft``
+
+   .. autofunction:: earthkit.transforms.temporal.ihfft
+      :no-index:
+
+.. dropdown:: Show API documentation for ``fftn``
+
+   .. autofunction:: earthkit.transforms.temporal.fftn
+      :no-index:
+
+.. dropdown:: Show API documentation for ``ifftn``
+
+   .. autofunction:: earthkit.transforms.temporal.ifftn
+      :no-index:
+
+.. dropdown:: Show API documentation for ``rfftn``
+
+   .. autofunction:: earthkit.transforms.temporal.rfftn
+      :no-index:
+
+.. dropdown:: Show API documentation for ``irfftn``
+
+   .. autofunction:: earthkit.transforms.temporal.irfftn
+      :no-index:
+
+.. dropdown:: Show API documentation for ``fftfreq``
+
+   .. autofunction:: earthkit.transforms.temporal.fftfreq
+      :no-index:
+
+.. dropdown:: Show API documentation for ``rfftfreq``
+
+   .. autofunction:: earthkit.transforms.temporal.rfftfreq
+      :no-index:
+
+.. dropdown:: Show API documentation for ``fftshift``
+
+   .. autofunction:: earthkit.transforms.temporal.fftshift
+      :no-index:
+
+.. dropdown:: Show API documentation for ``ifftshift``
+
+   .. autofunction:: earthkit.transforms.temporal.ifftshift
       :no-index:

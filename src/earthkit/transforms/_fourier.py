@@ -53,7 +53,9 @@ def _infer_sample_spacing(dataarray: xr.Dataset | xr.DataArray, dim: str) -> flo
     """Infer the sample spacing of a dimension from its coordinate values.
 
     Datetime coordinates are converted to a spacing in seconds. If the coordinate
-    is missing or has fewer than two values a spacing of ``1.0`` is returned.
+    is missing or has fewer than two values a spacing of ``1.0`` is returned. A warning
+    is emitted if the coordinate is not regularly spaced, since the FFT assumes uniform
+    sampling and the returned (mean) spacing then yields an approximate frequency axis.
     """
     if dim not in dataarray.coords:
         return 1.0
@@ -62,8 +64,16 @@ def _infer_sample_spacing(dataarray: xr.Dataset | xr.DataArray, dim: str) -> flo
         return 1.0
     if np.issubdtype(coord.dtype, np.datetime64):
         deltas = np.diff(coord) / np.timedelta64(1, "s")
-        return float(np.mean(deltas))
-    return float(np.mean(np.diff(coord)))
+    else:
+        deltas = np.diff(coord)
+    mean_delta = float(np.mean(deltas))
+    if mean_delta != 0.0 and not np.allclose(deltas, mean_delta, rtol=1e-3):
+        logger.warning(
+            "Coordinate '%s' is not regularly spaced; the FFT assumes uniform sampling, "
+            "so the frequency coordinate derived from the mean spacing is only approximate.",
+            dim,
+        )
+    return mean_delta
 
 
 def _ensure_dims(dataarray: xr.Dataset | xr.DataArray, dims: str | T.Sequence[str] | None) -> list[str]:
@@ -108,6 +118,7 @@ def _forward_1d(
     size = int(dataarray.sizes[dim])
     n_in = int(n) if n is not None else size
     spacing = sample_spacing if sample_spacing is not None else _infer_sample_spacing(dataarray, dim)
+    # Frequency coordinates are built with numpy to keep them host-side, as xarray coordinates.
     freqs = getattr(np.fft, freq_func_name)(n_in, d=spacing)
     out_len = int(freqs.shape[0])
 
@@ -191,6 +202,7 @@ def _forward_nd(
 
     freqs = []
     for i in range(n_axes):
+        # Frequency coordinates are built with numpy to keep them host-side, as xarray coordinates.
         if real_input and i == n_axes - 1:
             freqs.append(np.fft.rfftfreq(s_list[i], d=spacings[i]))
         else:
@@ -713,6 +725,7 @@ def fftfreq(n: int, sample_spacing: float = 1.0, dim: str = "frequency") -> xr.D
         A 1-D DataArray of length ``n`` containing the sample frequencies, indexed by ``dim``.
 
     """
+    # Frequency coordinates are built with numpy to keep them host-side, as xarray coordinates.
     freqs = np.fft.fftfreq(int(n), d=sample_spacing)
     return xr.DataArray(freqs, dims=[dim], coords={dim: freqs}, name=dim, attrs={"long_name": "frequency"})
 
@@ -736,6 +749,7 @@ def rfftfreq(n: int, sample_spacing: float = 1.0, dim: str = "frequency") -> xr.
         indexed by ``dim``.
 
     """
+    # Frequency coordinates are built with numpy to keep them host-side, as xarray coordinates.
     freqs = np.fft.rfftfreq(int(n), d=sample_spacing)
     return xr.DataArray(freqs, dims=[dim], coords={dim: freqs}, name=dim, attrs={"long_name": "frequency"})
 
@@ -765,6 +779,7 @@ def fftshift(
 
     """
     dims = _ensure_dims(dataarray, dim)
+    # Integer indexers are built with numpy and applied host-side via .isel(); the backend gathers the data.
     indexers = {d: np.fft.fftshift(np.arange(int(dataarray.sizes[d]))) for d in dims}
     return dataarray.isel(indexers)
 
@@ -791,5 +806,6 @@ def ifftshift(
 
     """
     dims = _ensure_dims(dataarray, dim)
+    # Integer indexers are built with numpy and applied host-side via .isel(); the backend gathers the data.
     indexers = {d: np.fft.ifftshift(np.arange(int(dataarray.sizes[d]))) for d in dims}
     return dataarray.isel(indexers)
