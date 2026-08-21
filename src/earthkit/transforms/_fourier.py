@@ -79,7 +79,7 @@ def _infer_sample_spacing(dataarray: xr.Dataset | xr.DataArray, dim: str) -> flo
 def _ensure_dims(dataarray: xr.Dataset | xr.DataArray, dims: str | T.Sequence[str] | None) -> list[str]:
     """Normalise ``dims`` to a list of dimension names, validating membership."""
     if dims is None:
-        resolved = list(dataarray.dims)
+        resolved = [str(d) for d in dataarray.dims]
     elif isinstance(dims, str):
         resolved = [dims]
     else:

@@ -599,7 +599,7 @@ def fftfreq(n: int, sample_spacing: float = 1.0, freq_dim: str = "frequency") ->
 
     """
     result = _fourier.fftfreq(n, sample_spacing=sample_spacing, dim=freq_dim)
-    return _add_period_coord(result, freq_dim, units=None)
+    return T.cast(xr.DataArray, _add_period_coord(result, freq_dim, units=None))
 
 
 def rfftfreq(n: int, sample_spacing: float = 1.0, freq_dim: str = "frequency") -> xr.DataArray:
@@ -625,7 +625,7 @@ def rfftfreq(n: int, sample_spacing: float = 1.0, freq_dim: str = "frequency") -
 
     """
     result = _fourier.rfftfreq(n, sample_spacing=sample_spacing, dim=freq_dim)
-    return _add_period_coord(result, freq_dim, units=None)
+    return T.cast(xr.DataArray, _add_period_coord(result, freq_dim, units=None))
 
 
 # ------------------------------------------------------------------------------------------
