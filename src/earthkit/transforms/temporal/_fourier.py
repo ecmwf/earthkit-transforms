@@ -16,16 +16,19 @@
 These are thin wrappers around :mod:`earthkit.transforms.fourier` which detect the
 time dimension automatically from the metadata of the data object.
 
-The forward transforms attach a ``period`` (``1 / frequency``) coordinate for convenience. It
-is only labelled with units when the units of the frequency coordinate are known, i.e. when the
-sample spacing was inferred from a datetime coordinate (giving frequencies in Hz and periods in
-seconds) or stated through ``sample_spacing_units``.
+The forward transforms attach a ``period`` (``1 / frequency``) coordinate for convenience. When
+the frequency coordinate carries a known time unit -- for example Hz, from a datetime-inferred
+sample spacing -- the period is expressed as a ``timedelta64`` duration, with ``NaT`` for the
+zero-frequency term. Otherwise the period is floating-point, labelled with units only when the
+units of the frequency coordinate are known (e.g. a non-time spacing stated through
+``sample_spacing_units``) and left unlabelled when they are not.
 """
 
 import logging
 import typing as T
 
 import numpy as np
+import pandas as pd
 import xarray as xr
 from earthkit.utils.decorators import format_handler
 
@@ -36,6 +39,38 @@ logger = logging.getLogger(__name__)
 #: Period unit implied by each frequency unit that a frequency coordinate may be labelled with.
 #: Any other unit of the form ``"u-1"`` implies a period in ``u``.
 _PERIOD_UNITS = {"Hz": "s"}
+
+#: Period units that denote a time duration, mapped to the pandas timedelta unit used to type the
+#: period coordinate. Units outside this set (e.g. a spatial ``"m"`` for per-metre frequencies) are
+#: left as floats. Ambiguous single-letter codes such as a bare ``"m"`` (metres vs minutes) are
+#: deliberately excluded; only the unambiguous minute spellings map to a duration.
+_TIMEDELTA_UNITS = {
+    "s": "s",
+    "sec": "s",
+    "second": "s",
+    "seconds": "s",
+    "ms": "ms",
+    "millisecond": "ms",
+    "milliseconds": "ms",
+    "us": "us",
+    "microsecond": "us",
+    "microseconds": "us",
+    "ns": "ns",
+    "nanosecond": "ns",
+    "nanoseconds": "ns",
+    "min": "m",
+    "minute": "m",
+    "minutes": "m",
+    "h": "h",
+    "hr": "h",
+    "hour": "h",
+    "hours": "h",
+    "d": "D",
+    "day": "D",
+    "days": "D",
+    "week": "W",
+    "weeks": "W",
+}
 
 
 def _period_units(result: xr.Dataset | xr.DataArray, freq_dim: str) -> str | None:
@@ -54,12 +89,30 @@ def _period_units(result: xr.Dataset | xr.DataArray, freq_dim: str) -> str | Non
     return units[:-2] if units.endswith("-1") else None
 
 
+def _as_timedelta(periods: np.ndarray, units: str | None) -> np.ndarray | None:
+    """Return ``periods`` as a ``timedelta64`` array when ``units`` denotes a time duration.
+
+    Time-valued periods are typed as durations so that they carry their unit intrinsically, with
+    the zero-frequency term's ``NaN`` becoming ``NaT``. Non-time or ambiguous units return
+    ``None``, leaving the caller to keep the floating-point periods.
+    """
+    if units is None:
+        return None
+    timedelta_unit = _TIMEDELTA_UNITS.get(units.lower())
+    if timedelta_unit is None:
+        return None
+    # ``unit`` is typed as a Literal by pandas-stubs; the mapping's values are plain strings.
+    return pd.to_timedelta(periods, unit=T.cast(T.Any, timedelta_unit)).to_numpy()
+
+
 def _add_period_coord(result: xr.Dataset | xr.DataArray, freq_dim: str) -> xr.Dataset | xr.DataArray:
     """Attach a ``period`` (1 / frequency) convenience coordinate along ``freq_dim``.
 
-    The period is expressed in the reciprocal units of the frequency coordinate, and is only
-    given a ``units`` attribute when those units are known — see :func:`_period_units`. The
-    zero-frequency term has no finite period and is set to NaN.
+    The period is expressed in the reciprocal units of the frequency coordinate. When those units
+    denote a time duration (e.g. seconds, from a frequency in Hz) the coordinate is typed as
+    ``timedelta64`` and the zero-frequency term is ``NaT``; otherwise it is floating-point, given
+    a ``units`` attribute only when the units are known — see :func:`_period_units` and
+    :func:`_as_timedelta` — and its zero-frequency term is ``NaN``.
     """
     if freq_dim not in result.coords:
         return result
@@ -67,11 +120,18 @@ def _add_period_coord(result: xr.Dataset | xr.DataArray, freq_dim: str) -> xr.Da
     freqs = np.asarray(result.coords[freq_dim].values, dtype=float)
     with np.errstate(divide="ignore"):
         periods = np.where(freqs != 0.0, 1.0 / freqs, np.nan)
-    result = result.assign_coords({"period": (freq_dim, periods)})
-    attrs = {"long_name": "period"}
     units = _period_units(result, freq_dim)
-    if units is not None:
-        attrs["units"] = units
+    attrs = {"long_name": "period"}
+    timedelta_periods = _as_timedelta(periods, units)
+    if timedelta_periods is not None:
+        # A recognised time unit is folded into the timedelta64 dtype (NaN -> NaT), so the
+        # coordinate carries its unit intrinsically and needs no separate units attribute.
+        period_values: np.ndarray = timedelta_periods
+    else:
+        period_values = periods
+        if units is not None:
+            attrs["units"] = units
+    result = result.assign_coords({"period": (freq_dim, period_values)})
     result["period"].attrs.update(attrs)
     return result
 
@@ -453,235 +513,6 @@ def ihfft(
         xp=xp,
     )
     return _add_period_coord(result, freq_dim)
-
-
-# ------------------------------------------------------------------------------------------
-# N-dimensional transforms
-# ------------------------------------------------------------------------------------------
-@format_handler()
-def fftn(
-    dataarray: xr.Dataset | xr.DataArray,
-    dims: str | T.Sequence[str] | None = None,
-    s: T.Sequence[int] | None = None,
-    freq_dims: T.Sequence[str] | None = None,
-    sample_spacing: T.Any = None,
-    sample_spacing_units: T.Any = None,
-    norm: str = "backward",
-    xp: T.Any = None,
-) -> xr.Dataset | xr.DataArray:
-    """Compute the n-dimensional discrete Fourier Transform, over the time dimension by default.
-
-    This is a convenience wrapper around :func:`earthkit.transforms.fourier.fftn`. When ``dims``
-    is not provided the time dimension is detected automatically from the metadata of the data
-    object and used as the (single) transform dimension.
-
-    Parameters
-    ----------
-    dataarray : xarray.Dataset or xarray.DataArray
-        Data object to transform.
-    dims : str or sequence of str, optional
-        Dimensions over which to compute the transform. Defaults to the detected time dimension.
-    s : sequence of int, optional
-        Transform length for each dimension in ``dims``. Defaults to the sizes of ``dims``.
-    freq_dims : sequence of str, optional
-        Names of the frequency dimensions created in the output. Defaults to
-        ``"<dim>_frequency"`` for each transformed dimension.
-    sample_spacing : float or sequence of float, optional
-        Sample spacing for each dimension, used to build the frequency coordinates. If not
-        provided the spacing is inferred per dimension.
-    sample_spacing_units : str or sequence of str, optional
-        Units of ``sample_spacing``, used to label the frequency coordinates. A scalar is
-        applied to all dimensions. See :func:`fft`.
-    norm : str, optional
-        Normalisation mode, one of ``"backward"`` (default), ``"ortho"`` or ``"forward"``.
-    xp : module, optional
-        The array namespace to use. If None, it is inferred from the data object.
-
-    Returns
-    -------
-    xarray.Dataset or xarray.DataArray
-        The complex-valued transform, with each transformed dimension replaced by a frequency
-        dimension.
-
-    """
-    if dims is None:
-        dims = _tools.get_dim_key(dataarray, "t")
-    return fourier.fftn(
-        dataarray,
-        dims=dims,
-        s=s,
-        freq_dims=freq_dims,
-        sample_spacing=sample_spacing,
-        sample_spacing_units=sample_spacing_units,
-        norm=norm,
-        xp=xp,
-    )
-
-
-@format_handler()
-def ifftn(
-    dataarray: xr.Dataset | xr.DataArray,
-    dims: str | T.Sequence[str] | None = None,
-    s: T.Sequence[int] | None = None,
-    output_dims: T.Sequence[str] | None = None,
-    output_coords: T.Mapping[str, T.Any] | None = None,
-    norm: str = "backward",
-    xp: T.Any = None,
-) -> xr.Dataset | xr.DataArray:
-    """Compute the n-dimensional inverse discrete Fourier Transform.
-
-    This is a convenience wrapper around :func:`earthkit.transforms.fourier.ifftn` for data in
-    the frequency domain, e.g. the output of :func:`fftn`.
-
-    Parameters
-    ----------
-    dataarray : xarray.Dataset or xarray.DataArray
-        Data object to transform, typically the output of :func:`fftn`.
-    dims : str or sequence of str, optional
-        (Frequency) dimensions over which to compute the inverse transform. Defaults to all
-        dimensions.
-    s : sequence of int, optional
-        Output length for each dimension in ``dims``. Defaults to the sizes of ``dims``.
-    output_dims : sequence of str, optional
-        Names of the dimensions created in the output. If not provided, the source dimensions
-        recorded by :func:`fftn` are used when available, otherwise the input dimension names.
-    output_coords : mapping, optional
-        Mapping of output dimension name to coordinate values to assign in the result.
-    norm : str, optional
-        Normalisation mode, one of ``"backward"`` (default), ``"ortho"`` or ``"forward"``.
-        Must match the ``norm`` used for the forward transform.
-    xp : module, optional
-        The array namespace to use. If None, it is inferred from the data object.
-
-    Returns
-    -------
-    xarray.Dataset or xarray.DataArray
-        The complex-valued inverse transform, with each transformed dimension replaced by an
-        output dimension.
-
-    """
-    return fourier.ifftn(
-        dataarray,
-        dims=dims,
-        s=s,
-        output_dims=output_dims,
-        output_coords=output_coords,
-        norm=norm,
-        xp=xp,
-    )
-
-
-@format_handler()
-def rfftn(
-    dataarray: xr.Dataset | xr.DataArray,
-    dims: str | T.Sequence[str] | None = None,
-    s: T.Sequence[int] | None = None,
-    freq_dims: T.Sequence[str] | None = None,
-    sample_spacing: T.Any = None,
-    sample_spacing_units: T.Any = None,
-    norm: str = "backward",
-    xp: T.Any = None,
-) -> xr.Dataset | xr.DataArray:
-    """Compute the n-dimensional Fourier Transform of real input, over time by default.
-
-    This is a convenience wrapper around :func:`earthkit.transforms.fourier.rfftn`. When ``dims``
-    is not provided the time dimension is detected automatically from the metadata of the data
-    object and used as the (single) transform dimension. The transform over the last dimension in
-    ``dims`` returns only the non-negative frequency terms (length ``n // 2 + 1``).
-
-    Parameters
-    ----------
-    dataarray : xarray.Dataset or xarray.DataArray
-        Real-valued data object to transform.
-    dims : str or sequence of str, optional
-        Dimensions over which to compute the transform. Defaults to the detected time dimension.
-    s : sequence of int, optional
-        Transform length for each dimension in ``dims``. Defaults to the sizes of ``dims``.
-    freq_dims : sequence of str, optional
-        Names of the frequency dimensions created in the output. Defaults to
-        ``"<dim>_frequency"`` for each transformed dimension.
-    sample_spacing : float or sequence of float, optional
-        Sample spacing for each dimension, used to build the frequency coordinates.
-    sample_spacing_units : str or sequence of str, optional
-        Units of ``sample_spacing``, used to label the frequency coordinates. A scalar is
-        applied to all dimensions. See :func:`fft`.
-    norm : str, optional
-        Normalisation mode, one of ``"backward"`` (default), ``"ortho"`` or ``"forward"``.
-    xp : module, optional
-        The array namespace to use. If None, it is inferred from the data object.
-
-    Returns
-    -------
-    xarray.Dataset or xarray.DataArray
-        The complex-valued transform, with each transformed dimension replaced by a frequency
-        dimension and the last transformed dimension of length ``n // 2 + 1``.
-
-    """
-    if dims is None:
-        dims = _tools.get_dim_key(dataarray, "t")
-    return fourier.rfftn(
-        dataarray,
-        dims=dims,
-        s=s,
-        freq_dims=freq_dims,
-        sample_spacing=sample_spacing,
-        sample_spacing_units=sample_spacing_units,
-        norm=norm,
-        xp=xp,
-    )
-
-
-@format_handler()
-def irfftn(
-    dataarray: xr.Dataset | xr.DataArray,
-    dims: str | T.Sequence[str] | None = None,
-    s: T.Sequence[int] | None = None,
-    output_dims: T.Sequence[str] | None = None,
-    output_coords: T.Mapping[str, T.Any] | None = None,
-    norm: str = "backward",
-    xp: T.Any = None,
-) -> xr.Dataset | xr.DataArray:
-    """Compute the n-dimensional inverse of :func:`rfftn` for complex-valued input.
-
-    This is a convenience wrapper around :func:`earthkit.transforms.fourier.irfftn` for data in
-    the frequency domain, e.g. the output of :func:`rfftn`. The output is real-valued.
-
-    Parameters
-    ----------
-    dataarray : xarray.Dataset or xarray.DataArray
-        Complex-valued data object to transform, typically the output of :func:`rfftn`.
-    dims : str or sequence of str, optional
-        (Frequency) dimensions over which to compute the inverse transform. Defaults to all
-        dimensions.
-    s : sequence of int, optional
-        Output length for each dimension in ``dims``. Defaults to the input sizes, except the
-        last transformed dimension which defaults to ``2 * (size - 1)``.
-    output_dims : sequence of str, optional
-        Names of the dimensions created in the output. If not provided, the source dimensions
-        recorded by :func:`rfftn` are used when available, otherwise the input dimension names.
-    output_coords : mapping, optional
-        Mapping of output dimension name to coordinate values to assign in the result.
-    norm : str, optional
-        Normalisation mode, one of ``"backward"`` (default), ``"ortho"`` or ``"forward"``.
-    xp : module, optional
-        The array namespace to use. If None, it is inferred from the data object.
-
-    Returns
-    -------
-    xarray.Dataset or xarray.DataArray
-        The real-valued inverse transform, with each transformed dimension replaced by an output
-        dimension.
-
-    """
-    return fourier.irfftn(
-        dataarray,
-        dims=dims,
-        s=s,
-        output_dims=output_dims,
-        output_coords=output_coords,
-        norm=norm,
-        xp=xp,
-    )
 
 
 # ------------------------------------------------------------------------------------------

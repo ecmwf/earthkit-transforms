@@ -112,12 +112,21 @@ def _assert_period_matches_frequency(result, units="s"):
     assert "period" in result.coords
     assert result["period"].dims == ("frequency",)
     freqs = result["frequency"].values
-    periods = result["period"].values
+    period = result["period"]
     nonzero = freqs != 0.0
-    np.testing.assert_allclose(periods[nonzero], 1.0 / freqs[nonzero])
-    # The zero-frequency term has no finite period.
-    assert np.all(np.isnan(periods[~nonzero]))
-    assert result["period"].attrs.get("units") == units
+    if units is None:
+        # Unlabelled periods stay floating-point, with NaN at the zero-frequency term.
+        periods = period.values
+        np.testing.assert_allclose(periods[nonzero], 1.0 / freqs[nonzero])
+        assert np.all(np.isnan(periods[~nonzero]))
+        assert "units" not in period.attrs
+    else:
+        # Time-valued periods are typed as durations, with NaT at the zero-frequency term.
+        assert np.issubdtype(period.dtype, np.timedelta64)
+        expected = pd.to_timedelta(1.0 / freqs[nonzero], unit=units).to_numpy()
+        np.testing.assert_array_equal(period.values[nonzero], expected)
+        assert np.all(np.isnat(period.values[~nonzero]))
+        assert "units" not in period.attrs
 
 
 def test_temporal_fft_adds_period_coordinate():
@@ -155,7 +164,7 @@ def test_temporal_fft_period_identifies_dominant_cycle():
     power = np.abs(result)
     positive = power.where(result["frequency"] > 0, drop=True)
     dominant_period = positive["period"].isel(frequency=positive.argmax("frequency"))
-    assert float(dominant_period) == pytest.approx(24 * 3600.0, rel=1e-6)
+    assert dominant_period.values / np.timedelta64(1, "s") == pytest.approx(24 * 3600.0, rel=1e-6)
 
 
 # ------------------------------------------------------------------------------------------
@@ -367,7 +376,9 @@ def test_rfft_dataset():
 def test_temporal_fft_datetime_coordinate_is_labelled_hz():
     result = ekt.temporal.fft(_temporal_dataarray(n=48))
     assert result["frequency"].attrs["units"] == "Hz"
-    assert result["period"].attrs["units"] == "s"
+    # A frequency in Hz gives a period that is a timedelta duration, not a units-labelled float.
+    assert np.issubdtype(result["period"].dtype, np.timedelta64)
+    assert "units" not in result["period"].attrs
 
 
 def test_temporal_fft_numeric_coordinate_is_unlabelled():
@@ -384,8 +395,9 @@ def test_temporal_fft_explicit_sample_spacing_units_are_used():
     da = _temporal_dataarray(n=48)
     result = ekt.temporal.fft(da, sample_spacing=1.0, sample_spacing_units="h")
     assert result["frequency"].attrs["units"] == "h-1"
-    assert result["period"].attrs["units"] == "h"
-    assert result["period"].values[1] == pytest.approx(48.0)
+    # Hours are a time unit, so the period is a timedelta duration of 48 hours.
+    assert np.issubdtype(result["period"].dtype, np.timedelta64)
+    assert result["period"].values[1] / np.timedelta64(1, "h") == pytest.approx(48.0)
 
 
 def test_temporal_fft_explicit_sample_spacing_without_units_is_unlabelled():
@@ -398,7 +410,9 @@ def test_temporal_fftfreq_units_are_opt_in():
     assert "units" not in ekt.temporal.fftfreq(10, sample_spacing=3600.0)["period"].attrs
     labelled = ekt.temporal.rfftfreq(10, sample_spacing=3600.0, sample_spacing_units="s")
     assert labelled["frequency"].attrs["units"] == "Hz"
-    assert labelled["period"].attrs["units"] == "s"
+    # Seconds are a time unit, so the labelled period is a timedelta duration.
+    assert np.issubdtype(labelled["period"].dtype, np.timedelta64)
+    assert "units" not in labelled["period"].attrs
 
 
 # ------------------------------------------------------------------------------------------
@@ -527,7 +541,7 @@ def test_dataset_output_dtype_promotes_across_variables():
 # ------------------------------------------------------------------------------------------
 @pytest.mark.parametrize(
     "name",
-    ["fft", "ifft", "rfft", "irfft", "hfft", "ihfft", "fftn", "ifftn", "rfftn", "irfftn", "fftshift", "ifftshift"],
+    ["fft", "ifft", "rfft", "irfft", "hfft", "ihfft", "fftshift", "ifftshift"],
 )
 def test_temporal_data_taking_entry_points_are_format_handled(name):
     # Guards against a new entry point being added without the decorator that lets it

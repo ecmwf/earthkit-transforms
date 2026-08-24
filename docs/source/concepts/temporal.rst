@@ -120,10 +120,10 @@ Spectral analysis (FFT)
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 The temporal module provides a full set of entry points for computing the discrete Fourier
-Transform (FFT) of a data object along its time dimension. These are ``xarray`` wrappers for
-the functions in the ``fft`` extension of the Python array API standard. As with the other
-temporal methods, the time dimension is automatically detected from the metadata of the data
-object and can be overridden with the `time_dim` parameter.
+Transform, by means of a fast Fourier transform (FFT), of a data object along its time dimension.
+These are ``xarray`` wrappers for the functions in the ``fft`` extension of the Python array
+API standard. As with the other temporal methods, the time dimension is automatically detected
+from the metadata of the data object and can be overridden with the `time_dim` parameter.
 
 The transforms are implemented using the Python array API standard, applying the corresponding
 methods of the array namespace of the input data. This means the computation runs on the native
@@ -163,6 +163,12 @@ trip therefore returns the dimension the data started with, whether it was calle
    established. The same applies when `sample_spacing` is given explicitly; pass
    `sample_spacing_units` alongside it to label the result.
 
+   The forward transforms attach a convenience ``period`` coordinate (``1 / frequency``). When
+   its units denote a time duration — for example seconds, from a frequency in Hz — it is typed
+   as a ``timedelta64`` duration that carries its unit intrinsically, with ``NaT`` for the
+   zero-frequency term. Otherwise it is a floating-point coordinate (``NaN`` at zero frequency),
+   labelled with a ``units`` attribute only when those units are known.
+
 **Real and Hermitian transforms**
 
 For real-valued input, `temporal.rfft` returns only the non-negative frequency terms and
@@ -177,18 +183,6 @@ remains consistent with the size of the frequency dimension: a spectrum that has
 filtered falls back to the conventional ``2m - 2``, and `n` can always be used to state the
 output length explicitly.
 
-**N-dimensional transforms**
-
-The n-dimensional transforms `temporal.fftn`, `temporal.ifftn`, `temporal.rfftn` and
-`temporal.irfftn` are also available. When the transform dimensions are not given explicitly, the
-forward transforms default to operating over the detected time dimension. Passing ``dims``
-explicitly transforms over several axes at once, which is how a two-dimensional space-time or
-spatial spectrum is computed::
-
-   # 2-D spectrum over latitude and longitude
-   spectrum = earthkit.transforms.temporal.rfftn(dataarray, dims=["latitude", "longitude"])
-   restored = earthkit.transforms.temporal.irfftn(spectrum)
-
 **Frequency helpers and spectrum shifts**
 
 The sample-frequency helpers `temporal.fftfreq` and `temporal.rfftfreq` return the sample
@@ -199,13 +193,19 @@ helpers take a bare `sample_spacing` with no coordinate to infer units from, so 
 
 A generic set of entry points that operate along a user-specified dimension is also available in
 the `earthkit.transforms.fourier` module, for example to compute the FFT along a spatial
-dimension. It exposes the same set of functions (`fft`/`ifft`, `rfft`/`irfft`, `hfft`/`ihfft`,
-`fftn`/`ifftn`/`rfftn`/`irfftn`, `fftfreq`/`rfftfreq` and `fftshift`/`ifftshift`) without the
-automatic time-dimension detection. The dimension is named explicitly instead::
+dimension. It provides the one-dimensional transforms (`fft`/`ifft`, `rfft`/`irfft`,
+`hfft`/`ihfft`), the sample-frequency helpers (`fftfreq`/`rfftfreq`) and the spectrum shifts
+(`fftshift`/`ifftshift`) without the automatic time-dimension detection, and additionally the
+n-dimensional transforms (`fftn`/`ifftn`/`rfftn`/`irfftn`) for transforming over several axes at
+once. The dimension is named explicitly instead::
 
    # Zonal wavenumber spectrum along longitude
    spectrum = earthkit.transforms.fourier.rfft(dataarray, dim="longitude")
    restored = earthkit.transforms.fourier.irfft(spectrum)
+
+   # 2-D spectrum over latitude and longitude
+   spectrum2d = earthkit.transforms.fourier.rfftn(dataarray, dims=["latitude", "longitude"])
+   restored2d = earthkit.transforms.fourier.irfftn(spectrum2d)
 
 **Getting physical amplitudes and avoiding leakage**
 
@@ -250,26 +250,6 @@ resolution.
 .. dropdown:: Show API documentation for ``ihfft``
 
    .. autofunction:: earthkit.transforms.temporal.ihfft
-      :no-index:
-
-.. dropdown:: Show API documentation for ``fftn``
-
-   .. autofunction:: earthkit.transforms.temporal.fftn
-      :no-index:
-
-.. dropdown:: Show API documentation for ``ifftn``
-
-   .. autofunction:: earthkit.transforms.temporal.ifftn
-      :no-index:
-
-.. dropdown:: Show API documentation for ``rfftn``
-
-   .. autofunction:: earthkit.transforms.temporal.rfftn
-      :no-index:
-
-.. dropdown:: Show API documentation for ``irfftn``
-
-   .. autofunction:: earthkit.transforms.temporal.irfftn
       :no-index:
 
 .. dropdown:: Show API documentation for ``fftfreq``
