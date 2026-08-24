@@ -25,6 +25,7 @@ Other changes:
 * Remove direct ek-data dependency by @EddyCMWF in #89
 * Update anomaly default behaviour by @EddyCMWF in #90
 * Multiple time zone support in the time_dim_decorator by @chpolste in #107
+* Add a Fourier transform module (`earthkit.transforms.fourier` and the `earthkit.transforms.temporal` FFT wrappers) by @EddyCMWF in #127
 * Update docs by @EddyCMWF in #95, #97, #98, #99, #100, #101, #102
 
 

@@ -128,21 +128,40 @@ object and can be overridden with the `time_dim` parameter.
 The transforms are implemented using the Python array API standard, applying the corresponding
 methods of the array namespace of the input data. This means the computation runs on the native
 backend of the data (for example NumPy or a GPU-backed array library) and returns
-``xarray.DataArray``/``xarray.Dataset`` objects.
+``xarray.DataArray``/``xarray.Dataset`` objects. Dask-backed data stays lazy, and the output
+keeps the precision of the input, so ``float32`` data gives a ``complex64`` spectrum.
+
+Two things are worth knowing before reading the results. Applying a transform moves the
+transformed dimension to the **end** of the result, so a ``(time, location)`` input comes back
+as ``(location, frequency)``. And when the input is a ``Dataset``, any variable that does not
+have the time dimension — a land-sea mask or an orography field, say — is **passed through
+untransformed** rather than causing an error.
 
 **Complex transforms**
 
 Use `temporal.fft` for the forward transform and `temporal.ifft` for the inverse transform.
-For the forward transform, the time dimension is replaced by a ``frequency`` dimension. The
-frequency coordinate is derived from the spacing of the time coordinate, expressed in Hz (i.e.
-cycles per second), unless a different `sample_spacing` is provided. The result is complex-valued.
-The inverse transform, `temporal.ifft`, operates on the ``frequency`` dimension and returns the
-data to the time domain::
+For the forward transform, the time dimension is replaced by a ``frequency`` dimension, and the
+result is complex-valued. The inverse transform, `temporal.ifft`, operates on the ``frequency``
+dimension and returns the data to the time domain::
 
    spectrum = earthkit.transforms.temporal.fft(dataarray)
-   restored = earthkit.transforms.temporal.ifft(
-       spectrum, time_coord=dataarray["time"]
-   )
+   restored = earthkit.transforms.temporal.ifft(spectrum, time_coord=dataarray["time"])
+
+The forward transforms record the dimension and the transform length they were derived from on
+the ``frequency`` coordinate, so the inverse transforms restore both without being told. A round
+trip therefore returns the dimension the data started with, whether it was called ``time``,
+``valid_time`` or anything else.
+
+.. note::
+
+   The frequency coordinate is derived from the spacing of the time coordinate. That spacing is
+   in **seconds — and the frequencies therefore in Hz — only when the time coordinate is a
+   datetime** (``numpy.datetime64`` or ``cftime``, so non-standard calendars such as ``360_day``
+   are included). For a numeric time coordinate, such as one holding *hours since* some epoch,
+   the frequencies are in the reciprocal of that coordinate's own units, and the ``frequency``
+   and ``period`` coordinates are left unlabelled rather than claiming units that were never
+   established. The same applies when `sample_spacing` is given explicitly; pass
+   `sample_spacing_units` alongside it to label the result.
 
 **Real and Hermitian transforms**
 
@@ -150,23 +169,58 @@ For real-valued input, `temporal.rfft` returns only the non-negative frequency t
 `temporal.irfft` performs the corresponding inverse. The Hermitian transforms `temporal.hfft`
 and `temporal.ihfft` are provided for signals with Hermitian symmetry.
 
+A spectrum of length ``m`` corresponds to a real signal of either ``2m - 2`` or ``2m - 1``
+points, so inverting one is ambiguous in general. Because the forward transforms record the
+length they were built from, `temporal.irfft` and `temporal.hfft` recover the original number
+of time steps exactly, for odd and even lengths alike. That record is only trusted while it
+remains consistent with the size of the frequency dimension: a spectrum that has been sliced or
+filtered falls back to the conventional ``2m - 2``, and `n` can always be used to state the
+output length explicitly.
+
 **N-dimensional transforms**
 
 The n-dimensional transforms `temporal.fftn`, `temporal.ifftn`, `temporal.rfftn` and
 `temporal.irfftn` are also available. When the transform dimensions are not given explicitly, the
-forward transforms default to operating over the detected time dimension.
+forward transforms default to operating over the detected time dimension. Passing ``dims``
+explicitly transforms over several axes at once, which is how a two-dimensional space-time or
+spatial spectrum is computed::
+
+   # 2-D spectrum over latitude and longitude
+   spectrum = earthkit.transforms.temporal.rfftn(dataarray, dims=["latitude", "longitude"])
+   restored = earthkit.transforms.temporal.irfftn(spectrum)
 
 **Frequency helpers and spectrum shifts**
 
 The sample-frequency helpers `temporal.fftfreq` and `temporal.rfftfreq` return the sample
 frequencies as ``xarray.DataArray`` objects, and the spectrum shifts `temporal.fftshift` and
-`temporal.ifftshift` reorder a spectrum so that the zero-frequency component is centred.
+`temporal.ifftshift` reorder a spectrum so that the zero-frequency component is centred. The
+helpers take a bare `sample_spacing` with no coordinate to infer units from, so pass
+`sample_spacing_units="s"` alongside a spacing in seconds if the result should be labelled in Hz.
 
 A generic set of entry points that operate along a user-specified dimension is also available in
-the `earthkit.transforms._fourier` module, for example to compute the FFT along a spatial
+the `earthkit.transforms.fourier` module, for example to compute the FFT along a spatial
 dimension. It exposes the same set of functions (`fft`/`ifft`, `rfft`/`irfft`, `hfft`/`ihfft`,
 `fftn`/`ifftn`/`rfftn`/`irfftn`, `fftfreq`/`rfftfreq` and `fftshift`/`ifftshift`) without the
-automatic time-dimension detection.
+automatic time-dimension detection. The dimension is named explicitly instead::
+
+   # Zonal wavenumber spectrum along longitude
+   spectrum = earthkit.transforms.fourier.rfft(dataarray, dim="longitude")
+   restored = earthkit.transforms.fourier.irfft(spectrum)
+
+**Getting physical amplitudes and avoiding leakage**
+
+The transforms return the raw FFT coefficients, using ``norm="backward"`` by default (no scaling
+on the forward transform); ``"ortho"`` and ``"forward"`` are also accepted. To recover the
+physical amplitude of a component from a real signal of length ``N``, divide the magnitude of
+the corresponding `rfft` coefficient by ``N`` and double every term except the zero-frequency
+(and Nyquist) term, since the negative frequencies are folded onto the positive ones. A power
+spectrum is then ``|coefficient| ** 2`` after that scaling, rather than the raw ``|FFT| ** 2``.
+
+The FFT assumes the signal is periodic over the sampled window. Real records rarely are, so a
+trend or a non-integer number of cycles leaks energy across neighbouring frequencies. Removing
+the mean (or a linear trend) before transforming, and applying a window function such as a Hann
+window to taper the ends of the record, both reduce this leakage at the cost of some frequency
+resolution.
 
 .. dropdown:: Show API documentation for ``fft``
 

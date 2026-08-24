@@ -24,9 +24,9 @@ from earthkit.transforms import (
     aggregate,  # Deprecated, to remove in version 2.X
     climatology,
     ensemble,
+    fourier,
     spatial,
     temporal,
-    _fourier,
 )
 
 from ._aggregate import reduce, resample, rolling_reduce
@@ -46,5 +46,5 @@ __all__ = [
     "reduce",
     "rolling_reduce",
     "resample",
-    "_fourier",
+    "fourier",
 ]
