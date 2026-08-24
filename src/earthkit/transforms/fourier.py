@@ -197,36 +197,6 @@ def _recorded_source_size(
     return recorded if recorded > 0 and spectrum_len(recorded) == size else None
 
 
-def _input_dtype(dataarray: xr.Dataset | xr.DataArray, dims: T.Sequence[str]) -> np.dtype:
-    """Return the dtype the transform will see, promoting across the variables of a Dataset.
-
-    Only variables carrying every transform dimension are considered; the rest are passed
-    through untouched and must not influence the output dtype.
-    """
-    if isinstance(dataarray, xr.Dataset):
-        dtypes = [v.dtype for v in dataarray.data_vars.values() if all(d in v.dims for d in dims)]
-        if not dtypes:
-            return np.dtype(float)
-        try:
-            return np.result_type(*dtypes)
-        except TypeError:
-            return np.dtype(float)
-    return dataarray.dtype
-
-
-def _complex_dtype(dataarray: xr.Dataset | xr.DataArray, dims: T.Sequence[str]) -> np.dtype:
-    """Return the complex dtype a transform of ``dataarray`` produces, preserving precision."""
-    try:
-        return np.result_type(_input_dtype(dataarray, dims), np.complex64)
-    except TypeError:
-        return np.dtype(complex)
-
-
-def _real_dtype(dataarray: xr.Dataset | xr.DataArray, dims: T.Sequence[str]) -> np.dtype:
-    """Return the real dtype a real-output transform of ``dataarray`` produces."""
-    return np.zeros((), dtype=_complex_dtype(dataarray, dims)).real.dtype
-
-
 def _ensure_dims(dataarray: xr.Dataset | xr.DataArray, dims: str | T.Sequence[str] | None) -> list[str]:
     """Normalise ``dims`` to a list of dimension names, validating membership."""
     if dims is None:
@@ -272,7 +242,6 @@ def _forward_1d(
     spacing, spacing_units = _resolve_spacing(dataarray, dim, sample_spacing, sample_spacing_units)
     # Frequency coordinates are built with numpy to keep them host-side, as xarray coordinates.
     freqs = getattr(np.fft, freq_func_name)(n_in, d=spacing)
-    out_len = int(freqs.shape[0])
 
     def _apply(array):
         return getattr(_resolve_xp(xp, array).fft, xp_func_name)(array, n=n_in, axis=-1, norm=norm)
@@ -283,9 +252,7 @@ def _forward_1d(
         input_core_dims=[[dim]],
         output_core_dims=[[freq_dim]],
         exclude_dims={dim} if freq_dim == dim else set(),
-        dask="parallelized",
-        output_dtypes=[_complex_dtype(dataarray, [dim])],
-        dask_gufunc_kwargs={"output_sizes": {freq_dim: out_len}},
+        dask="allowed",
         on_missing_core_dim="copy",
     )
     result = result.assign_coords({freq_dim: freqs})
@@ -325,16 +292,13 @@ def _inverse_1d(
     def _apply(array):
         return getattr(_resolve_xp(xp, array).fft, xp_func_name)(array, n=n_out, axis=-1, norm=norm)
 
-    out_dtype = _real_dtype(dataarray, [dim]) if real_output else _complex_dtype(dataarray, [dim])
     result = xr.apply_ufunc(
         _apply,
         dataarray,
         input_core_dims=[[dim]],
         output_core_dims=[[output_dim]],
         exclude_dims={dim} if output_dim == dim else set(),
-        dask="parallelized",
-        output_dtypes=[out_dtype],
-        dask_gufunc_kwargs={"output_sizes": {output_dim: n_out}},
+        dask="allowed",
         on_missing_core_dim="copy",
     )
     if output_coord is not None:
@@ -372,7 +336,6 @@ def _forward_nd(
             freqs.append(np.fft.rfftfreq(s_list[i], d=spacings[i]))
         else:
             freqs.append(np.fft.fftfreq(s_list[i], d=spacings[i]))
-    out_sizes = [int(f.shape[0]) for f in freqs]
 
     out_dims = [f"{d}_frequency" for d in dims] if freq_dims is None else list(freq_dims)
     axes = tuple(range(-n_axes, 0))
@@ -386,9 +349,7 @@ def _forward_nd(
         input_core_dims=[dims],
         output_core_dims=[out_dims],
         exclude_dims={d for d in dims if d in out_dims},
-        dask="parallelized",
-        output_dtypes=[_complex_dtype(dataarray, dims)],
-        dask_gufunc_kwargs={"output_sizes": dict(zip(out_dims, out_sizes))},
+        dask="allowed",
         on_missing_core_dim="copy",
     )
     for out_dim, freq, src_dim, src_size, units in zip(out_dims, freqs, dims, s_list, spacing_units):
@@ -438,16 +399,13 @@ def _inverse_nd(
     def _apply(array):
         return getattr(_resolve_xp(xp, array).fft, xp_func_name)(array, s=tuple(out_sizes), axes=axes, norm=norm)
 
-    out_dtype = _real_dtype(dataarray, dims) if real_output else _complex_dtype(dataarray, dims)
     result = xr.apply_ufunc(
         _apply,
         dataarray,
         input_core_dims=[dims],
         output_core_dims=[out_dims],
         exclude_dims={d for d in dims if d in out_dims},
-        dask="parallelized",
-        output_dtypes=[out_dtype],
-        dask_gufunc_kwargs={"output_sizes": dict(zip(out_dims, out_sizes))},
+        dask="allowed",
         on_missing_core_dim="copy",
     )
     if output_coords is not None:
