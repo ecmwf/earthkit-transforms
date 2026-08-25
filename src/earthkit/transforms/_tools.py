@@ -691,6 +691,98 @@ def _is_evenly_spaced(coord) -> bool:
     return bool(np.allclose(diffs, diffs[0]))
 
 
+def _describe_coordinate_difference(values_a: np.ndarray, values_b: np.ndarray) -> str:
+    """Describe how two coordinate arrays of equal length differ.
+
+    Reports the maximum absolute difference where the values are numeric, so that a caller can
+    tell floating-point noise from a genuinely different grid. Falls back to a plain statement
+    for coordinates that cannot be subtracted, such as strings.
+    """
+    try:
+        difference = np.max(np.abs(values_a - values_b))
+    except TypeError:
+        return f"both length {values_a.size}, values differ"
+    if np.issubdtype(np.asarray(difference).dtype, np.timedelta64):
+        return f"both length {values_a.size}, maximum difference {difference}"
+    return f"both length {values_a.size}, maximum difference {float(difference):g}"
+
+
+def coordinate_mismatches(
+    obj_a: xr.Dataset | xr.DataArray,
+    obj_b: xr.Dataset | xr.DataArray,
+    label_a: str = "first object",
+    label_b: str = "second object",
+) -> list[str]:
+    """Find dimensions shared by name whose coordinate values do not match exactly.
+
+    xarray arithmetic aligns on exact coordinate equality, so two objects describing the same
+    cells with coordinates that differ by floating-point noise produce an all-NaN result rather
+    than an error. This detects that case; it does not decide what to do about it.
+
+    Only dimension coordinates are compared, since those are what xarray aligns on. A dimension
+    shared by name but carrying no coordinate on one side has no index, so it cannot misalign
+    and is skipped.
+
+    Parameters
+    ----------
+    obj_a, obj_b : xarray.Dataset or xarray.DataArray
+        The objects to compare.
+    label_a, label_b : str
+        Names used for the two objects in the returned messages.
+
+    Returns
+    -------
+    list of str
+        One message per mismatching dimension, empty if every shared dimension matches.
+
+    """
+    messages = []
+    for dim in obj_a.dims:
+        if dim not in obj_b.dims or dim not in obj_a.coords or dim not in obj_b.coords:
+            continue
+        values_a = np.asarray(obj_a.coords[dim].values)
+        values_b = np.asarray(obj_b.coords[dim].values)
+        if values_a.shape != values_b.shape:
+            detail = f"lengths {values_a.size} and {values_b.size}"
+        elif not np.array_equal(values_a, values_b):
+            detail = _describe_coordinate_difference(values_a, values_b)
+        else:
+            continue
+        messages.append(
+            f"Dimension '{dim}' has different coordinate values in the {label_a} and the {label_b} ({detail})."
+        )
+    return messages
+
+
+def is_all_nan(dataarray: xr.DataArray, compute: bool = False) -> bool:
+    """Check whether every value of a DataArray is NaN.
+
+    Parameters
+    ----------
+    dataarray : xarray.DataArray
+        The array to check.
+    compute : bool
+        Whether to evaluate a lazily-backed (e.g. dask) array. Evaluating one forces the whole
+        graph, which is usually too expensive for a diagnostic, so the default is to decline and
+        return ``False``.
+
+    Returns
+    -------
+    bool
+        ``True`` only when the array was checked and every value is NaN. ``False`` therefore
+        means either "checked and not all NaN" or "declined to check", so it is not evidence
+        that an array is free of NaNs.
+
+    """
+    values = getattr(dataarray, "data", dataarray)
+    # Integers cannot be NaN, and np.all is vacuously True on an empty array.
+    if not np.issubdtype(values.dtype, np.floating) or values.size == 0:
+        return False
+    if not compute and hasattr(values, "compute"):
+        return False
+    return bool(np.all(np.isnan(values)))
+
+
 def get_spatial_info(
     dataarray: xr.Dataset | xr.DataArray, lat_key: T.Optional[str] = None, lon_key: T.Optional[str] = None
 ):

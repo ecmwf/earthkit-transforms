@@ -540,3 +540,112 @@ def test_auto_anomaly_dataset_input():
     assert isinstance(result, xr.Dataset)
     assert "var" in result
     assert "time" in result.dims
+
+
+# --- alignment diagnostics (issue #126) ------------------------------------
+
+
+def _make_gridded_clim_da(n_years=2, start_year=2000):
+    """n_years of daily data on a small lat/lon grid."""
+    time = pd.date_range(f"{start_year}-01-01", periods=365 * n_years, freq="D")
+    rng = np.random.default_rng(0)
+    return xr.DataArray(
+        rng.standard_normal((len(time), 5, 6)),
+        dims=("time", "lat", "lon"),
+        coords={"time": time, "lat": np.linspace(-10, 10, 5), "lon": np.linspace(0, 20, 6)},
+        name="t2m",
+    )
+
+
+def test_anomaly_warns_when_coordinates_differ_by_float_noise(caplog):
+    """Issue #126: a ~1e-11 coordinate offset silently produced an all-NaN cube."""
+    da = _make_gridded_clim_da()
+    clim = climatology.mean(da, frequency="month")
+    shifted = clim.assign_coords(lon=clim["lon"].values + 1e-11)
+
+    with caplog.at_level("WARNING"):
+        anom = climatology.anomaly(da, shifted, frequency="month")
+
+    messages = " ".join(record.message for record in caplog.records)
+    assert "Dimension 'lon'" in messages
+    assert "maximum difference 1" in messages  # the magnitude is reported, not just the fact
+    assert "entirely NaN" in messages
+    # The diagnostics must not change what anomaly returns.
+    assert anom.sizes == {"time": 24, "lat": 5, "lon": 6}
+    assert bool(np.all(np.isnan(anom.values)))
+
+
+def test_anomaly_warns_when_shared_dimension_lengths_differ(caplog):
+    da = _make_gridded_clim_da()
+    clim = climatology.mean(da, frequency="month").isel(lon=slice(0, 4))
+    with caplog.at_level("WARNING"):
+        climatology.anomaly(da, clim, frequency="month")
+    assert any("lengths 6 and 4" in record.message for record in caplog.records)
+
+
+@pytest.mark.parametrize("offset", [1e-11, 1000.0])
+def test_anomaly_strict_raises_on_coordinate_mismatch(offset):
+    da = _make_gridded_clim_da()
+    clim = climatology.mean(da, frequency="month")
+    shifted = clim.assign_coords(lon=clim["lon"].values + offset)
+    with pytest.raises(ValueError, match="Dimension 'lon'"):
+        climatology.anomaly(da, shifted, frequency="month", strict=True)
+
+
+def test_anomaly_strict_raises_on_all_nan_result():
+    """The all-NaN backstop fires even when the coordinates match exactly."""
+    da = _make_gridded_clim_da()
+    clim = climatology.mean(da, frequency="month") * np.nan
+    with pytest.raises(ValueError, match="entirely NaN"):
+        climatology.anomaly(da, clim, frequency="month", strict=True)
+
+
+@pytest.mark.parametrize("frequency", [None, "month", "dayofyear"])
+@pytest.mark.parametrize("strict", [False, True])
+def test_anomaly_matching_grids_are_silent(caplog, frequency, strict):
+    """Neither check may fire on an ordinary call, in either strict mode.
+
+    A warning that fires every time would be worse than the silence it replaces, and a strict
+    mode that raised on valid input would be unusable.
+    """
+    da = _make_gridded_clim_da()
+    kwargs = {} if frequency is None else {"frequency": frequency}
+    clim = climatology.mean(da, **kwargs)
+    with caplog.at_level("WARNING"):
+        anom = climatology.anomaly(da, clim, strict=strict, **kwargs)
+    assert caplog.records == []
+    assert not bool(np.all(np.isnan(anom.values)))
+
+
+@pytest.mark.parametrize("strict", [False, True])
+def test_auto_anomaly_is_silent_and_accepts_strict(caplog, strict):
+    # `strict` has to survive the **_kwargs hop from auto_anomaly into anomaly.
+    da = _make_gridded_clim_da()
+    with caplog.at_level("WARNING"):
+        result = climatology.auto_anomaly(da, frequency="month", strict=strict)
+    assert caplog.records == []
+    assert "time" in result.dims
+
+
+def test_anomaly_strict_does_not_leak_into_reduce_kwargs():
+    """`strict` must be consumed by _anomaly_dataarray, not forwarded to the reducer.
+
+    That signature ends in **reduce_kwargs, which goes to _temporal_reduce; if `strict` were
+    ever dropped from the explicit parameters it would arrive there and raise TypeError.
+    """
+    da = _make_gridded_clim_da()
+    clim = climatology.mean(da, frequency="month")
+    anom = climatology.anomaly(da, clim, frequency="month", strict=True)
+    assert isinstance(anom, xr.DataArray)
+
+
+def test_anomaly_dataset_message_names_the_offending_variable(caplog):
+    da = _make_gridded_clim_da()
+    ds = xr.Dataset({"t2m": da, "tp": da * 2})
+    clim = climatology.mean(ds, frequency="month")
+    shifted = clim.assign_coords(lon=clim["lon"].values + 1e-11)
+    with caplog.at_level("WARNING"):
+        climatology.anomaly(ds, shifted, frequency="month")
+    messages = " ".join(record.message for record in caplog.records)
+    assert "'t2m'" in messages
+    assert "'tp'" in messages

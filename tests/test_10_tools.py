@@ -12,6 +12,7 @@ import xarray as xr
 
 from earthkit.transforms._tools import (
     _is_evenly_spaced,
+    coordinate_mismatches,
     ensure_list,
     get_dim_key,
     get_how,
@@ -20,6 +21,7 @@ from earthkit.transforms._tools import (
     groupby_bins,
     groupby_kwargs_decorator,
     groupby_time,
+    is_all_nan,
     latitude_weights,
     nanaverage,
     normalize_dims,
@@ -694,3 +696,103 @@ def test_groupby_kwargs_decorator_climatology_valid_freq():
 
     result = dummy(None, frequency="month")
     assert result["frequency"] == "month"
+
+
+# --- coordinate_mismatches / is_all_nan -------------------------------------
+
+
+def _grid(lon, lat=(0.0, 1.0)):
+    return xr.DataArray(
+        np.zeros((len(lat), len(lon))),
+        dims=("lat", "lon"),
+        coords={"lat": np.asarray(lat, dtype=float), "lon": np.asarray(lon, dtype=float)},
+    )
+
+
+def test_coordinate_mismatches_identical_grids():
+    assert coordinate_mismatches(_grid([0.0, 1.0]), _grid([0.0, 1.0])) == []
+
+
+def test_coordinate_mismatches_reports_magnitude():
+    messages = coordinate_mismatches(_grid([0.0, 1.0]), _grid([0.0, 1.0 + 1e-11]))
+    assert len(messages) == 1
+    assert "Dimension 'lon'" in messages[0]
+    assert "maximum difference 1e-11" in messages[0]
+
+
+def test_coordinate_mismatches_reports_differing_lengths():
+    messages = coordinate_mismatches(_grid([0.0, 1.0, 2.0]), _grid([0.0, 1.0]))
+    assert "lengths 3 and 2" in messages[0]
+
+
+def test_coordinate_mismatches_reports_every_offending_dim():
+    a = _grid([0.0, 1.0], lat=[0.0, 1.0])
+    b = _grid([0.0, 1.1], lat=[0.0, 1.1])
+    messages = coordinate_mismatches(a, b)
+    assert len(messages) == 2
+    assert {"lat", "lon"} == {m.split("'")[1] for m in messages}
+
+
+def test_coordinate_mismatches_uses_the_supplied_labels():
+    messages = coordinate_mismatches(_grid([0.0]), _grid([1.0]), "data", "climatology")
+    assert "in the data and the climatology" in messages[0]
+
+
+def test_coordinate_mismatches_skips_dim_without_a_coordinate():
+    # No index on one side means xarray cannot misalign it.
+    with_coord = _grid([0.0, 1.0])
+    without_coord = with_coord.drop_vars("lon")
+    assert coordinate_mismatches(with_coord, without_coord) == []
+
+
+def test_coordinate_mismatches_ignores_dims_not_shared():
+    other = xr.DataArray(np.zeros(3), dims=("time",), coords={"time": np.arange(3.0)})
+    assert coordinate_mismatches(_grid([0.0, 1.0]), other) == []
+
+
+def test_coordinate_mismatches_datetime_coordinates():
+    a = xr.DataArray([0.0, 1.0], dims=("time",), coords={"time": pd.date_range("2000-01-01", periods=2)})
+    assert coordinate_mismatches(a, a.copy()) == []
+
+    b = a.assign_coords(time=pd.date_range("2000-01-02", periods=2))
+    messages = coordinate_mismatches(a, b)
+    assert len(messages) == 1
+    assert "Dimension 'time'" in messages[0]
+    # Datetime differences are reported as a duration rather than coerced to a float. The unit
+    # numpy picks is not worth pinning, so check the reported value parses back to the real gap.
+    difference = messages[0].split("maximum difference ")[1].rstrip(").")
+    assert pd.Timedelta(difference) == pd.Timedelta(days=1)
+
+
+def test_coordinate_mismatches_string_coordinates():
+    a = xr.DataArray([0.0, 1.0], dims=("site",), coords={"site": ["reading", "vancouver"]})
+    b = xr.DataArray([0.0, 1.0], dims=("site",), coords={"site": ["reading", "toronto"]})
+    messages = coordinate_mismatches(a, b)
+    assert len(messages) == 1
+    assert "values differ" in messages[0]
+
+
+@pytest.mark.parametrize(
+    ("values", "expected"),
+    [
+        ([np.nan, np.nan], True),
+        ([np.nan, 1.0], False),
+        ([1.0, 2.0], False),
+        ([], False),  # np.all is vacuously True on an empty array
+    ],
+)
+def test_is_all_nan_eager(values, expected):
+    da = xr.DataArray(np.asarray(values, dtype=float), dims=("x",))
+    assert is_all_nan(da) is expected
+
+
+def test_is_all_nan_integer_dtype_cannot_be_nan():
+    assert is_all_nan(xr.DataArray(np.array([1, 2]), dims=("x",))) is False
+
+
+def test_is_all_nan_declines_lazy_arrays_unless_asked():
+    pytest.importorskip("dask")
+    da = xr.DataArray(np.full(4, np.nan), dims=("x",)).chunk({"x": 2})
+    # False here means "not checked", not "checked and fine".
+    assert is_all_nan(da) is False
+    assert is_all_nan(da, compute=True) is True

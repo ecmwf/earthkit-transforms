@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import typing as T
 
 import xarray as xr
@@ -20,6 +21,15 @@ from earthkit.transforms import _tools
 from earthkit.transforms._aggregate import reduce as _reduce
 from earthkit.transforms._tools import groupby_time
 from earthkit.transforms.temporal import reduce as _temporal_reduce
+
+logger = logging.getLogger(__name__)
+
+
+def _report(message: str, strict: bool) -> None:
+    """Raise ``message`` as a ValueError under ``strict``, otherwise log it as a warning."""
+    if strict:
+        raise ValueError(message)
+    logger.warning(message)
 
 
 @format_handler()
@@ -739,6 +749,11 @@ def anomaly(
         time dimension from the input object
     relative : bool (optional)
         Return the relative anomaly, i.e. the percentage change w.r.t the climatological period
+    strict : bool (optional)
+        If True, raise a ValueError instead of logging a warning when the data and the
+        climatology have mismatching coordinates, or when the resulting anomaly is entirely
+        NaN. Default is False. Note that the all-NaN check evaluates lazily-backed (e.g. dask)
+        data only when `strict` is True, since doing so forces the whole graph to compute.
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.aggregate.climatology.mean`
 
@@ -768,6 +783,7 @@ def _anomaly_dataarray(
     relative: bool = False,
     climatology_how_tag: str = "",
     how_label: str | None = None,
+    strict: bool = False,
     **reduce_kwargs,
 ) -> xr.DataArray:
     """Calculate the anomaly from a reference climatology.
@@ -791,6 +807,11 @@ def _anomaly_dataarray(
         time dimension from the input object
     relative : bool (optional)
         Return the relative anomaly, i.e. the percentage change w.r.t the climatological period
+    strict : bool (optional)
+        If True, raise a ValueError instead of logging a warning when the data and the
+        climatology have mismatching coordinates, or when the resulting anomaly is entirely
+        NaN. Default is False. Note that the all-NaN check evaluates lazily-backed (e.g. dask)
+        data only when `strict` is True, since doing so forces the whole graph to compute.
     climatology_how_tag : str (optional)
         Tag to identify the climatology variable in the climatology dataset
     how_label : str (optional)
@@ -829,6 +850,18 @@ def _anomaly_dataarray(
                 )
     else:
         climatology_da = climatology
+
+    # xarray aligns on exact coordinate equality, so grids describing the same cells with
+    # coordinates that differ by floating-point noise silently produce an all-NaN anomaly.
+    # Check before the arithmetic, so that `strict` skips the work entirely.
+    mismatches = _tools.coordinate_mismatches(dataarray, climatology_da, "data", "climatology")
+    if mismatches:
+        _report(
+            " ".join(mismatches) + " Alignment is by exact equality, so non-matching cells will be"
+            f" NaN in the anomaly for '{var_name}'. If the two grids describe the same cells,"
+            " relabel one onto the other with `assign_coords` before calling `anomaly`.",
+            strict,
+        )
 
     # If frequency not defined, it is deduced from the climatology.
     # This is somewhat hardcoded, but it is best practice, so for now it can stay here
@@ -906,7 +939,19 @@ def _anomaly_dataarray(
         name_tag = "anomaly"
         update_attrs = {}
 
-    return _update_anomaly_array(anomaly_array, dataarray, var_name, name_tag, update_attrs, how_label=how_label)
+    result = _update_anomaly_array(anomaly_array, dataarray, var_name, name_tag, update_attrs, how_label=how_label)
+
+    # A backstop for misalignment the coordinate check cannot see, e.g. a climatology that shares
+    # no coordinate values at all. Only evaluated lazily-backed data under `strict`, where the
+    # caller has opted into paying for the check.
+    if _tools.is_all_nan(result, compute=strict):
+        _report(
+            f"The anomaly for '{var_name}' is entirely NaN. This usually means the data and the "
+            "climatology did not align; check that shared dimensions have matching coordinate values.",
+            strict,
+        )
+
+    return result
 
 
 def _update_anomaly_array(anomaly_array, original_array, var_name, name_tag, update_attrs, how_label=None):
@@ -1001,6 +1046,10 @@ def auto_anomaly(
         time dimension from the input object
     relative : bool (optional)
         Return the relative anomaly, i.e. the percentage change w.r.t the climatological period
+    strict : bool (optional)
+        If True, raise a ValueError instead of logging a warning when the resulting anomaly is
+        entirely NaN. Default is False. The climatology is derived from the data here, so its
+        coordinates match by construction and the coordinate check cannot fire.
     **reduce_kwargs :
         Any other kwargs that are accepted by `earthkit.transforms.resample`
 
