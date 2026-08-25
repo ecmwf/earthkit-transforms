@@ -18,6 +18,11 @@ Subpackages
 - :doc:`autodocs/earthkit.transforms.climatology`
 - :doc:`autodocs/earthkit.transforms.ensemble`
 
+Modules
+-------
+
+- :doc:`autodocs/earthkit.transforms.fourier`
+
 .. toctree::
    :maxdepth: 2
    :hidden:

@@ -17,8 +17,12 @@ classifiers = [
   "Topic :: Scientific/Engineering"
 ]
 dependencies = [
-  "xarray>=2022.3.0",
-  "numpy>=1.18",
+  # 2023.9.0 is the first release with apply_ufunc(on_missing_core_dim=...), which the
+  # Fourier transforms use to pass through Dataset variables that lack the transform dimension.
+  "xarray>=2023.9.0",
+  # 1.20 is the first release whose numpy.fft functions accept norm="backward"/"forward";
+  # earlier versions accept only None or "ortho", so the Fourier transforms' default norm fails.
+  "numpy>=1.20",
   "earthkit-utils~=1.0"
 ]
 description = "Aggregation tools for meteorological and climate data."

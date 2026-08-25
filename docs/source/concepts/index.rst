@@ -19,4 +19,5 @@ For more details see the :doc:`dimension detection guide <dimension-detection>`.
    temporal
    climatology
    ensemble
+   fourier
    dimension-detection
