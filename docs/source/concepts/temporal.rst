@@ -34,7 +34,7 @@ The ``time_dim`` parameter is accepted by every function in the temporal module,
 how-to guide :doc:`../how-tos/temporal/howto_specify_time_dim`.
 
 Aggregation methods
-^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^
 
 To aggregate the data in time dimension to a single value you can use the `temporal.reduce`,
 `temporal.mean`, `temporal.sum`, `temporal.min`, `temporal.max` functions. These functions
@@ -116,26 +116,22 @@ The options are:
       :no-index:
 
 
+.. _temporal-spectral-analysis:
+
 Spectral analysis (FFT)
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-The temporal module provides a full set of entry points for computing the discrete Fourier
+The temporal module provides a set of entry points for computing the discrete Fourier
 Transform, by means of a fast Fourier transform (FFT), of a data object along its time dimension.
-These are ``xarray`` wrappers for the functions in the ``fft`` extension of the Python array
-API standard. As with the other temporal methods, the time dimension is automatically detected
-from the metadata of the data object and can be overridden with the `time_dim` parameter.
-
-The transforms are implemented using the Python array API standard, applying the corresponding
-methods of the array namespace of the input data. This means the computation runs on the native
-backend of the data (for example NumPy or a GPU-backed array library) and returns
-``xarray.DataArray``/``xarray.Dataset`` objects. Dask-backed data stays lazy, and the output
-keeps the precision of the input, so ``float32`` data gives a ``complex64`` spectrum.
-
-Two things are worth knowing before reading the results. Applying a transform moves the
-transformed dimension to the **end** of the result, so a ``(time, location)`` input comes back
-as ``(location, frequency)``. And when the input is a ``Dataset``, any variable that does not
-have the time dimension — a land-sea mask or an orography field, say — is **passed through
-untransformed** rather than causing an error.
+These are thin wrappers around the generic :doc:`fourier` module — see that page for a general
+introduction to the FFT support in **earthkit-transforms** and the full list of transforms. As
+with the other temporal methods, the time dimension is automatically detected from the metadata
+of the data object and can be overridden with the `time_dim` parameter. The general behaviours
+described on that page — native-backend execution, laziness under dask, precision preservation,
+the moving of the transformed dimension to the **end** of the result, the passing through of
+``Dataset`` variables that lack the time dimension, the propagation of ``NaN`` across the
+transformed axis, and the single-chunk requirement for the time dimension under dask — all apply
+here too.
 
 **Complex transforms**
 
@@ -191,36 +187,15 @@ frequencies as ``xarray.DataArray`` objects, and the spectrum shifts `temporal.f
 helpers take a bare `sample_spacing` with no coordinate to infer units from, so pass
 `sample_spacing_units="s"` alongside a spacing in seconds if the result should be labelled in Hz.
 
-A generic set of entry points that operate along a user-specified dimension is also available in
-the `earthkit.transforms.fourier` module, for example to compute the FFT along a spatial
-dimension. It provides the one-dimensional transforms (`fft`/`ifft`, `rfft`/`irfft`,
-`hfft`/`ihfft`), the sample-frequency helpers (`fftfreq`/`rfftfreq`) and the spectrum shifts
-(`fftshift`/`ifftshift`) without the automatic time-dimension detection, and additionally the
-n-dimensional transforms (`fftn`/`ifftn`/`rfftn`/`irfftn`) for transforming over several axes at
-once. The dimension is named explicitly instead::
-
-   # Zonal wavenumber spectrum along longitude
-   spectrum = earthkit.transforms.fourier.rfft(dataarray, dim="longitude")
-   restored = earthkit.transforms.fourier.irfft(spectrum)
-
-   # 2-D spectrum over latitude and longitude
-   spectrum2d = earthkit.transforms.fourier.rfftn(dataarray, dims=["latitude", "longitude"])
-   restored2d = earthkit.transforms.fourier.irfftn(spectrum2d)
+For transforms along a dimension other than time — a spatial FFT along longitude, say — or for
+the n-dimensional transforms, use the generic :doc:`fourier` module, which names the dimension
+explicitly instead of detecting it.
 
 **Getting physical amplitudes and avoiding leakage**
 
-The transforms return the raw FFT coefficients, using ``norm="backward"`` by default (no scaling
-on the forward transform); ``"ortho"`` and ``"forward"`` are also accepted. To recover the
-physical amplitude of a component from a real signal of length ``N``, divide the magnitude of
-the corresponding `rfft` coefficient by ``N`` and double every term except the zero-frequency
-(and Nyquist) term, since the negative frequencies are folded onto the positive ones. A power
-spectrum is then ``|coefficient| ** 2`` after that scaling, rather than the raw ``|FFT| ** 2``.
-
-The FFT assumes the signal is periodic over the sampled window. Real records rarely are, so a
-trend or a non-integer number of cycles leaks energy across neighbouring frequencies. Removing
-the mean (or a linear trend) before transforming, and applying a window function such as a Hann
-window to taper the ends of the record, both reduce this leakage at the cost of some frequency
-resolution.
+The transforms return the raw FFT coefficients (``norm="backward"`` by default), so recovering
+physical amplitudes, building a power spectrum and reducing spectral leakage all need the same
+care as for the generic module — see :ref:`fourier-amplitudes` on the :doc:`fourier` page.
 
 .. dropdown:: Show API documentation for ``fft``
 
