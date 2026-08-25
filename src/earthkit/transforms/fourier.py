@@ -370,6 +370,12 @@ def _inverse_nd(
     xp: T.Any,
 ) -> xr.Dataset | xr.DataArray:
     """Apply an inverse n-D transform over ``dims`` producing signal dimensions."""
+    if dims is None:
+        dims = [
+            d
+            for d in dataarray.dims
+            if d in dataarray.coords and SOURCE_DIM_ATTR in dataarray.coords[d].attrs
+        ] or None
     dims = _ensure_dims(dataarray, dims)
     n_axes = len(dims)
     sizes = [int(dataarray.sizes[d]) for d in dims]
