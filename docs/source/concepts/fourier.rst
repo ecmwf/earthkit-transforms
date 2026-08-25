@@ -41,7 +41,7 @@ spatial or any other non-temporal analysis::
 
    # Zonal wavenumber spectrum along longitude
    spectrum = ekt.fourier.rfft(dataarray, dim="longitude")
-   restored = ekt.fourier.irfft(spectrum)
+   restored = ekt.fourier.irfft(spectrum, dim="frequency")
 
    # 2-D spectrum over latitude and longitude
    spectrum2d = ekt.fourier.rfftn(dataarray, dims=["latitude", "longitude"])
