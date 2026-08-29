@@ -25,6 +25,21 @@ parameter can be used to specify the aggregation method. The default is `mean`.
       :no-index:
 
 
+Reusing polygon masks
+^^^^^^^^^^^^^^^^^^^^^
+For repeated reductions on the same grid and polygons, build the masks once with
+:func:`shapes_to_masks` and pass them to :func:`reduce` with ``mask_arrays``.
+The masks retain the GeoDataFrame index, or a column selected with ``mask_dim``:
+
+.. code-block:: python
+
+    masks = ekt.spatial.shapes_to_masks(
+        regions, data, mask_dim="region_name", all_touched=True
+    )
+    daily_mean = ekt.spatial.reduce(today, mask_arrays=masks)
+    next_daily_mean = ekt.spatial.reduce(tomorrow, mask_arrays=masks)
+
+
 Using a bounding box instead of a geometry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
