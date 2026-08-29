@@ -32,6 +32,8 @@ from earthkit.transforms._tools import (
 
 logger = logging.getLogger(__name__)
 
+_MASK_DIM_ATTR = "_earthkit_mask_dim"
+
 
 def _transform_from_latlon(lat, lon):
     """Return an Affine transformation of input 1D arrays of lat and lon.
@@ -177,6 +179,19 @@ def _array_mask_iterator(mask_arrays):
         yield mask_array > 0
 
 
+def _mask_arrays_dim_index(mask_arrays: list[xr.DataArray]) -> pd.Index | None:
+    """Return labels attached by :func:`shapes_to_masks`, if present."""
+    mask_dims = {mask_array.attrs.get(_MASK_DIM_ATTR) for mask_array in mask_arrays}
+    if len(mask_dims) != 1:
+        return None
+
+    mask_dim = mask_dims.pop()
+    if mask_dim is None or any(mask_dim not in mask_array.coords for mask_array in mask_arrays):
+        return None
+
+    return pd.Index([mask_array.coords[mask_dim].item() for mask_array in mask_arrays], name=mask_dim)
+
+
 def _shape_mask_iterator(shapes, target, regular=True, **kwargs):
     """Iterate over shape mask methods."""
     if isinstance(shapes, gpd.GeoDataFrame):
@@ -190,7 +205,13 @@ def _shape_mask_iterator(shapes, target, regular=True, **kwargs):
         yield shape_da
 
 
-def shapes_to_masks(shapes: gpd.GeoDataFrame | list[gpd.GeoDataFrame], target, regular=True, **kwargs):
+def shapes_to_masks(
+    shapes: gpd.GeoDataFrame | list[gpd.GeoDataFrame],
+    target: xr.Dataset | xr.DataArray,
+    regular: bool = True,
+    mask_dim: str | None | T.Dict[str, T.Any] = None,
+    **kwargs,
+) -> list[xr.DataArray]:
     """Create a list of masked dataarrays, if possible use the shape_mask_iterator.
 
     Parameters
@@ -202,6 +223,11 @@ def shapes_to_masks(shapes: gpd.GeoDataFrame | list[gpd.GeoDataFrame], target, r
 
     regular :
         If True, data is on a regular grid so use rasterize method, if False use mask_contains_points
+    mask_dim :
+        Labels to attach to masks created from a GeoDataFrame. This follows the
+        same rules as :func:`reduce`: a column name uses that column's values,
+        otherwise the GeoDataFrame index is used. The labels are retained when
+        the masks are passed to :func:`reduce`.
     all_touched :
         If True, all pixels touched by geometries will be considered in,
         if False, only pixels whose center is within. Default is False.
@@ -216,14 +242,23 @@ def shapes_to_masks(shapes: gpd.GeoDataFrame | list[gpd.GeoDataFrame], target, r
         A list of masks where points inside each geometry are 1, and those outside are xp.nan
 
     """
+    mask_dim_index = None
     if isinstance(shapes, gpd.GeoDataFrame):
+        mask_dim_index = get_mask_dim_index(mask_dim, shapes)
         shapes = _geopandas_to_shape_list(shapes)
     if regular:
         mask_function = rasterize
     else:
         mask_function = mask_contains_points
 
-    return [mask_function([shape], target.coords, **kwargs) for shape in shapes]
+    masks = [mask_function([shape], target.coords, **kwargs) for shape in shapes]
+    if mask_dim_index is None:
+        return masks
+
+    return [
+        mask.assign_coords({mask_dim_index.name: label}).assign_attrs({_MASK_DIM_ATTR: mask_dim_index.name})
+        for mask, label in zip(masks, mask_dim_index)
+    ]
 
 
 def shapes_to_mask(shapes, target, regular=True, **kwargs):
@@ -520,10 +555,13 @@ def reduce(
     assert not (geodataframe is not None and mask_arrays is not None), (
         "Either a geodataframe or mask arrays must be provided, not both"
     )
+    _mask_arrays: list[xr.DataArray] | None
     if mask_arrays is not None:
-        _mask_arrays: list[xr.DataArray] | None = ensure_list(mask_arrays)
+        _mask_arrays = ensure_list(mask_arrays)
+        precomputed_mask_dim_index = _mask_arrays_dim_index(_mask_arrays)
     else:
         _mask_arrays = None
+        precomputed_mask_dim_index = None
 
     if isinstance(dataarray, xr.Dataset):
         return_as: str = kwargs.pop("return_as", "xarray")
@@ -531,7 +569,11 @@ def reduce(
             out_ds = xr.Dataset().assign_attrs(dataarray.attrs)
             for var in dataarray.data_vars:
                 out_da = _reduce_dataarray_as_xarray(
-                    dataarray[var], geodataframe=geodataframe, mask_arrays=_mask_arrays, **kwargs
+                    dataarray[var],
+                    geodataframe=geodataframe,
+                    mask_arrays=_mask_arrays,
+                    precomputed_mask_dim_index=precomputed_mask_dim_index,
+                    **kwargs,
                 )
                 out_ds[out_da.name] = out_da
             return out_ds
@@ -552,13 +594,20 @@ def reduce(
         else:
             raise TypeError("Return as type not recognised or incompatible with inputs")
     else:
-        return _reduce_dataarray_as_xarray(dataarray, geodataframe=geodataframe, mask_arrays=_mask_arrays, **kwargs)
+        return _reduce_dataarray_as_xarray(
+            dataarray,
+            geodataframe=geodataframe,
+            mask_arrays=_mask_arrays,
+            precomputed_mask_dim_index=precomputed_mask_dim_index,
+            **kwargs,
+        )
 
 
 def _reduce_dataarray_as_xarray(
     dataarray: xr.DataArray,
     geodataframe: gpd.GeoDataFrame | None = None,
     mask_arrays: list[xr.DataArray] | None = None,
+    precomputed_mask_dim_index: pd.Index | None = None,
     how: T.Callable | str = "mean",
     weights: None | str | ndarray = None,
     lat_key: str | None = None,
@@ -709,9 +758,12 @@ def _reduce_dataarray_as_xarray(
 
     # If no geodataframe, there is just one reduced array
     if geodataframe is not None:
-        mask_dim_index = get_mask_dim_index(mask_dim, geodataframe)
-        out_xr = xr.concat(reduced_list, dim=mask_dim_index.name)
-        out_xr = out_xr.assign_coords({mask_dim_index.name: mask_dim_index})
+        geometry_mask_dim_index = get_mask_dim_index(mask_dim, geodataframe)
+        out_xr = xr.concat(reduced_list, dim=geometry_mask_dim_index.name)
+        out_xr = out_xr.assign_coords({geometry_mask_dim_index.name: geometry_mask_dim_index})
+    elif precomputed_mask_dim_index is not None:
+        out_xr = xr.concat(reduced_list, dim=precomputed_mask_dim_index.name)
+        out_xr = out_xr.assign_coords({precomputed_mask_dim_index.name: precomputed_mask_dim_index})
     elif mask_dim is None and len(reduced_list) == 1:
         out_xr = reduced_list[0]
     else:
@@ -722,7 +774,7 @@ def _reduce_dataarray_as_xarray(
     if geodataframe is not None:
         if return_geometry_as_coord:
             out_xr = out_xr.assign_coords(
-                **{"geometry": (mask_dim_index.name, [_g for _g in geodataframe["geometry"]])}
+                **{"geometry": (geometry_mask_dim_index.name, [_g for _g in geodataframe["geometry"]])}
             )
         out_xr = out_xr.assign_attrs({**geodataframe.attrs, **extra_out_attrs})
 
