@@ -3,9 +3,9 @@ import pandas as pd
 import pytest
 import xarray as xr
 from click.testing import CliRunner
+from earthkit.cli.main import earthkit
 
-from earthkit.transforms import cli
-from earthkit.transforms.temporal import cli as temporal_cli
+from earthkit.cli.transforms import temporal as temporal_cli
 
 pytest.importorskip("earthkit.data")
 
@@ -30,22 +30,27 @@ def _invoke(command, *args):
     return result
 
 
-def test_temporal_cli_commands():
-    assert temporal_cli.COMMANDS == {
-        "daily-agg": temporal_cli.daily_agg,
-        "monthly-agg": temporal_cli.monthly_agg,
-        "yearly-agg": temporal_cli.yearly_agg,
-    }
+@pytest.mark.parametrize(
+    "name, command",
+    (
+        ("daily-agg", temporal_cli.daily_agg),
+        ("monthly-agg", temporal_cli.monthly_agg),
+        ("yearly-agg", temporal_cli.yearly_agg),
+    ),
+)
+def test_cli_registers_commands(name, command):
+    assert earthkit.get_command(None, name) is command
 
 
-def test_cli_collates_submodule_commands():
-    for name, command in temporal_cli.COMMANDS.items():
-        assert cli.COMMANDS[name] is command
+def test_cli_info_lists_transforms_commands():
+    result = _invoke(earthkit, "info")
+    assert "earthkit-transforms" in result.output
+    assert "daily-agg, monthly-agg, yearly-agg" in result.output
 
 
 @pytest.mark.parametrize("name", ("daily-agg", "monthly-agg", "yearly-agg"))
 def test_cli_help(name):
-    result = _invoke(cli.COMMANDS[name], "--help")
+    result = _invoke(earthkit, name, "--help")
     assert "HOW INPUT OUTPUT" in result.output
     for option in ("--profile", "--time-dim", "--time-shift", "--extra-reduce-dims"):
         assert option in result.output
@@ -62,7 +67,7 @@ def test_cli_help(name):
 def test_cli_agg_writes_output(netcdf_file, tmp_path, name, expected_length):
     in_path, _ = netcdf_file
     out_path = tmp_path / "out.nc"
-    _invoke(cli.COMMANDS[name], "mean", in_path, out_path)
+    _invoke(earthkit, name, "mean", in_path, out_path)
     with xr.open_dataset(out_path) as result:
         assert "t2m" in result
         assert dict(result.sizes) == {"time": expected_length, "latitude": 2, "longitude": 3}

@@ -23,7 +23,7 @@ dependencies = [
   # 1.20 is the first release whose numpy.fft functions accept norm="backward"/"forward";
   # earlier versions accept only None or "ortho", so the Fourier transforms' default norm fails.
   "numpy>=1.20",
-  "earthkit-utils @ git+https://github.com/ecmwf/earthkit-utils.git@feature/cli",
+  "earthkit-utils @ git+https://github.com/ecmwf/earthkit-utils.git@feature/cli-namespace",
   "click"
 ]
 description = "Aggregation tools for meteorological and climate data."
@@ -36,7 +36,7 @@ requires-python = ">=3.10"
 
 [project.optional-dependencies]
 all = [
-  "earthkit-data @ git+https://github.com/ecmwf/earthkit-data.git@feature/cli",
+  "earthkit-data @ git+https://github.com/ecmwf/earthkit-data.git@feature/cli-namespace",
   "geopandas",
   "rasterio"  # Requires GDAL
 ]
@@ -106,7 +106,7 @@ select = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["earthkit.transforms"]
+include = ["earthkit.transforms", "earthkit.cli"]
 where = ["src/"]
 
 [tool.setuptools_scm]
