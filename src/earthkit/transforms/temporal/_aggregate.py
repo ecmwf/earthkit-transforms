@@ -994,6 +994,327 @@ def monthly_sum(
 
 @format_handler()
 @_tools.time_dim_decorator
+def yearly_reduce(
+    dataarray: xr.Dataset | xr.DataArray,
+    how: str | T.Callable = "mean",
+    time_dim: str | None = None,
+    **kwargs,
+):
+    """Group data by year and reduce using the given how method.
+
+    Parameters
+    ----------
+    dataarray : xarray.DataArray
+        DataArray containing a `time` dimension.
+    how: str or callable
+        Method used to reduce data. Default='mean', which will implement the xarray in-built mean.
+        If string, it must be an in-built xarray reduce method, a earthkit how method or any numpy method.
+        In the case of duplicate names, method selection is first in the order: xarray, earthkit, numpy.
+        Otherwise it can be any function which can be called in the form `f(x, axis=axis, **kwargs)`
+        to return the result of reducing an array over an integer valued axis
+    time_dim : str
+        Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
+        default behaviour is to deduce time dimension from
+        attributes of coordinates, then fall back to `"time"`.
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change
+        the local time zone. It can be provided as any object that can be
+        understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
+    remove_partial_periods : bool
+        If True and a time_shift has been applied, the first and last time steps are removed to ensure
+        equality in sampling periods. Default is False.
+    how_label : str
+        Label to append to the name of the variable in the reduced object, default is _yearly_{how}
+    extra_reduce_dims : str or list of str
+        Additional dimensions to reduce over (in addition to the grouping dimension), for example to
+        calculate a yearly global mean you would set this to "longitude" and "latitude". Default is None.
+    **kwargs
+        Keyword arguments to be passed to :func:`reduce`.
+
+    Returns
+    -------
+    xarray.DataArray | xarray.Dataset
+        A dataarray reduced to yearly values using the specified method
+
+    """
+    # If time_dim in dimensions then use resample, this should be faster.
+    #  At present, performance differences are small, but resampling can be improved by handling as
+    #  a pandas dataframes. resample function should be updated to do this.
+    #  NOTE: force_groupby is an undocumented kwarg for debug purposes
+    if time_dim in dataarray.dims and not kwargs.pop("force_groupby", False):
+        kwargs.setdefault("frequency", "YS")
+        red_array = resample(dataarray, time_dim=time_dim, how=how, **kwargs)
+    else:
+        # Otherwise, we groupby, with specifics set up for yearly and handling both datetimes and timedeltas
+        if dataarray[time_dim].dtype in ["<M8[ns]"]:  # datetime
+            # create a year coordinate and group by this
+            dataarray = dataarray.assign_coords(years=dataarray[f"{time_dim}.year"])
+            grouped_data = dataarray.groupby("years")
+        elif dataarray[time_dim].dtype in ["<m8[ns]"]:  # timedelta
+            raise TypeError(
+                "Yearly aggregation is not support for timedelta objects. "
+                "Please choose an alternative coordinate, or convert dimension to datatime object"
+            )
+        else:
+            raise TypeError(f"Invalid type for time dimension ({time_dim}): {dataarray[time_dim].dtype}")
+
+        # Additional dimensions to reduce over (if provided), need to merge with the grouping dimension(s)
+        _extra_reduce_dims = _tools.normalize_dims(kwargs.pop("extra_reduce_dims", None))
+        if _extra_reduce_dims:
+            if not hasattr(grouped_data, "_group_dim"):
+                logger.warning(
+                    "Not possible to detect grouping dimensions with your version of xarray, "
+                    "so extra_reduce_dims will be ignored. "
+                )
+            else:
+                kwargs["dim"] = _tools.ensure_list(grouped_data._group_dim) + _extra_reduce_dims
+
+        # If how is string and inbuilt method of grouped_data, we apply
+        if isinstance(how, str) and how in dir(grouped_data):
+            red_array = grouped_data.__getattribute__(how)(**kwargs)
+        else:
+            # If how is string, fetch function from dictionary:
+            if isinstance(how, str):
+                how = _tools.get_how_xp(how, data_object=dataarray)
+            assert callable(how), f"how method not recognised: {how}"
+
+            red_array = grouped_data.reduce(how, **kwargs)
+        # Remove the years coordinate
+        del red_array["years"]
+
+        red_array = how_label_rename(red_array, kwargs.get("how_label"))
+
+    return red_array
+
+
+def yearly_mean(
+    *_args,
+    **kwargs,
+):
+    """Calculate the yearly mean.
+
+    Parameters
+    ----------
+    dataarray : xarray.DataArray
+        DataArray containing a `time` dimension.
+    time_dim : str
+        Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
+        default behaviour is to deduce time dimension from
+        attributes of coordinates, then fall back to `"time"`.
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change
+        the local time zone. It can be provided as any object that can be
+        understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
+    remove_partial_periods : bool
+        If True and a time_shift has been applied, the first and last time steps are removed to ensure
+        equality in sampling periods. Default is False.
+    **kwargs
+        Keyword arguments to be passed to :func:`resample`.
+
+    Returns
+    -------
+    xarray.DataArray | xarray.Dataset
+        A dataarray reduced to yearly mean values
+
+    """
+    return yearly_reduce(*_args, how="mean", **kwargs)
+
+
+def yearly_median(
+    *_args,
+    **kwargs,
+):
+    """Calculate the yearly median.
+
+    Parameters
+    ----------
+    dataarray : xarray.DataArray
+        DataArray containing a `time` dimension.
+    time_dim : str
+        Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
+        default behaviour is to deduce time dimension from
+        attributes of coordinates, then fall back to `"time"`.
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change
+        the local time zone. It can be provided as any object that can be
+        understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
+    remove_partial_periods : bool
+        If True and a time_shift has been applied, the first and last time steps are removed to ensure
+        equality in sampling periods. Default is False.
+    **kwargs
+        Keyword arguments to be passed to :func:`resample`.
+
+    Returns
+    -------
+    xarray.DataArray | xarray.Dataset
+        A dataarray reduced to yearly median values
+
+    """
+    return yearly_reduce(*_args, how="median", **kwargs)
+
+
+def yearly_min(
+    *_args,
+    **kwargs,
+):
+    """Calculate the yearly min.
+
+    Parameters
+    ----------
+    dataarray : xarray.DataArray
+        DataArray containing a `time` dimension.
+    time_dim : str
+        Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
+        default behaviour is to deduce time dimension from
+        attributes of coordinates, then fall back to `"time"`.
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change
+        the local time zone. It can be provided as any object that can be
+        understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
+    remove_partial_periods : bool
+        If True and a time_shift has been applied, the first and last time steps are removed to ensure
+        equality in sampling periods. Default is False.
+    **kwargs
+        Keyword arguments to be passed to :func:`resample`.
+
+    Returns
+    -------
+    xarray.DataArray | xarray.Dataset
+        A dataarray reduced to yearly minimum values
+
+    """
+    return yearly_reduce(*_args, how="min", **kwargs)
+
+
+def yearly_max(
+    *_args,
+    **kwargs,
+):
+    """Calculate the yearly max.
+
+    Parameters
+    ----------
+    dataarray : xarray.DataArray
+        DataArray containing a `time` dimension.
+    time_dim : str
+        Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
+        default behaviour is to deduce time dimension from
+        attributes of coordinates, then fall back to `"time"`.
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change
+        the local time zone. It can be provided as any object that can be
+        understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
+    remove_partial_periods : bool
+        If True and a time_shift has been applied, the first and last time steps are removed to ensure
+        equality in sampling periods. Default is False.
+    **kwargs
+        Keyword arguments to be passed to :func:`resample`.
+
+    Returns
+    -------
+    xarray.DataArray | xarray.Dataset
+        A dataarray reduced to yearly maximum values
+
+    """
+    return yearly_reduce(*_args, how="max", **kwargs)
+
+
+def yearly_std(
+    *_args,
+    **kwargs,
+):
+    """Calculate the yearly standard deviation.
+
+    Parameters
+    ----------
+    dataarray : xarray.DataArray
+        DataArray containing a `time` dimension.
+    time_dim : str
+        Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
+        default behaviour is to deduce time dimension from
+        attributes of coordinates, then fall back to `"time"`.
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change
+        the local time zone. It can be provided as any object that can be
+        understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
+    remove_partial_periods : bool
+        If True and a time_shift has been applied, the first and last time steps are removed to ensure
+        equality in sampling periods. Default is False.
+    **kwargs
+        Keyword arguments to be passed to :func:`resample`.
+
+    Returns
+    -------
+    xarray.DataArray | xarray.Dataset
+        A dataarray reduced to yearly standard deviation values
+
+    """
+    return yearly_reduce(*_args, how="std", **kwargs)
+
+
+def yearly_sum(
+    *_args,
+    **kwargs,
+):
+    """Calculate the yearly sum/accumulation along the time dimension.
+
+    Parameters
+    ----------
+    dataarray : xarray.DataArray
+        DataArray containing a `time` dimension.
+    time_dim : str
+        Name of the time dimension, or coordinate, in the xarray object to use for the calculation,
+        default behaviour is to deduce time dimension from
+        attributes of coordinates, then fall back to `"time"`.
+    time_shift : None, timedelta, dict, str or xarray.DataArray, optional
+        A time shift to apply to the data prior to calculation, e.g. to change
+        the local time zone. It can be provided as any object that can be
+        understood by `pandas.Timedelta`, a dictionary is passed as kwargs to
+        `pandas.Timedelta`. A string that cannot be parsed as a timedelta is
+        interpreted as a reference to a coordinate of the input dataarray,
+        allowing, e.g., for spatially-varying per-gridpoint time zone offsets.
+        An `xarray.DataArray` can also be provided directly. Default is None.
+    remove_partial_periods : bool
+        If True and a time_shift has been applied, the first and last time steps are removed to ensure
+        equality in sampling periods. Default is False.
+    **kwargs
+        Keyword arguments to be passed to :func:`resample`.
+
+    Returns
+    -------
+    xarray.DataArray | xarray.Dataset
+        A dataarray reduced to yearly sum values
+
+    """
+    return yearly_reduce(*_args, how="sum", **kwargs)
+
+
+@format_handler()
+@_tools.time_dim_decorator
 def rolling_reduce(
     dataarray: xr.Dataset | xr.DataArray,
     window_length: int | None = None,

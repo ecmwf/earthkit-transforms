@@ -167,6 +167,38 @@ def test_temporal_monthly_reduce_hows(how, in_data=get_data().to_xarray(), expec
 
 
 @pytest.mark.parametrize(
+    "in_data, expected_return_type",
+    (
+        [get_data(), xr.Dataset],
+        [get_data().to_xarray(), xr.Dataset],
+        # [get_data().to_xarray()["2t"], xr.DataArray],
+    ),
+)
+def test_temporal_yearly_reduce_intypes(in_data, expected_return_type, how="mean"):
+    reduced_data = temporal.yearly_reduce(in_data, how=how)
+    assert isinstance(reduced_data, expected_return_type)
+    assert "forecast_reference_time" in list(reduced_data.dims)
+    if expected_return_type == xr.DataArray:
+        assert "2t" == reduced_data.name
+    else:
+        assert "2t" in reduced_data
+
+
+@pytest.mark.parametrize(
+    "how",
+    ("mean", "median", "min", "max", "std", "sum"),
+)
+def test_temporal_yearly_reduce_hows(how, in_data=get_data().to_xarray(), expected_return_type=xr.Dataset):
+    reduced_data = temporal.yearly_reduce(in_data, how=how)
+    assert isinstance(reduced_data, expected_return_type)
+    assert "forecast_reference_time" in list(reduced_data.dims)
+    if expected_return_type == xr.DataArray:
+        assert "2t" == reduced_data.name
+    else:
+        assert "2t" in reduced_data
+
+
+@pytest.mark.parametrize(
     "method",
     (
         "daily_mean",
@@ -181,6 +213,12 @@ def test_temporal_monthly_reduce_hows(how, in_data=get_data().to_xarray(), expec
         "monthly_max",
         "monthly_std",
         "monthly_sum",
+        "yearly_mean",
+        "yearly_median",
+        "yearly_min",
+        "yearly_max",
+        "yearly_std",
+        "yearly_sum",
     ),
 )
 @pytest.mark.parametrize(
@@ -191,7 +229,7 @@ def test_temporal_monthly_reduce_hows(how, in_data=get_data().to_xarray(), expec
         # [get_data().to_xarray()["2t"], xr.DataArray],
     ),
 )
-def test_temporal_daily_monthly_methods(method, in_data, expected_return_type):
+def test_temporal_daily_monthly_yearly_methods(method, in_data, expected_return_type):
     reduced_data = temporal.__getattribute__(method)(in_data)
     assert isinstance(reduced_data, expected_return_type)
     assert "forecast_reference_time" in list(reduced_data.dims)
@@ -231,6 +269,21 @@ def test_temporal_monthly_reduce_extra_reduce_dims():
     assert np.allclose(result.values, [2.5, 6.5])
 
 
+def test_temporal_yearly_reduce_extra_reduce_dims():
+    time = pd.to_datetime(["2023-01-01", "2023-07-01", "2024-01-01", "2024-07-01"])
+    dataarray = xr.DataArray(
+        [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]],
+        dims=("time", "x"),
+        coords={"time": time, "x": [0, 1]},
+        name="test",
+    )
+
+    result = temporal.yearly_reduce(dataarray, how="mean", time_dim="time", extra_reduce_dims=["x"])
+
+    assert result.dims == ("time",)
+    assert np.allclose(result.values, [2.5, 6.5])
+
+
 # ---------------------------------------------------------------------------
 # Local (synthetic-data) tests — no network required
 # ---------------------------------------------------------------------------
@@ -245,6 +298,13 @@ def _make_hourly_da(n_hours=48, start="2020-01-01"):
 
 def _make_daily_da(n_days=60, start="2020-01-01"):
     """Two months of daily data (Jan+Feb 2020 by default)."""
+    time = pd.date_range(start, periods=n_days, freq="D")
+    data = np.arange(float(n_days))
+    return xr.DataArray(data, dims=["time"], coords={"time": time}, name="var")
+
+
+def _make_daily_da_years(n_days=731, start="2019-01-01"):
+    """Two years of daily data (2019 + leap year 2020 by default)."""
     time = pd.date_range(start, periods=n_days, freq="D")
     data = np.arange(float(n_days))
     return xr.DataArray(data, dims=["time"], coords={"time": time}, name="var")
@@ -390,6 +450,43 @@ def test_monthly_reduce_local_returns_correct_mean():
     assert len(result) == 2
     np.testing.assert_allclose(result.isel(time=0).values, np.mean(np.arange(31.0)))
     np.testing.assert_allclose(result.isel(time=1).values, np.mean(np.arange(31.0, 60.0)))
+
+
+# --- temporal.yearly_reduce (local) ----------------------------------------
+
+
+@pytest.mark.parametrize("how", ("mean", "min", "max", "std", "sum"))
+def test_yearly_reduce_local(how):
+    da = _make_daily_da_years()
+    result = temporal.yearly_reduce(da, how=how)
+    assert isinstance(result, xr.DataArray)
+    assert result.dims == ("time",)
+    assert len(result) == 2  # 2019 + 2020
+
+
+def test_yearly_reduce_local_returns_correct_mean():
+    da = _make_daily_da_years()
+    result = temporal.yearly_reduce(da, how="mean")
+    # 2019: days 0-364 (365 days); 2020 (leap year): days 365-730 (366 days)
+    np.testing.assert_allclose(result.values, [np.mean(np.arange(365.0)), np.mean(np.arange(365.0, 731.0))])
+
+
+@pytest.mark.parametrize("how", ("mean", "max", "sum"))
+def test_yearly_reduce_local_groupby_matches_resample(how):
+    da = _make_daily_da_years()
+    resampled = temporal.yearly_reduce(da, how=how)
+    grouped = temporal.yearly_reduce(da, how=how, force_groupby=True)
+    np.testing.assert_allclose(grouped.values, resampled.values)
+    # The temporary grouping coordinate must not leak into the input or the result
+    assert "years" not in da.coords
+    assert "years" not in grouped.coords
+
+
+def test_yearly_reduce_local_timedelta_groupby_raises():
+    da = _make_daily_da_years()
+    da = da.assign_coords(time=da.time - da.time[0])
+    with pytest.raises(TypeError, match="Yearly aggregation is not support"):
+        temporal.yearly_reduce(da, how="mean", force_groupby=True)
 
 
 # --- temporal.rolling_reduce (local) ----------------------------------------
