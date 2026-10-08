@@ -44,6 +44,6 @@ def _reduce_file(reduce_func, how, source, target, profile=None, **kwargs):
     kwargs = {k: v for k, v in kwargs.items() if v is not None}
     xarray_kwargs = {"profile": profile} if profile is not None else {}
 
-    in_data = source.from_source().to_xarray(**xarray_kwargs)
+    in_data = source.to_xarray(**xarray_kwargs)
     out_data = reduce_func(in_data, how=how, **kwargs)
     target.to_target(out_data)
