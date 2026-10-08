@@ -14,14 +14,9 @@ reductions in :mod:`earthkit.transforms.temporal`.
 
 import click
 from earthkit.cli.main import earthkit
+from earthkit.cli.standard_args import add_options, split_csv
 
-from earthkit.cli.transforms._tools import (
-    _add_options,
-    _io_arguments,
-    _read_options,
-    _reduce_file,
-    _split_csv,
-)
+from earthkit.cli.transforms._tools import _io_arguments, _read_options, _reduce_file
 
 _temporal_reduce_options = [
     click.option(
@@ -41,21 +36,21 @@ _temporal_reduce_options = [
         "-r",
         "--extra-reduce-dims",
         multiple=True,
-        callback=_split_csv,
+        callback=split_csv,
         help="Additional dimensions to reduce over, e.g. 'latitude,longitude'. Comma-separated or repeated.",
     ),
 ]
 
 
 @earthkit.command(name="daily-agg")
-@_add_options(_io_arguments + _read_options + _temporal_reduce_options)
+@add_options(_io_arguments + _read_options + _temporal_reduce_options)
 def daily_agg(**kwargs):
-    """Aggregate INPUT to daily values and write the result to OUTPUT as NetCDF.
+    """Aggregate SOURCE_FILE to daily values and write the result to TARGET_FILE as NetCDF.
 
     HOW is the reduction applied to each day's data, e.g. 'mean', 'max', 'min' or 'sum'.
     Any xarray reduction method, earthkit-transforms method or numpy function name is accepted.
 
-    INPUT is any file readable by earthkit-data (e.g. GRIB or NetCDF).
+    SOURCE_FILE is any file readable by earthkit-data (e.g. GRIB or NetCDF).
 
     \b
     Example:
@@ -67,14 +62,14 @@ def daily_agg(**kwargs):
 
 
 @earthkit.command(name="monthly-agg")
-@_add_options(_io_arguments + _read_options + _temporal_reduce_options)
+@add_options(_io_arguments + _read_options + _temporal_reduce_options)
 def monthly_agg(**kwargs):
-    """Aggregate INPUT to monthly values and write the result to OUTPUT as NetCDF.
+    """Aggregate SOURCE_FILE to monthly values and write the result to TARGET_FILE as NetCDF.
 
     HOW is the reduction applied to each month's data, e.g. 'mean', 'max', 'min' or 'sum'.
     Any xarray reduction method, earthkit-transforms method or numpy function name is accepted.
 
-    INPUT is any file readable by earthkit-data (e.g. GRIB or NetCDF).
+    SOURCE_FILE is any file readable by earthkit-data (e.g. GRIB or NetCDF).
 
     \b
     Example:
@@ -86,14 +81,14 @@ def monthly_agg(**kwargs):
 
 
 @earthkit.command(name="yearly-agg")
-@_add_options(_io_arguments + _read_options + _temporal_reduce_options)
+@add_options(_io_arguments + _read_options + _temporal_reduce_options)
 def yearly_agg(**kwargs):
-    """Aggregate INPUT to yearly values and write the result to OUTPUT as NetCDF.
+    """Aggregate SOURCE_FILE to yearly values and write the result to TARGET_FILE as NetCDF.
 
     HOW is the reduction applied to each year's data, e.g. 'mean', 'max', 'min' or 'sum'.
     Any xarray reduction method, earthkit-transforms method or numpy function name is accepted.
 
-    INPUT is any file readable by earthkit-data (e.g. GRIB or NetCDF).
+    SOURCE_FILE is any file readable by earthkit-data (e.g. GRIB or NetCDF).
 
     \b
     Example:

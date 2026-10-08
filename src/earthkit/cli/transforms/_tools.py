@@ -6,54 +6,28 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
-"""Shared helpers, arguments and options for the earthkit-transforms commands.
+"""Helpers, arguments and options shared by the earthkit-transforms commands.
+
+Arguments and options common to all earthkit packages come from :mod:`earthkit.cli.standard_args`.
 
 Only import :mod:`click` and light standard library modules at module level, see
 :mod:`earthkit.cli.transforms`.
 """
 
 import click
-
-
-def _split_csv(ctx, param, value):
-    """Turn a tuple of (possibly comma-separated) option values into a flat list."""
-    if not value:
-        return None
-    result = []
-    for item in value:
-        result.extend(v.strip() for v in item.split(",") if v.strip())
-    return result or None
-
-
-def _add_options(options):
-    """Apply a list of click arguments/options to a command, in the order they are listed."""
-
-    def _decorator(func):
-        for option in reversed(options):
-            func = option(func)
-        return func
-
-    return _decorator
-
+from earthkit.cli.standard_args import profile_option, source_file_argument, target_file_argument
 
 _io_arguments = [
     click.argument("how", metavar="HOW", type=click.STRING),
-    click.argument("input_file", metavar="INPUT", type=click.Path(exists=True, dir_okay=False)),
-    click.argument("output_file", metavar="OUTPUT", type=click.Path(dir_okay=False, writable=True)),
+    source_file_argument,
+    target_file_argument,
 ]
 
-_read_options = [
-    click.option(
-        "--profile",
-        default=None,
-        help="Name of the earthkit Xarray engine profile used when opening GRIB data, e.g. 'mars'. "
-        "Uses the earthkit-data default if not given.",
-    ),
-]
+_read_options = [profile_option]
 
 
-def _reduce_file(reduce_func, how, input_file, output_file, profile=None, **kwargs):
-    """Read INPUT with earthkit-data, apply ``reduce_func`` and write the result to OUTPUT."""
+def _reduce_file(reduce_func, how, source_file, target_file, profile=None, **kwargs):
+    """Read SOURCE_FILE with earthkit-data, apply ``reduce_func`` and write the result to TARGET_FILE."""
     try:
         import earthkit.data as ekd
     except ImportError:
@@ -65,6 +39,6 @@ def _reduce_file(reduce_func, how, input_file, output_file, profile=None, **kwar
     kwargs = {k: v for k, v in kwargs.items() if v is not None}
     xarray_kwargs = {"profile": profile} if profile is not None else {}
 
-    in_data = ekd.from_source("file", input_file).to_xarray(**xarray_kwargs)
+    in_data = ekd.from_source("file", source_file).to_xarray(**xarray_kwargs)
     out_data = reduce_func(in_data, how=how, **kwargs)
-    ekd.to_target("file", output_file, data=out_data)
+    ekd.to_target("file", target_file, data=out_data)

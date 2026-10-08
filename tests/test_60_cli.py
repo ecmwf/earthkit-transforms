@@ -51,7 +51,7 @@ def test_cli_info_lists_transforms_commands():
 @pytest.mark.parametrize("name", ("daily-agg", "monthly-agg", "yearly-agg"))
 def test_cli_help(name):
     result = _invoke(earthkit, name, "--help")
-    assert "HOW INPUT OUTPUT" in result.output
+    assert "HOW SOURCE_FILE TARGET_FILE" in result.output
     for option in ("--profile", "--time-dim", "--time-shift", "--extra-reduce-dims"):
         assert option in result.output
 
