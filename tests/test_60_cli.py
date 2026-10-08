@@ -117,6 +117,19 @@ def test_cli_extra_reduce_dims(netcdf_file, tmp_path, reduce_args):
         np.testing.assert_allclose(result["t2m"].values, expected.values)
 
 
+def test_cli_merges_sources(netcdf_file, tmp_path):
+    _, ds = netcdf_file
+    paths = []
+    for year in ("2019", "2020"):
+        paths.append(tmp_path / f"in{year}.nc")
+        ds.sel(time=year).to_netcdf(paths[-1])
+    out_path = tmp_path / "out.nc"
+    _invoke(temporal_cli.yearly_agg, "mean", *paths, out_path)
+    expected = ds["t2m"].groupby("time.year").mean()
+    with xr.open_dataset(out_path) as result:
+        np.testing.assert_allclose(result["t2m"].values, expected.values)
+
+
 def test_cli_missing_input(tmp_path):
     result = CliRunner().invoke(
         temporal_cli.yearly_agg,

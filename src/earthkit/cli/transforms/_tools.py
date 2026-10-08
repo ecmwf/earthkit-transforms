@@ -27,23 +27,13 @@ _read_options = [profile_option]
 
 
 def _reduce_file(reduce_func, how, source, target, profile=None, **kwargs):
-    """Read SOURCE with earthkit-data, apply ``reduce_func`` and write the result to TARGET.
+    """Apply ``reduce_func`` to SOURCE and write the result to TARGET.
 
-    ``source`` and ``target`` are the :class:`~earthkit.cli.standard_args.Source` and
-    :class:`~earthkit.cli.standard_args.Target` built by :func:`~earthkit.cli.standard_args.source_options`
-    and :func:`~earthkit.cli.standard_args.target_options`.
+    ``source`` is the earthkit-data object opened by :func:`~earthkit.cli.standard_args.source_options`, and
+    ``target`` the :class:`~earthkit.cli.standard_args.Target` of :func:`~earthkit.cli.standard_args.target_options`.
     """
-    try:
-        import earthkit.data  # noqa: F401
-    except ImportError:
-        raise click.ClickException(
-            "earthkit-data is required to read input data, install it with 'pip install earthkit-transforms[all]'"
-        )
-
     # Fall back to the reduce function defaults, don't duplicate here
     kwargs = {k: v for k, v in kwargs.items() if v is not None}
     xarray_kwargs = {"profile": profile} if profile is not None else {}
 
-    in_data = source.to_xarray(**xarray_kwargs)
-    out_data = reduce_func(in_data, how=how, **kwargs)
-    target.to_target(out_data)
+    target.to_target(reduce_func(source.to_xarray(**xarray_kwargs), how=how, **kwargs))

@@ -52,7 +52,7 @@ def daily_agg(**kwargs):
 
     SOURCE is the earthkit-data source to read, as [NAME:]VALUE, e.g. a file path (GRIB, NetCDF, ...),
     'url:https://myhost.int/file.nc' or a JSON request such as 'cds:{"dataset": ..., ...}'.
-    NAME is 'file' if not given.
+    NAME is 'file' if not given. Several sources are merged.
 
     TARGET is the earthkit-data target to write the result to, as [NAME:]VALUE, e.g. a file path or
     'zarr:{"xarray_to_zarr_kwargs": {"store": "out.zarr"}}'. NAME is 'file' if not given.
@@ -76,7 +76,7 @@ def monthly_agg(**kwargs):
 
     SOURCE is the earthkit-data source to read, as [NAME:]VALUE, e.g. a file path (GRIB, NetCDF, ...),
     'url:https://myhost.int/file.nc' or a JSON request such as 'cds:{"dataset": ..., ...}'.
-    NAME is 'file' if not given.
+    NAME is 'file' if not given. Several sources are merged.
 
     TARGET is the earthkit-data target to write the result to, as [NAME:]VALUE, e.g. a file path or
     'zarr:{"xarray_to_zarr_kwargs": {"store": "out.zarr"}}'. NAME is 'file' if not given.
@@ -103,7 +103,7 @@ def yearly_agg(**kwargs):
 
     SOURCE is the earthkit-data source to read, as [NAME:]VALUE, e.g. a file path (GRIB, NetCDF, ...),
     'url:https://myhost.int/file.nc' or a JSON request such as 'cds:{"dataset": ..., ...}'.
-    NAME is 'file' if not given.
+    NAME is 'file' if not given. Several sources are merged.
 
     TARGET is the earthkit-data target to write the result to, as [NAME:]VALUE, e.g. a file path or
     'zarr:{"xarray_to_zarr_kwargs": {"store": "out.zarr"}}'. NAME is 'file' if not given.
