@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -22,6 +24,10 @@ def netcdf_file(tmp_path):
     path = tmp_path / "in.nc"
     ds.to_netcdf(path)
     return path, ds
+
+
+def _io(source, target):
+    return ["--source", source, "--target", target]
 
 
 def _invoke(command, *args):
@@ -51,8 +57,15 @@ def test_cli_info_lists_transforms_commands():
 @pytest.mark.parametrize("name", ("daily-agg", "monthly-agg", "yearly-agg"))
 def test_cli_help(name):
     result = _invoke(earthkit, name, "--help")
-    assert "HOW SOURCE_FILE TARGET_FILE" in result.output
-    for option in ("--profile", "--time-dim", "--time-shift", "--extra-reduce-dims"):
+    assert "[OPTIONS] HOW\n" in result.output
+    for option in (
+        "--source [NAME:]VALUE",
+        "--target [NAME:]VALUE",
+        "--profile",
+        "--time-dim",
+        "--time-shift",
+        "--extra-reduce-dims",
+    ):
         assert option in result.output
 
 
@@ -67,7 +80,7 @@ def test_cli_help(name):
 def test_cli_agg_writes_output(netcdf_file, tmp_path, name, expected_length):
     in_path, _ = netcdf_file
     out_path = tmp_path / "out.nc"
-    _invoke(earthkit, name, "mean", in_path, out_path)
+    _invoke(earthkit, name, "mean", *_io(in_path, out_path))
     with xr.open_dataset(out_path) as result:
         assert "t2m" in result
         assert dict(result.sizes) == {"time": expected_length, "latitude": 2, "longitude": 3}
@@ -76,7 +89,13 @@ def test_cli_agg_writes_output(netcdf_file, tmp_path, name, expected_length):
 def test_cli_yearly_agg_values(netcdf_file, tmp_path):
     in_path, ds = netcdf_file
     out_path = tmp_path / "out.nc"
-    _invoke(temporal_cli.yearly_agg, "max", in_path, out_path, "--time-dim", "time")
+    _invoke(
+        temporal_cli.yearly_agg,
+        "max",
+        *_io(in_path, out_path),
+        "--time-dim",
+        "time",
+    )
     expected = ds["t2m"].groupby("time.year").max()
     with xr.open_dataset(out_path) as result:
         np.testing.assert_allclose(result["t2m"].values, expected.values)
@@ -92,7 +111,7 @@ def test_cli_yearly_agg_values(netcdf_file, tmp_path):
 def test_cli_extra_reduce_dims(netcdf_file, tmp_path, reduce_args):
     in_path, ds = netcdf_file
     out_path = tmp_path / "out.nc"
-    _invoke(temporal_cli.yearly_agg, "mean", in_path, out_path, *reduce_args)
+    _invoke(temporal_cli.yearly_agg, "mean", *_io(in_path, out_path), *reduce_args)
     expected = ds["t2m"].groupby("time.year").mean(["time", "latitude", "longitude"])
     with xr.open_dataset(out_path) as result:
         assert dict(result.sizes) == {"time": 2}
@@ -101,7 +120,40 @@ def test_cli_extra_reduce_dims(netcdf_file, tmp_path, reduce_args):
 
 def test_cli_missing_input(tmp_path):
     result = CliRunner().invoke(
-        temporal_cli.yearly_agg, ["mean", str(tmp_path / "missing.nc"), str(tmp_path / "out.nc")]
+        temporal_cli.yearly_agg,
+        ["mean", "--source", f"file:{tmp_path / 'missing.nc'}", "--target", f"file:{tmp_path / 'out.nc'}"],
     )
     assert result.exit_code == 2
     assert "does not exist" in result.output
+
+
+def test_cli_cds_source(netcdf_file, tmp_path, monkeypatch):
+    import earthkit.data as ekd
+
+    _, ds = netcdf_file
+    calls = []
+
+    class _Data:
+        def to_xarray(self, **kwargs):
+            return ds
+
+    def _from_source(name, *args, **kwargs):
+        calls.append((name, args, kwargs))
+        return _Data()
+
+    monkeypatch.setattr(ekd, "from_source", _from_source)
+
+    request = {"variable": "2m_temperature", "year": ["2019", "2020"]}
+    out_path = tmp_path / "out.nc"
+    _invoke(
+        earthkit,
+        "yearly-agg",
+        "mean",
+        "--source",
+        "cds:" + json.dumps({"dataset": "reanalysis-era5-single-levels", **request}),
+        "--target",
+        f"file:{out_path}",
+    )
+    assert calls == [("cds", ("reanalysis-era5-single-levels",), {"request": request})]
+    with xr.open_dataset(out_path) as result:
+        assert dict(result.sizes) == {"time": 2, "latitude": 2, "longitude": 3}

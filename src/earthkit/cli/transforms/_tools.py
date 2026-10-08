@@ -15,30 +15,35 @@ Only import :mod:`click` and light standard library modules at module level, see
 """
 
 import click
-from earthkit.cli.standard_args import profile_option, source_file_argument, target_file_argument
+from earthkit.cli.standard_args import profile_option, source_options, target_options
 
 _io_arguments = [
     click.argument("how", metavar="HOW", type=click.STRING),
-    source_file_argument,
-    target_file_argument,
+    source_options(),
+    target_options(),
 ]
 
 _read_options = [profile_option]
 
 
-def _reduce_file(reduce_func, how, source_file, target_file, profile=None, **kwargs):
-    """Read SOURCE_FILE with earthkit-data, apply ``reduce_func`` and write the result to TARGET_FILE."""
+def _reduce_file(reduce_func, how, source, target, profile=None, **kwargs):
+    """Read SOURCE with earthkit-data, apply ``reduce_func`` and write the result to TARGET.
+
+    ``source`` and ``target`` are the :class:`~earthkit.cli.standard_args.Source` and
+    :class:`~earthkit.cli.standard_args.Target` built by :func:`~earthkit.cli.standard_args.source_options`
+    and :func:`~earthkit.cli.standard_args.target_options`.
+    """
     try:
-        import earthkit.data as ekd
+        import earthkit.data  # noqa: F401
     except ImportError:
         raise click.ClickException(
-            "earthkit-data is required to read input files, install it with 'pip install earthkit-transforms[all]'"
+            "earthkit-data is required to read input data, install it with 'pip install earthkit-transforms[all]'"
         )
 
     # Fall back to the reduce function defaults, don't duplicate here
     kwargs = {k: v for k, v in kwargs.items() if v is not None}
     xarray_kwargs = {"profile": profile} if profile is not None else {}
 
-    in_data = ekd.from_source("file", source_file).to_xarray(**xarray_kwargs)
+    in_data = source.from_source().to_xarray(**xarray_kwargs)
     out_data = reduce_func(in_data, how=how, **kwargs)
-    ekd.to_target("file", target_file, data=out_data)
+    target.to_target(out_data)
