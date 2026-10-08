@@ -19,8 +19,8 @@ from earthkit.cli.standard_args import profile_option, source_options, target_op
 
 _io_arguments = [
     click.argument("how", metavar="HOW", type=click.STRING),
-    source_options(),
-    target_options(),
+    source_options(positional=True),
+    target_options(positional=True),
 ]
 
 _read_options = [profile_option]

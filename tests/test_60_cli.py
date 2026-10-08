@@ -26,8 +26,8 @@ def netcdf_file(tmp_path):
     return path, ds
 
 
-def _io(source, target):
-    return ["--source", source, "--target", target]
+def _io(how, source, target, *options):
+    return [how, source, *options, target]
 
 
 def _invoke(command, *args):
@@ -57,10 +57,10 @@ def test_cli_info_lists_transforms_commands():
 @pytest.mark.parametrize("name", ("daily-agg", "monthly-agg", "yearly-agg"))
 def test_cli_help(name):
     result = _invoke(earthkit, name, "--help")
-    assert "[OPTIONS] HOW\n" in result.output
+    assert "[OPTIONS] HOW SOURCE TARGET\n" in result.output
+    for text in ("--source", "--target"):
+        assert text not in result.output
     for option in (
-        "--source [NAME:]VALUE",
-        "--target [NAME:]VALUE",
         "--profile",
         "--time-dim",
         "--time-shift",
@@ -80,7 +80,7 @@ def test_cli_help(name):
 def test_cli_agg_writes_output(netcdf_file, tmp_path, name, expected_length):
     in_path, _ = netcdf_file
     out_path = tmp_path / "out.nc"
-    _invoke(earthkit, name, "mean", *_io(in_path, out_path))
+    _invoke(earthkit, name, *_io("mean", in_path, out_path))
     with xr.open_dataset(out_path) as result:
         assert "t2m" in result
         assert dict(result.sizes) == {"time": expected_length, "latitude": 2, "longitude": 3}
@@ -91,8 +91,7 @@ def test_cli_yearly_agg_values(netcdf_file, tmp_path):
     out_path = tmp_path / "out.nc"
     _invoke(
         temporal_cli.yearly_agg,
-        "max",
-        *_io(in_path, out_path),
+        *_io("max", in_path, out_path),
         "--time-dim",
         "time",
     )
@@ -111,7 +110,7 @@ def test_cli_yearly_agg_values(netcdf_file, tmp_path):
 def test_cli_extra_reduce_dims(netcdf_file, tmp_path, reduce_args):
     in_path, ds = netcdf_file
     out_path = tmp_path / "out.nc"
-    _invoke(temporal_cli.yearly_agg, "mean", *_io(in_path, out_path), *reduce_args)
+    _invoke(temporal_cli.yearly_agg, *_io("mean", in_path, out_path, *reduce_args))
     expected = ds["t2m"].groupby("time.year").mean(["time", "latitude", "longitude"])
     with xr.open_dataset(out_path) as result:
         assert dict(result.sizes) == {"time": 2}
@@ -121,10 +120,10 @@ def test_cli_extra_reduce_dims(netcdf_file, tmp_path, reduce_args):
 def test_cli_missing_input(tmp_path):
     result = CliRunner().invoke(
         temporal_cli.yearly_agg,
-        ["mean", "--source", f"file:{tmp_path / 'missing.nc'}", "--target", f"file:{tmp_path / 'out.nc'}"],
+        [str(a) for a in _io("mean", tmp_path / "missing.nc", tmp_path / "out.nc")],
     )
     assert result.exit_code == 2
-    assert "does not exist" in result.output
+    assert "Invalid value for 'SOURCE'" in result.output and "does not exist" in result.output
 
 
 def test_cli_cds_source(netcdf_file, tmp_path, monkeypatch):
@@ -149,10 +148,8 @@ def test_cli_cds_source(netcdf_file, tmp_path, monkeypatch):
         earthkit,
         "yearly-agg",
         "mean",
-        "--source",
         "cds:" + json.dumps({"dataset": "reanalysis-era5-single-levels", **request}),
-        "--target",
-        f"file:{out_path}",
+        out_path,
     )
     assert calls == [("cds", ("reanalysis-era5-single-levels",), {"request": request})]
     with xr.open_dataset(out_path) as result:

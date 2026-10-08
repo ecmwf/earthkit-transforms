@@ -50,13 +50,16 @@ def daily_agg(**kwargs):
     HOW is the reduction applied to each day's data, e.g. 'mean', 'max', 'min' or 'sum'.
     Any xarray reduction method, earthkit-transforms method or numpy function name is accepted.
 
-    The data is read from the earthkit-data source given by --source [NAME:]VALUE, e.g. a file (GRIB, NetCDF, ...),
-    a URL or a JSON request to the CDS or MARS. The result is written to the earthkit-data target given by
-    --target [NAME:]VALUE, e.g. a file or a Zarr store.
+    SOURCE is the earthkit-data source to read, as [NAME:]VALUE, e.g. a file path (GRIB, NetCDF, ...),
+    'url:https://myhost.int/file.nc' or a JSON request such as 'cds:{"dataset": ..., ...}'.
+    NAME is 'file' if not given.
+
+    TARGET is the earthkit-data target to write the result to, as [NAME:]VALUE, e.g. a file path or
+    'zarr:{"xarray_to_zarr_kwargs": {"store": "out.zarr"}}'. NAME is 'file' if not given.
 
     \b
     Example:
-        earthkit daily-agg mean --source input.grib --target output.nc --time-shift 3h
+        earthkit daily-agg mean input.grib --time-shift 3h output.nc
     """  # noqa: D301 (\b is a Click paragraph marker)
     from earthkit.transforms import temporal
 
@@ -71,16 +74,19 @@ def monthly_agg(**kwargs):
     HOW is the reduction applied to each month's data, e.g. 'mean', 'max', 'min' or 'sum'.
     Any xarray reduction method, earthkit-transforms method or numpy function name is accepted.
 
-    The data is read from the earthkit-data source given by --source [NAME:]VALUE, e.g. a file (GRIB, NetCDF, ...),
-    a URL or a JSON request to the CDS or MARS. The result is written to the earthkit-data target given by
-    --target [NAME:]VALUE, e.g. a file or a Zarr store.
+    SOURCE is the earthkit-data source to read, as [NAME:]VALUE, e.g. a file path (GRIB, NetCDF, ...),
+    'url:https://myhost.int/file.nc' or a JSON request such as 'cds:{"dataset": ..., ...}'.
+    NAME is 'file' if not given.
+
+    TARGET is the earthkit-data target to write the result to, as [NAME:]VALUE, e.g. a file path or
+    'zarr:{"xarray_to_zarr_kwargs": {"store": "out.zarr"}}'. NAME is 'file' if not given.
 
     \b
     Example:
-        earthkit monthly-agg sum --source input.grib --target output.nc \\
-            --extra-reduce-dims latitude,longitude
-        earthkit monthly-agg mean --target file:output.nc --source \\
-            'cds:{"dataset": "reanalysis-era5-single-levels", "variable": "2m_temperature", "year": "2020"}'
+        earthkit monthly-agg sum input.grib --extra-reduce-dims latitude,longitude output.nc
+        earthkit monthly-agg mean \\
+            'cds:{"dataset": "reanalysis-era5-single-levels", "variable": "2m_temperature", "year": "2020"}' \\
+            output.nc
     """  # noqa: D301 (\b is a Click paragraph marker)
     from earthkit.transforms import temporal
 
@@ -95,13 +101,16 @@ def yearly_agg(**kwargs):
     HOW is the reduction applied to each year's data, e.g. 'mean', 'max', 'min' or 'sum'.
     Any xarray reduction method, earthkit-transforms method or numpy function name is accepted.
 
-    The data is read from the earthkit-data source given by --source [NAME:]VALUE, e.g. a file (GRIB, NetCDF, ...),
-    a URL or a JSON request to the CDS or MARS. The result is written to the earthkit-data target given by
-    --target [NAME:]VALUE, e.g. a file or a Zarr store.
+    SOURCE is the earthkit-data source to read, as [NAME:]VALUE, e.g. a file path (GRIB, NetCDF, ...),
+    'url:https://myhost.int/file.nc' or a JSON request such as 'cds:{"dataset": ..., ...}'.
+    NAME is 'file' if not given.
+
+    TARGET is the earthkit-data target to write the result to, as [NAME:]VALUE, e.g. a file path or
+    'zarr:{"xarray_to_zarr_kwargs": {"store": "out.zarr"}}'. NAME is 'file' if not given.
 
     \b
     Example:
-        earthkit yearly-agg max --source input.grib --target output.nc
+        earthkit yearly-agg max input.grib output.nc
     """  # noqa: D301 (\b is a Click paragraph marker)
     from earthkit.transforms import temporal
 
