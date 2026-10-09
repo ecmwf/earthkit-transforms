@@ -61,6 +61,10 @@ def test_cli_help(name):
     assert "[OPTIONS] HOW SOURCE TARGET\n" in result.output
     for text in ("--source", "--target"):
         assert text not in result.output
+    # Only the common options of earthkit-utils have short flags
+    for flag in ("-t,", "-s,", "-r,"):
+        assert flag not in result.output
+    assert "-p, --profile" in result.output
     for option in (
         "--profile",
         "--time-dim",
@@ -109,7 +113,7 @@ def test_cli_yearly_agg_values(netcdf_file, tmp_path):
     "reduce_args",
     (
         ["--extra-reduce-dims", "latitude,longitude"],
-        ["-r", "latitude", "-r", "longitude"],
+        ["--extra-reduce-dims", "latitude", "--extra-reduce-dims", "longitude"],
     ),
 )
 def test_cli_extra_reduce_dims(netcdf_file, tmp_path, reduce_args):
@@ -186,7 +190,18 @@ def test_cli_cds_source(fake_source, tmp_path):
         # Unset options are not passed, so the reduce function and earthkit-data defaults apply
         ([], {}, {}),
         (
-            ["-t", "valid_time", "-s", "3h", "-r", "latitude,longitude", "--profile", "mars", "-p", "my.yaml"],
+            [
+                "--time-dim",
+                "valid_time",
+                "--time-shift",
+                "3h",
+                "--extra-reduce-dims",
+                "latitude,longitude",
+                "--profile",
+                "mars",
+                "-p",
+                "my.yaml",
+            ],
             {"time_dim": "valid_time", "time_shift": "3h", "extra_reduce_dims": ["latitude", "longitude"]},
             {"profile": ["mars", "my.yaml"]},
         ),

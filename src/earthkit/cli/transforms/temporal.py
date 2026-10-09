@@ -32,18 +32,15 @@ _agg_options = [
     target_options(positional=True),
     profile_option,
     click.option(
-        "-t",
         "--time-dim",
         help="Name of the time dimension or coordinate. Deduced from the data by default.",
     ),
     click.option(
-        "-s",
         "--time-shift",
         help="Time shift applied before the calculation, e.g. '3h' or '-30min', "
         "or the name of a coordinate holding per-gridpoint offsets.",
     ),
     click.option(
-        "-r",
         "--extra-reduce-dims",
         multiple=True,
         callback=split_csv,
