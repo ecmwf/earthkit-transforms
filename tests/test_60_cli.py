@@ -6,6 +6,7 @@ import pytest
 import xarray as xr
 from click.testing import CliRunner
 from earthkit.cli.main import earthkit
+from earthkit.cli.standard_args import SOURCE_HELP, TARGET_HELP
 
 from earthkit.cli.transforms import temporal as temporal_cli
 
@@ -67,6 +68,10 @@ def test_cli_help(name):
         "--extra-reduce-dims",
     ):
         assert option in result.output
+    # The shared descriptions from earthkit-utils, rewrapped by click
+    usage = " ".join(result.output.split())
+    for text in (SOURCE_HELP, TARGET_HELP):
+        assert " ".join(text.split()) in usage
 
 
 @pytest.mark.parametrize(
@@ -139,22 +144,28 @@ def test_cli_missing_input(tmp_path):
     assert "Invalid value for 'SOURCE'" in result.output and "does not exist" in result.output
 
 
-def test_cli_cds_source(netcdf_file, tmp_path, monkeypatch):
+@pytest.fixture
+def fake_source(netcdf_file, monkeypatch):
+    """Replace earthkit.data.from_source, recording its calls and the to_xarray kwargs of the returned data."""
     import earthkit.data as ekd
 
     _, ds = netcdf_file
-    calls = []
+    calls = {"from_source": [], "to_xarray": []}
 
     class _Data:
         def to_xarray(self, **kwargs):
+            calls["to_xarray"].append(kwargs)
             return ds
 
     def _from_source(name, *args, **kwargs):
-        calls.append((name, args, kwargs))
+        calls["from_source"].append((name, args, kwargs))
         return _Data()
 
     monkeypatch.setattr(ekd, "from_source", _from_source)
+    return calls
 
+
+def test_cli_cds_source(fake_source, tmp_path):
     request = {"variable": "2m_temperature", "year": ["2019", "2020"]}
     out_path = tmp_path / "out.nc"
     _invoke(
@@ -164,6 +175,42 @@ def test_cli_cds_source(netcdf_file, tmp_path, monkeypatch):
         "cds:" + json.dumps({"dataset": "reanalysis-era5-single-levels", **request}),
         out_path,
     )
-    assert calls == [("cds", ("reanalysis-era5-single-levels",), {"request": request})]
+    assert fake_source["from_source"] == [("cds", ("reanalysis-era5-single-levels",), {"request": request})]
+    with xr.open_dataset(out_path) as result:
+        assert dict(result.sizes) == {"time": 2, "latitude": 2, "longitude": 3}
+
+
+@pytest.mark.parametrize(
+    "options, reduce_kwargs, xarray_kwargs",
+    (
+        # Unset options are not passed, so the reduce function and earthkit-data defaults apply
+        ([], {}, {}),
+        (
+            ["-t", "valid_time", "-s", "3h", "-r", "latitude,longitude", "--profile", "mars"],
+            {"time_dim": "valid_time", "time_shift": "3h", "extra_reduce_dims": ["latitude", "longitude"]},
+            {"profile": "mars"},
+        ),
+    ),
+)
+@pytest.mark.parametrize("name", ("daily", "monthly", "yearly"))
+def test_cli_passes_options(fake_source, tmp_path, monkeypatch, name, options, reduce_kwargs, xarray_kwargs):
+    from earthkit.transforms import temporal
+
+    calls = []
+
+    def _reduce(data, **kwargs):
+        calls.append(kwargs)
+        return data
+
+    monkeypatch.setattr(temporal, f"{name}_reduce", _reduce)
+    _invoke(earthkit, f"{name}-agg", *_io("max", "dummy:", tmp_path / "out.nc", *options))
+    assert calls == [{"how": "max", **reduce_kwargs}]
+    assert fake_source["to_xarray"] == [xarray_kwargs]
+
+
+def test_cli_json_target(netcdf_file, tmp_path):
+    in_path, _ = netcdf_file
+    out_path = tmp_path / "out.nc"
+    _invoke(temporal_cli.yearly_agg, *_io("mean", in_path, "file:" + json.dumps({"file": str(out_path)})))
     with xr.open_dataset(out_path) as result:
         assert dict(result.sizes) == {"time": 2, "latitude": 2, "longitude": 3}

@@ -14,21 +14,31 @@ reductions in :mod:`earthkit.transforms.temporal`.
 
 import click
 from earthkit.cli.main import earthkit
-from earthkit.cli.standard_args import add_options, split_csv
+from earthkit.cli.standard_args import (
+    SOURCE_HELP,
+    TARGET_HELP,
+    add_options,
+    profile_option,
+    source_options,
+    split_csv,
+    target_options,
+)
 
-from earthkit.cli.transforms._tools import _io_arguments, _read_options, _reduce_file
+from earthkit.cli.transforms._tools import _reduce_file
 
-_temporal_reduce_options = [
+_agg_options = [
+    click.argument("how"),
+    source_options(positional=True),
+    target_options(positional=True),
+    profile_option,
     click.option(
         "-t",
         "--time-dim",
-        default=None,
         help="Name of the time dimension or coordinate. Deduced from the data by default.",
     ),
     click.option(
         "-s",
         "--time-shift",
-        default=None,
         help="Time shift applied before the calculation, e.g. '3h' or '-30min', "
         "or the name of a coordinate holding per-gridpoint offsets.",
     ),
@@ -41,77 +51,48 @@ _temporal_reduce_options = [
     ),
 ]
 
+_AGG_HELP = """Aggregate data to {frequency} values.
 
-@earthkit.command(name="daily-agg")
-@add_options(_io_arguments + _read_options + _temporal_reduce_options)
-def daily_agg(**kwargs):
-    """Aggregate data to daily values.
+HOW is the reduction applied to each {period}'s data, e.g. 'mean', 'max', 'min' or 'sum'.
+Any xarray reduction method, earthkit-transforms method or numpy function name is accepted.
 
-    HOW is the reduction applied to each day's data, e.g. 'mean', 'max', 'min' or 'sum'.
-    Any xarray reduction method, earthkit-transforms method or numpy function name is accepted.
+SOURCE: {source_help}
 
-    SOURCE is the earthkit-data source to read, as [NAME:]VALUE, e.g. a file path (GRIB, NetCDF, ...),
-    'url:https://myhost.int/file.nc' or a JSON request such as 'cds:{"dataset": ..., ...}'.
-    NAME is 'file' if not given. Several sources are merged.
+TARGET: {target_help}
 
-    TARGET is the earthkit-data target to write the result to, as [NAME:]VALUE, e.g. a file path or
-    'zarr:{"xarray_to_zarr_kwargs": {"store": "out.zarr"}}'. NAME is 'file' if not given.
-
-    \b
-    Example:
-        earthkit daily-agg mean input.grib --time-shift 3h output.nc
-    """  # noqa: D301 (\b is a Click paragraph marker)
-    from earthkit.transforms import temporal
-
-    _reduce_file(temporal.daily_reduce, **kwargs)
+\b
+Example:
+{examples}
+"""
 
 
-@earthkit.command(name="monthly-agg")
-@add_options(_io_arguments + _read_options + _temporal_reduce_options)
-def monthly_agg(**kwargs):
-    """Aggregate data to monthly values.
+def _agg_command(frequency, period, *examples):
+    """Return the ``earthkit {frequency}-agg`` command, wrapping ``earthkit.transforms.temporal.{frequency}_reduce``."""
+    help = _AGG_HELP.format(
+        frequency=frequency,
+        period=period,
+        source_help=SOURCE_HELP,
+        target_help=TARGET_HELP,
+        examples="\n".join(f"    earthkit {frequency}-agg {example}" for example in examples),
+    )
 
-    HOW is the reduction applied to each month's data, e.g. 'mean', 'max', 'min' or 'sum'.
-    Any xarray reduction method, earthkit-transforms method or numpy function name is accepted.
+    @earthkit.command(name=f"{frequency}-agg", help=help)
+    @add_options(_agg_options)
+    def command(**kwargs):
+        from earthkit.transforms import temporal
 
-    SOURCE is the earthkit-data source to read, as [NAME:]VALUE, e.g. a file path (GRIB, NetCDF, ...),
-    'url:https://myhost.int/file.nc' or a JSON request such as 'cds:{"dataset": ..., ...}'.
-    NAME is 'file' if not given. Several sources are merged.
+        _reduce_file(getattr(temporal, f"{frequency}_reduce"), **kwargs)
 
-    TARGET is the earthkit-data target to write the result to, as [NAME:]VALUE, e.g. a file path or
-    'zarr:{"xarray_to_zarr_kwargs": {"store": "out.zarr"}}'. NAME is 'file' if not given.
-
-    \b
-    Example:
-        earthkit monthly-agg sum input.grib --extra-reduce-dims latitude,longitude output.nc
-        earthkit monthly-agg mean \\
-            'cds:{"dataset": "reanalysis-era5-single-levels", "variable": "2m_temperature", "year": "2020"}' \\
-            output.nc
-    """  # noqa: D301 (\b is a Click paragraph marker)
-    from earthkit.transforms import temporal
-
-    _reduce_file(temporal.monthly_reduce, **kwargs)
+    return command
 
 
-@earthkit.command(name="yearly-agg")
-@add_options(_io_arguments + _read_options + _temporal_reduce_options)
-def yearly_agg(**kwargs):
-    """Aggregate data to yearly values.
-
-    HOW is the reduction applied to each year's data, e.g. 'mean', 'max', 'min' or 'sum'.
-    Any xarray reduction method, earthkit-transforms method or numpy function name is accepted.
-
-    SOURCE is the earthkit-data source to read, as [NAME:]VALUE, e.g. a file path (GRIB, NetCDF, ...),
-    'url:https://myhost.int/file.nc' or a JSON request such as 'cds:{"dataset": ..., ...}'.
-    NAME is 'file' if not given. Several sources are merged.
-
-    TARGET is the earthkit-data target to write the result to, as [NAME:]VALUE, e.g. a file path or
-    'zarr:{"xarray_to_zarr_kwargs": {"store": "out.zarr"}}'. NAME is 'file' if not given.
-
-    \b
-    Example:
-        earthkit yearly-agg max input.grib output.nc
-    """  # noqa: D301 (\b is a Click paragraph marker)
-    from earthkit.transforms import temporal
-
-    _reduce_file(temporal.yearly_reduce, **kwargs)
+daily_agg = _agg_command("daily", "day", "mean input.grib --time-shift 3h output.nc")
+monthly_agg = _agg_command(
+    "monthly",
+    "month",
+    "sum input.grib --extra-reduce-dims latitude,longitude output.nc",
+    """mean \\
+        'cds:{"dataset": "reanalysis-era5-single-levels", "variable": "2m_temperature", "year": "2020"}' \\
+        output.nc""",
+)
+yearly_agg = _agg_command("yearly", "year", "max input.grib output.nc")
