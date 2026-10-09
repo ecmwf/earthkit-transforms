@@ -186,9 +186,9 @@ def test_cli_cds_source(fake_source, tmp_path):
         # Unset options are not passed, so the reduce function and earthkit-data defaults apply
         ([], {}, {}),
         (
-            ["-t", "valid_time", "-s", "3h", "-r", "latitude,longitude", "--profile", "mars"],
+            ["-t", "valid_time", "-s", "3h", "-r", "latitude,longitude", "--profile", "mars", "-p", "my.yaml"],
             {"time_dim": "valid_time", "time_shift": "3h", "extra_reduce_dims": ["latitude", "longitude"]},
-            {"profile": "mars"},
+            {"profile": ["mars", "my.yaml"]},
         ),
     ),
 )
