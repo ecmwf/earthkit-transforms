@@ -807,28 +807,7 @@ def _anomaly_dataarray(
     """
     reduce_kwargs.setdefault("how", "mean")
     var_name = dataarray.name
-    if isinstance(climatology, xr.Dataset):
-        if var_name in climatology:
-            climatology_da = climatology[var_name]
-        else:
-            potential_clim_vars = [c_var for c_var in climatology.data_vars if str(var_name) in str(c_var)]
-            if len(potential_clim_vars) == 1:
-                climatology_da = climatology[potential_clim_vars[0]]
-            elif f"{var_name}_{climatology_how_tag}" in potential_clim_vars:
-                climatology_da = climatology[f"{var_name}_{climatology_how_tag}"]
-            elif len(potential_clim_vars) > 1:
-                raise KeyError(
-                    "Multiple potential climatologies found in climatology dataset, "
-                    "please identify appropriate statistic with `climatology_how_tag`.\n"
-                    f"Potential climatology variables found: {potential_clim_vars}"
-                )
-            else:
-                raise ValueError(
-                    "Could not find a variable in the climatology dataset that matches "
-                    f"the name of the anomaly dataarray: {var_name}"
-                )
-    else:
-        climatology_da = climatology
+    climatology_da = _climatology_dataarray(climatology, var_name, climatology_how_tag)
 
     # If frequency not defined, it is deduced from the climatology.
     # This is somewhat hardcoded, but it is best practice, so for now it can stay here
@@ -907,6 +886,37 @@ def _anomaly_dataarray(
         update_attrs = {}
 
     return _update_anomaly_array(anomaly_array, dataarray, var_name, name_tag, update_attrs, how_label=how_label)
+
+
+def _climatology_dataarray(
+    climatology: xr.Dataset | xr.DataArray,
+    var_name: T.Hashable,
+    climatology_how_tag: str = "",
+) -> xr.DataArray:
+    """Return the climatology variable that matches the data variable `var_name`."""
+    if isinstance(climatology, xr.Dataset):
+        if var_name in climatology:
+            climatology_da = climatology[var_name]
+        else:
+            potential_clim_vars = [c_var for c_var in climatology.data_vars if str(var_name) in str(c_var)]
+            if len(potential_clim_vars) == 1:
+                climatology_da = climatology[potential_clim_vars[0]]
+            elif f"{var_name}_{climatology_how_tag}" in potential_clim_vars:
+                climatology_da = climatology[f"{var_name}_{climatology_how_tag}"]
+            elif len(potential_clim_vars) > 1:
+                raise KeyError(
+                    "Multiple potential climatologies found in climatology dataset, "
+                    "please identify appropriate statistic with `climatology_how_tag`.\n"
+                    f"Potential climatology variables found: {potential_clim_vars}"
+                )
+            else:
+                raise ValueError(
+                    "Could not find a variable in the climatology dataset that matches "
+                    f"the name of the dataarray: {var_name}"
+                )
+    else:
+        climatology_da = climatology
+    return climatology_da
 
 
 def _update_anomaly_array(anomaly_array, original_array, var_name, name_tag, update_attrs, how_label=None):
