@@ -291,6 +291,33 @@ def test_anomaly_daily(in_data, expected_return_type, clim_method):
         assert "t2m_anomaly" in anom_d
 
 
+@pytest.mark.parametrize(
+    "frequency",
+    ("dayofyear", "month"),
+)
+@pytest.mark.parametrize(
+    "in_data, expected_return_type",
+    (
+        pytest.param("era5_dataset", xr.Dataset, id="dataset"),
+        pytest.param("era5_da_t2m", xr.DataArray, id="dataarray"),
+    ),
+    indirect=["in_data"],
+)
+def test_quantile_categories(in_data, expected_return_type, frequency):
+    clim_q = climatology.quantiles(in_data, [0.1, 0.5, 0.9], frequency=frequency).compute()
+    categories = climatology.quantile_categories(in_data, clim_q)
+    assert isinstance(categories, expected_return_type)
+    # Dimensions and shape of the categories should be the same as the input data
+    assert all(dim in list(categories.dims) for dim in in_data.dims)
+    assert all(categories.sizes[dim] == in_data.sizes[dim] for dim in in_data.dims)
+    if expected_return_type == xr.DataArray:
+        assert "t2m" == categories.name
+        # Three quantiles give four categories, all of which occur
+        np.testing.assert_array_equal(np.unique(categories.values), [0, 1, 2, 3])
+    else:
+        assert "t2m" in categories
+
+
 # ---------------------------------------------------------------------------
 # Local (synthetic-data) tests — no network required
 # ---------------------------------------------------------------------------
@@ -540,3 +567,113 @@ def test_auto_anomaly_dataset_input():
     assert isinstance(result, xr.Dataset)
     assert "var" in result
     assert "time" in result.dims
+
+
+# --- climatology.quantile_categories (local) -------------------------------
+
+
+def test_quantile_categories_local_values():
+    """Values are categorised by the number of quantiles they are at or above.
+
+    Quantiles without a time grouping are compared with every value, so no time dimension is needed.
+    """
+    da = xr.DataArray([0.0, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0], dims=["x"], name="var")
+    clim = xr.DataArray([1.0, 2.0, 3.0], dims=["quantile"], coords={"quantile": [0.25, 0.5, 0.75]}, name="var")
+    result = climatology.quantile_categories(da, clim)
+    assert isinstance(result, xr.DataArray)
+    # A value equal to a quantile falls in the category above it
+    np.testing.assert_array_equal(result.values, [0, 1, 1, 2, 2, 3, 3])
+
+
+def test_quantile_categories_local_monthly_climatology():
+    """Each time step is compared with the quantiles of its own month."""
+    da = _make_monthly_clim_da()  # values 1..12, by month
+    months = np.arange(1, 13)
+    clim = xr.DataArray(
+        np.stack([months - 0.5, months + 0.5]),
+        dims=["quantile", "month"],
+        coords={"quantile": [0.1, 0.9], "month": months},
+        name="var",
+    )
+    result = climatology.quantile_categories(da, clim)
+    assert result.shape == da.shape
+    # Every value lies between the quantiles of its month, but outside those of every other month
+    np.testing.assert_array_equal(result.values, 1)
+
+
+def test_quantile_categories_local_dayofyear_climatology():
+    da = _make_daily_clim_da()
+    clim = climatology.quantiles(da, [1 / 3, 2 / 3], frequency="dayofyear").compute()
+    result = climatology.quantile_categories(da, clim)
+    expected = [
+        int((value >= clim.sel(dayofyear=dayofyear)).sum())
+        for value, dayofyear in zip(da.values, da.time.dt.dayofyear.values)
+    ]
+    np.testing.assert_array_equal(result.values, expected)
+
+
+def test_quantile_categories_local_percentiles():
+    """Percentiles categorise the data as the equivalent quantiles do."""
+    da = _make_daily_clim_da()
+    from_quantiles = climatology.quantile_categories(da, climatology.quantiles(da, [0.1, 0.9], frequency="month"))
+    from_percentiles = climatology.quantile_categories(da, climatology.percentiles(da, [10, 90], frequency="month"))
+    xr.testing.assert_identical(from_quantiles, from_percentiles)
+
+
+def test_quantile_categories_local_quantile_dim():
+    da = _make_daily_clim_da()
+    clim = climatology.quantiles(da, [0.1, 0.9], frequency="month")
+    result = climatology.quantile_categories(da, clim.rename(quantile="threshold"), quantile_dim="threshold")
+    xr.testing.assert_identical(result, climatology.quantile_categories(da, clim))
+
+
+def test_quantile_categories_local_missing_values():
+    """Categories are missing where the data or any of its quantiles are missing."""
+    time = pd.date_range("2000-01-01", periods=3, freq="D")
+    da = xr.DataArray([[np.nan, 1.0], [1.0, 1.0], [3.0, 3.0]], dims=["time", "x"], coords={"time": time}, name="var")
+    clim = xr.DataArray(
+        [[0.0, 0.0], [2.0, np.nan]], dims=["quantile", "x"], coords={"quantile": [0.1, 0.9]}, name="var"
+    )
+    result = climatology.quantile_categories(da, clim)
+    np.testing.assert_array_equal(result.values, [[np.nan, np.nan], [1, np.nan], [2, np.nan]])
+
+
+def test_quantile_categories_local_dataset_input():
+    """quantile_categories accepts xr.Dataset and categorises each variable by its own climatology."""
+    ds = _make_daily_clim_da().to_dataset(name="var")
+    clim = climatology.quantiles(ds, [0.1, 0.9], frequency="month")
+    result = climatology.quantile_categories(ds, clim)
+    assert isinstance(result, xr.Dataset)
+    xr.testing.assert_identical(result["var"], climatology.quantile_categories(ds["var"], clim["var"]))
+
+
+def test_quantile_categories_local_attributes():
+    """Categories keep the name and long_name of the data, but not its units or standard_name."""
+    da = _make_monthly_clim_da().assign_attrs(units="K", standard_name="air_temperature", long_name="Temperature")
+    clim = climatology.quantiles(da, [0.5], frequency="month")
+    result = climatology.quantile_categories(da, clim)
+    assert result.name == "var"
+    assert result.attrs == {"long_name": "Temperature quantile category"}
+    assert climatology.quantile_categories(da, clim, how_label="category").name == "var_category"
+
+
+def test_quantile_categories_local_lazy():
+    """Lazily loaded data is categorised lazily."""
+    da = _make_daily_clim_da()
+    clim = climatology.quantiles(da, [0.1, 0.9], frequency="month").compute()
+    result = climatology.quantile_categories(da.chunk(time=365), clim)
+    assert result.chunks is not None
+    xr.testing.assert_identical(result.compute(), climatology.quantile_categories(da, clim))
+
+
+def test_quantile_categories_local_no_quantile_dim_raises():
+    da = _make_monthly_clim_da()
+    with pytest.raises(ValueError, match="quantile dimension"):
+        climatology.quantile_categories(da, climatology.monthly_mean(da))
+
+
+def test_quantile_categories_local_ungrouped_climatology_raises():
+    """Quantiles grouped by year, the default of climatology.quantiles, cannot be matched to the data."""
+    da = _make_monthly_clim_da()
+    with pytest.raises(ValueError, match="year"):
+        climatology.quantile_categories(da, climatology.quantiles(da, [0.5]))

@@ -1028,3 +1028,110 @@ def auto_anomaly(
     )
 
     return anomaly(dataarray, climatology, *_args, relative=relative, **_kwargs)
+
+
+@format_handler()
+def quantile_categories(
+    dataarray: xr.Dataset | xr.DataArray,
+    climatology: xr.Dataset | xr.DataArray,
+    **_kwargs,
+) -> xr.Dataset | xr.DataArray:
+    """Categorise data by the climatological quantiles it falls between.
+
+    Each value is assigned the number of climatological quantiles that it is greater than or equal to,
+    so `N` quantiles give the categories `0`, below the lowest quantile, to `N`, at or above the highest
+    quantile. A value equal to a quantile falls in the category above it. For example, the terciles
+    give the below-normal, near-normal and above-normal categories `0`, `1` and `2`.
+
+    Parameters
+    ----------
+    dataarray : xarray.DataArray
+        The DataArray to categorise. Must contain a time dimension indicated by time_dim
+        if the climatology is grouped by a time frequency.
+    climatology : xarray.DataArray
+        Reference climatological quantiles against which the data is categorised, with a
+        `quantile` or `percentile` dimension, as returned by
+        `earthkit.transforms.climatology.quantiles` and `earthkit.transforms.climatology.percentiles`.
+        If the climatology is grouped by `dayofyear`, `week`, `weekofyear` or `month`, each time
+        step is compared with the quantiles of its group.
+    quantile_dim : str (optional)
+        Name of the quantile dimension in the climatology, default behaviour is to use
+        `quantile` or `percentile`.
+    time_dim : str (optional)
+        Name of the time dimension in the data object, default behaviour is to detect the
+        time dimension from the input object
+    climatology_how_tag : str (optional)
+        Tag to identify the climatology variable in the climatology dataset
+    how_label : str (optional)
+        Label to append to the variable name of the categories dataarray
+
+    Returns
+    -------
+    xarray.DataArray
+        The categories, with the dimensions of the input data. Values are missing where the data,
+        or any of the quantiles it is compared with, are missing.
+
+    """
+    if isinstance(dataarray, xr.Dataset):
+        out_ds = xr.Dataset().assign_attrs(dataarray.attrs)
+        for var in dataarray.data_vars:
+            out_da = _quantile_categories_dataarray(dataarray[var], climatology, **_kwargs)
+            out_ds[out_da.name] = out_da
+        return out_ds
+    else:
+        return _quantile_categories_dataarray(dataarray, climatology, **_kwargs)
+
+
+@_tools.time_dim_decorator
+def _quantile_categories_dataarray(
+    dataarray: xr.DataArray,
+    climatology: xr.Dataset | xr.DataArray,
+    time_dim: str | None = None,
+    quantile_dim: str | None = None,
+    climatology_how_tag: str = "",
+    how_label: str | None = None,
+) -> xr.DataArray:
+    """Categorise data by the climatological quantiles it falls between.
+
+    See :func:`quantile_categories` for a description of the parameters.
+    """
+    var_name = dataarray.name
+    climatology_da = _climatology_dataarray(climatology, var_name, climatology_how_tag)
+
+    if quantile_dim is None:
+        quantile_dim = next((dim for dim in ["quantile", "percentile"] if dim in climatology_da.dims), None)
+    if quantile_dim not in climatology_da.dims:
+        raise ValueError(
+            "Could not find the quantile dimension in the climatology, please identify it with `quantile_dim`. "
+            f"Climatology dimensions: {climatology_da.dims}"
+        )
+
+    # The climatology frequency is deduced from the climatology, as for anomalies
+    clim_freq = next((freq for freq in _tools.VALID_CLIMATOLOGY_FREQUENCIES if freq in climatology_da.dims), None)
+    extra_dims = set(climatology_da.dims) - set(dataarray.dims) - {quantile_dim, clim_freq}
+    if extra_dims:
+        raise ValueError(
+            f"The climatology has dimensions which are not in the dataarray: {sorted(map(str, extra_dims))}. "
+            f"Climatologies grouped by time must be grouped by one of: {_tools.VALID_CLIMATOLOGY_FREQUENCIES}"
+        )
+
+    if clim_freq is None:
+        data = dataarray
+    else:
+        data = groupby_time(dataarray, time_dim=time_dim, frequency=clim_freq)
+
+    at_or_above = data >= climatology_da
+    below = data < climatology_da
+    # Comparisons with missing values are always False, so a value is neither at or above nor below
+    # a quantile when the value or the quantile is missing
+    categories = at_or_above.sum(quantile_dim).where((at_or_above | below).all(quantile_dim))
+
+    if how_label is not None:
+        var_name = f"{var_name}_{how_label}"
+    # Categories have no units, and are no longer the quantity described by the standard_name
+    update_attrs = {k: v for k, v in dataarray.attrs.items() if k not in ["units", "standard_name"]}
+    if "long_name" in update_attrs:
+        update_attrs["long_name"] += " quantile category"
+    categories = categories.rename(var_name)
+    categories.attrs = update_attrs
+    return categories
