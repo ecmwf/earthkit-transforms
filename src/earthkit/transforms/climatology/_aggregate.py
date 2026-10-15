@@ -951,8 +951,31 @@ def _climatology_of_time_steps(
         # Time steps without a group, at missing times, have no climatology
         climatology_da = climatology_da.where(groups.notnull().reset_coords(drop=True))
     if lazy:
-        # The time coordinate need not be a dimension, its groups have the dimensions of the time steps
-        climatology_da = climatology_da.chunk({dim: dataarray.chunksizes.get(dim, "auto") for dim in groups.dims})
+        from dask.array.core import normalize_chunks
+
+        # The time coordinate need not be a dimension, its groups have the dimensions of the time steps.
+        # Without time chunks of the data to follow, chunks of about 16 MiB are chosen, as several threads
+        # computing larger chunks at once would hold more in memory than groupby arithmetic does. The chunks
+        # are chosen once, so that the climatology and its coordinates along time have the same chunks.
+        previous_chunks = climatology_da.data.chunks
+        requested_chunks = tuple(
+            dataarray.chunksizes.get(dim, "auto") if dim in groups.dims else dim_chunks
+            for dim, dim_chunks in zip(climatology_da.dims, previous_chunks)
+        )
+        if 0 in climatology_da.shape:
+            # Automatic chunks of an empty array are undefined, the empty selection is one chunk
+            requested_chunks = tuple(
+                size if dim_chunks == "auto" else dim_chunks
+                for dim_chunks, size in zip(requested_chunks, climatology_da.shape)
+            )
+        selection_chunks = normalize_chunks(
+            requested_chunks,
+            shape=climatology_da.shape,
+            dtype=climatology_da.dtype,
+            previous_chunks=previous_chunks,
+            limit=16 * 2**20,
+        )
+        climatology_da = climatology_da.chunk(dict(zip(climatology_da.dims, selection_chunks)))
     return climatology_da
 
 

@@ -1,5 +1,6 @@
 import tracemalloc
 
+import dask
 import dask.array
 import numpy as np
 import pandas as pd
@@ -589,6 +590,48 @@ def test_anomaly_missing_times():
     da = xr.DataArray([10.0, 20.0, 30.0], dims=["time"], coords={"time": time}, name="var")
     clim = xr.DataArray([1.0, 2.0, 5.0], dims=["month"], coords={"month": [1.0, 2.0, np.nan]}, name="var")
     np.testing.assert_array_equal(climatology.anomaly(da, clim).values, [9, np.nan, 28])
+
+
+@pytest.mark.parametrize("method", ("anomaly", "quantile_categories"))
+def test_eager_data_larger_than_a_chunk_lazy_climatology(method):
+    """Eager data larger than the chunks chosen for it gets the same chunks for its values and coordinates."""
+    time = pd.date_range("2000-01-01", periods=2000, freq="D")
+    da = xr.DataArray(np.zeros((2000, 1100)), dims=["time", "x"], coords={"time": time}, name="var")
+    clim = xr.DataArray(np.ones((12, 1100)), dims=["month", "x"], coords={"month": np.arange(1, 13)}, name="var")
+    if method == "quantile_categories":
+        clim = clim.expand_dims(quantile=[0.5])
+    result = getattr(climatology, method)(da, clim.chunk(month=1))
+    assert len(result.chunksizes["time"]) > 1
+    xr.testing.assert_identical(result.compute(), getattr(climatology, method)(da, clim))
+
+
+@pytest.mark.parametrize(
+    "method, empty",
+    (("anomaly", "x"), ("quantile_categories", "x"), ("quantile_categories", "quantile")),
+)
+def test_empty_dimension_lazy_climatology(method, empty):
+    """Eager data with an empty dimension is compared with a lazily loaded climatology as with an eager one."""
+    n_x = 0 if empty == "x" else 3
+    time = pd.date_range("2000-01-01", periods=4, freq="MS")
+    da = xr.DataArray(np.ones((4, n_x)), dims=["time", "x"], coords={"time": time}, name="var")
+    clim = xr.DataArray(np.zeros((12, n_x)), dims=["month", "x"], coords={"month": np.arange(1, 13)}, name="var")
+    if method == "quantile_categories":
+        clim = clim.expand_dims(quantile=[] if empty == "quantile" else [0.5])
+    result = getattr(climatology, method)(da, clim.chunk(month=1))
+    xr.testing.assert_identical(result.compute(), getattr(climatology, method)(da, clim))
+
+
+def test_anomaly_leaves_dask_configuration_unchanged(monkeypatch):
+    """Anomalies of lazily loaded data do not set the dask configuration, which all threads share."""
+
+    def set_configuration(*_args, **_kwargs):
+        raise AssertionError("the dask configuration was set")
+
+    da = (_make_monthly_clim_da() + xr.DataArray(np.zeros(100), dims=["x"])).chunk(time=12)
+    clim = climatology.monthly_mean(da).compute()
+    monkeypatch.setattr(dask.config, "set", set_configuration)
+    for data, clim_month in ((da, clim), (da.compute(), clim.chunk(month=1)), (da, clim.chunk(month=1))):
+        climatology.anomaly(data, clim_month)
 
 
 def test_anomaly_missing_groups():
