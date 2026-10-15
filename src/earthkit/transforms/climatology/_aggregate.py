@@ -920,6 +920,52 @@ def _climatology_dataarray(
     return climatology_da
 
 
+def _climatology_of_time_steps(
+    dataarray: xr.DataArray,
+    climatology_da: xr.DataArray,
+    clim_freq: str,
+    time_dim: T.Hashable,
+    chunks: dict | None = None,
+) -> xr.DataArray:
+    """Return the climatology of each time step of the data, from a climatology grouped by `clim_freq`.
+
+    The climatology of each time step's group is selected in one step, as groupby arithmetic with lazily
+    loaded data or a lazily loaded climatology creates a task for every few time steps. Points and time steps
+    whose group the climatology does not cover are given missing values. If either is lazily loaded, `chunks`
+    gives the chunks of the climatology's dimensions that the data does not have, which keep theirs otherwise.
+    """
+    _, climatology_da = xr.align(dataarray, climatology_da, join="left", exclude=[clim_freq], copy=False)
+    groups = dataarray[f"{time_dim}.{clim_freq}"]
+    climatology_da = climatology_da.reindex({clim_freq: np.unique(groups.values)})
+    # If either is lazily loaded, the selection is too, with the chunks of the data. An eager selection
+    # for lazily loaded data would hold a climatology the size of the data in memory.
+    lazy = dataarray.chunks is not None or climatology_da.chunks is not None
+    if lazy:
+        data_chunks = {
+            dim: dataarray.chunksizes[dim]
+            for dim in climatology_da.dims
+            if dim in dataarray.chunksizes and dim != clim_freq
+        }
+        # The selection has time chunks the size of the climatology's chunks of groups, so these are made
+        # as large as the time chunks of the data, rather than leaving a chunk for every few time steps
+        time_chunks = [size for dim in groups.dims for size in dataarray.chunksizes.get(dim, ())]
+        group_chunks = int(np.min([np.max(time_chunks), climatology_da.sizes[clim_freq]])) if time_chunks else -1
+        climatology_da = climatology_da.chunk({**(chunks or {}), **data_chunks, clim_freq: group_chunks or -1})
+    # Select with the group labels alone and give the selection the time coordinate of the data,
+    # so that other coordinates, such as the scalar quantile of an ensemble median, cannot conflict
+    if time_dim not in climatology_da.dims:
+        climatology_da = climatology_da.drop_vars([time_dim], errors="ignore")
+    climatology_da = climatology_da.sel({clim_freq: xr.Variable(groups.dims, groups.data)})
+    climatology_da = climatology_da.assign_coords({time_dim: dataarray[time_dim].variable})
+    if groups.isnull().any():
+        # Time steps without a group, at missing times, have no climatology
+        climatology_da = climatology_da.where(groups.notnull().reset_coords(drop=True))
+    if lazy:
+        # The time coordinate need not be a dimension, its groups have the dimensions of the time steps
+        climatology_da = climatology_da.chunk({dim: dataarray.chunksizes.get(dim, "auto") for dim in groups.dims})
+    return climatology_da
+
+
 def _update_anomaly_array(anomaly_array, original_array, var_name, name_tag, update_attrs, how_label=None):
     if how_label is not None:
         var_name = f"{var_name}_{how_label}"
@@ -1126,33 +1172,11 @@ def _quantile_categories_dataarray(
     _, climatology_da = xr.align(dataarray, climatology_da, join="left", exclude=[clim_freq], copy=False)
 
     if clim_freq is not None:
-        # Select the quantiles of each time step's group in one step, groupby arithmetic
-        # creates a task per time step when the climatology is lazily loaded
-        groups = dataarray[f"{time_dim}.{clim_freq}"]
-        # Groups missing from the climatology are categorised as missing
-        climatology_da = climatology_da.reindex({clim_freq: np.unique(groups.values)})
-        # If either is lazily loaded, the selection is too, with the chunks of the data. An eager selection
-        # of lazily loaded data would hold quantiles the size of the data in memory.
-        lazy = dataarray.chunks is not None or climatology_da.chunks is not None
-        if lazy:
-            chunks = {dim: dataarray.chunksizes[dim] for dim in climatology_da.dims if dim in dataarray.chunksizes}
-            # The selection has time chunks the size of the climatology's chunks of groups, so these are made
-            # as large as the time chunks of the data, rather than leaving a chunk for every few time steps
-            time_chunks = [size for dim in groups.dims for size in dataarray.chunksizes.get(dim, ())]
-            group_chunks = int(np.min([np.max(time_chunks), climatology_da.sizes[clim_freq]])) if time_chunks else -1
-            climatology_da = climatology_da.chunk({**chunks, clim_freq: group_chunks or -1, quantile_dim: -1})
-        # Select with the group labels alone and give the selection the time coordinate of the data,
-        # so that other coordinates, such as the scalar quantile of an ensemble median, cannot conflict
-        if time_dim not in climatology_da.dims:
-            climatology_da = climatology_da.drop_vars([time_dim], errors="ignore")
-        climatology_da = climatology_da.sel({clim_freq: xr.Variable(groups.dims, groups.data)})
-        climatology_da = climatology_da.assign_coords({time_dim: dataarray[time_dim].variable})
-        if groups.isnull().any():
-            # Time steps without a group, at missing times, have no quantiles
-            climatology_da = climatology_da.where(groups.notnull().reset_coords(drop=True))
-        if lazy:
-            # The time coordinate need not be a dimension, its groups have the dimensions of the time steps
-            climatology_da = climatology_da.chunk({dim: dataarray.chunksizes.get(dim, "auto") for dim in groups.dims})
+        # Groups missing from the climatology are categorised as missing, and the quantiles of each value
+        # are compared in one chunk
+        climatology_da = _climatology_of_time_steps(
+            dataarray, climatology_da, clim_freq, time_dim, chunks={quantile_dim: -1}
+        )
 
     at_or_above = dataarray >= climatology_da
     categories = at_or_above.sum(quantile_dim).where(dataarray.notnull() & climatology_da.notnull().all(quantile_dim))
