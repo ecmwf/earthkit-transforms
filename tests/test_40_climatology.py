@@ -1,5 +1,6 @@
 import tracemalloc
 
+import dask.array
 import numpy as np
 import pandas as pd
 import pytest
@@ -681,6 +682,26 @@ def test_quantile_categories_local_lazy_data_eager_climatology():
     assert result.chunksizes["time"] == da.chunksizes["time"]
     assert peak < da.nbytes
     xr.testing.assert_identical(result.compute(), climatology.quantile_categories(da.compute(), clim))
+
+
+def test_quantile_categories_local_small_time_chunks():
+    """Small time chunks are categorised without holding many groups of a lazily loaded climatology in memory."""
+    time = pd.date_range("2000-01-01", periods=366, freq="D")
+    da = xr.DataArray(dask.array.ones((366, 2000), chunks=(1, 2000)), dims=["time", "x"], coords={"time": time})
+    clim = xr.DataArray(
+        dask.array.zeros((2, 366, 2000), chunks=(1, 1, 2000)),
+        dims=["quantile", "dayofyear", "x"],
+        coords={"quantile": [0.1, 0.9], "dayofyear": np.arange(1, 367)},
+    )
+    result = climatology.quantile_categories(da, clim)
+    tracemalloc.start()
+    try:
+        total = result.sum().compute(scheduler="single-threaded")
+        peak = tracemalloc.get_traced_memory()[1]
+    finally:
+        tracemalloc.stop()
+    assert total == 2 * 366 * 2000
+    assert peak < 2 * clim.nbytes
 
 
 def test_quantile_categories_local_missing_groups():

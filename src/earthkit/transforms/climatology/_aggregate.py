@@ -1135,7 +1135,11 @@ def _quantile_categories_dataarray(
         lazy = dataarray.chunks is not None or climatology_da.chunks is not None
         if lazy:
             chunks = {dim: dataarray.chunksizes[dim] for dim in climatology_da.dims if dim in dataarray.chunksizes}
-            climatology_da = climatology_da.chunk({**chunks, clim_freq: -1, quantile_dim: -1})
+            # The selection has time chunks the size of the climatology's chunks of groups, so these are made
+            # as large as the time chunks of the data, rather than leaving a chunk for every few time steps
+            time_chunks = [size for dim in groups.dims for size in dataarray.chunksizes.get(dim, ())]
+            group_chunks = int(np.min([np.max(time_chunks), climatology_da.sizes[clim_freq]])) if time_chunks else -1
+            climatology_da = climatology_da.chunk({**chunks, clim_freq: group_chunks or -1, quantile_dim: -1})
         # Select with the group labels alone and give the selection the time coordinate of the data,
         # so that other coordinates, such as the scalar quantile of an ensemble median, cannot conflict
         if time_dim not in climatology_da.dims:
