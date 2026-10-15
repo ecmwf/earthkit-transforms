@@ -1106,9 +1106,14 @@ def _quantile_categories_dataarray(
             "Could not find the quantile dimension in the climatology, please identify it with `quantile_dim`. "
             f"Climatology dimensions: {climatology_da.dims}"
         )
+    if quantile_dim in dataarray.dims:
+        raise ValueError(f"The quantile dimension of the climatology is also in the dataarray: {quantile_dim}")
 
     # The climatology frequency is deduced from the climatology, as for anomalies
-    clim_freq = next((freq for freq in _tools.VALID_CLIMATOLOGY_FREQUENCIES if freq in climatology_da.dims), None)
+    clim_freq = next(
+        (freq for freq in _tools.VALID_CLIMATOLOGY_FREQUENCIES if freq in climatology_da.dims and freq != quantile_dim),
+        None,
+    )
     extra_dims = set(climatology_da.dims) - set(dataarray.dims) - {quantile_dim, clim_freq}
     if extra_dims:
         raise ValueError(

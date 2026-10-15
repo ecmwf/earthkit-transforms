@@ -702,6 +702,12 @@ def test_quantile_categories_local_no_quantiles():
     np.testing.assert_array_equal(result.values, [np.nan, 0])
 
 
+def test_quantile_categories_local_quantile_dim_in_data_raises():
+    da = xr.DataArray([0.0, 1.0], dims=["quantile"], name="var")
+    with pytest.raises(ValueError, match="also in the dataarray"):
+        climatology.quantile_categories(da, xr.DataArray([0.5, 1.5], dims=["quantile"]))
+
+
 def test_quantile_categories_local_no_quantile_dim_raises():
     da = _make_monthly_clim_da()
     with pytest.raises(ValueError, match="quantile dimension"):
