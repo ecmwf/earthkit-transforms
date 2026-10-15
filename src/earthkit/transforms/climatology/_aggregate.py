@@ -1121,8 +1121,9 @@ def _quantile_categories_dataarray(
             f"Climatologies grouped by time must be grouped by one of: {_tools.VALID_CLIMATOLOGY_FREQUENCIES}"
         )
 
-    # Keep every point of the data, points without quantiles are categorised as missing
-    _, climatology_da = xr.align(dataarray, climatology_da, join="left", copy=False)
+    # Keep every point of the data, points without quantiles are categorised as missing. The groups of the
+    # climatology are matched to the time steps, not to a dimension of the data with the same name.
+    _, climatology_da = xr.align(dataarray, climatology_da, join="left", exclude=[clim_freq], copy=False)
 
     if clim_freq is not None:
         # Select the quantiles of each time step's group in one step, groupby arithmetic

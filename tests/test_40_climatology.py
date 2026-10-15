@@ -740,6 +740,23 @@ def test_quantile_categories_local_missing_times():
     np.testing.assert_array_equal(climatology.quantile_categories(da, clim).values, [0, np.nan, 0])
 
 
+@pytest.mark.parametrize("lazy", (False, True))
+@pytest.mark.parametrize("labelled", (False, True))
+def test_quantile_categories_local_data_with_a_group_dimension(labelled, lazy):
+    """A dimension of the data named like the climatology's groups is not matched to the groups."""
+    coords = {"time": pd.date_range("2000-01-01", periods=3, freq="MS")}
+    if labelled:
+        coords["month"] = [0, 1]
+    da = xr.DataArray(np.zeros((3, 2)), dims=["time", "month"], coords=coords, name="var")
+    clim = xr.DataArray(
+        [[1.0, -1.0, 1.0]], dims=["quantile", "month"], coords={"quantile": [0.5], "month": [1, 2, 3]}, name="var"
+    )
+    if lazy:
+        da, clim = da.chunk(month=1), clim.chunk(month=1)
+    result = climatology.quantile_categories(da, clim)
+    np.testing.assert_array_equal(result.values, [[0, 0], [1, 1], [0, 0]])
+
+
 def test_quantile_categories_local_time_shift():
     """Time steps are matched to the groups of their shifted times."""
     time = pd.date_range("2000-01-31T22:00", periods=3, freq="h")  # 22:00, 23:00 and 00:00
