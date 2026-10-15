@@ -1,5 +1,6 @@
 import tracemalloc
 
+import dask
 import dask.array
 import numpy as np
 import pandas as pd
@@ -511,6 +512,147 @@ def test_anomaly_relative_near_zero_for_constant_per_month():
     assert isinstance(anom_rel, xr.DataArray)
     assert anom_rel.shape == da.shape
     np.testing.assert_allclose(anom_rel.values, 0.0, atol=1e-10)
+
+
+# --- anomaly: lazily loaded data and climatologies (local) ----------------
+
+
+@pytest.mark.parametrize("relative", (False, True))
+@pytest.mark.parametrize("frequency", (None, "month"))
+def test_anomaly_lazy_climatology(relative, frequency):
+    """A lazily loaded climatology, chunked by group as climatology.quantiles returns it, gives the eager anomaly."""
+    da = _make_daily_clim_da().chunk(time=365)
+    clim = climatology.daily_mean(da).compute()
+    result = climatology.anomaly(da, clim.chunk(dayofyear=1), relative=relative, frequency=frequency)
+    if frequency is None:
+        assert result.chunksizes["time"] == da.chunksizes["time"]
+    xr.testing.assert_allclose(
+        result.compute(),
+        climatology.anomaly(da.compute(), clim, relative=relative, frequency=frequency),
+        rtol=1e-12,
+    )
+
+
+def test_anomaly_lazy_data_eager_climatology():
+    """Lazily loaded data gives a lazy anomaly, without holding a climatology the size of the data in memory."""
+    da = (_make_daily_clim_da() + xr.DataArray(np.zeros(500), dims=["x"])).chunk(time=365)
+    clim = climatology.monthly_mean(da).compute()
+    tracemalloc.start()
+    try:
+        result = climatology.anomaly(da, clim)
+        peak = tracemalloc.get_traced_memory()[1]
+    finally:
+        tracemalloc.stop()
+    assert result.chunksizes["time"] == da.chunksizes["time"]
+    assert peak < da.nbytes
+    xr.testing.assert_identical(result.compute(), climatology.anomaly(da.compute(), clim))
+
+
+def test_anomaly_lazy_climatology_of_part_of_the_grid():
+    """Points the climatology does not cover have missing anomalies, as for eager data."""
+    time = pd.date_range("2000-01-01", periods=24, freq="MS")
+    da = xr.DataArray(np.ones((24, 6)), dims=["time", "x"], coords={"time": time, "x": np.arange(6)}, name="var").chunk(
+        x=3
+    )
+    clim = xr.DataArray(
+        np.zeros((12, 3)), dims=["month", "x"], coords={"month": np.arange(1, 13), "x": [0, 2, 4]}, name="var"
+    )
+    result = climatology.anomaly(da, clim.chunk(month=1))
+    expected = climatology.anomaly(da.compute(), clim)
+    np.testing.assert_array_equal(result.values, expected.values)
+    np.testing.assert_array_equal(expected.isel(time=0).values, [1, np.nan, 1, np.nan, 1, np.nan])
+
+
+def test_anomaly_lazy_data_with_a_group_dimension():
+    """A dimension of the data named like the climatology's groups does not change the groups' chunks."""
+    time = pd.date_range("2000-01-01", periods=3, freq="MS")
+    da = xr.DataArray(np.ones((3, 2)), dims=["time", "month"], coords={"time": time}, name="var")
+    clim = xr.DataArray(np.arange(3.0), dims=["month"], coords={"month": [1, 2, 3]}, name="var")
+    result = climatology.anomaly(da.chunk(month=1), clim)
+    xr.testing.assert_identical(result.compute(), climatology.anomaly(da, clim))
+
+
+@pytest.mark.parametrize("lazy", (False, True))
+def test_anomaly_time_coordinate_not_a_dimension(lazy):
+    """Time steps along another dimension are compared with the climatology of their time coordinate."""
+    time = pd.date_range("2000-01-31", periods=3, freq="D")  # 31 January, 1 and 2 February
+    da = xr.DataArray([1.0, 1.0, 1.0], dims=["obs"], coords={"valid_time": ("obs", time)}, name="var")
+    clim = xr.DataArray([1.0, -1.0], dims=["month"], coords={"month": [1, 2]}, name="var")
+    if lazy:
+        clim = clim.chunk(month=1)
+    result = climatology.anomaly(da, clim, time_dim="valid_time")
+    np.testing.assert_array_equal(result.values, [0, 2, 2])
+
+
+def test_anomaly_missing_times():
+    """Time steps at missing times have missing anomalies, even if the climatology has a missing group."""
+    time = pd.DatetimeIndex(["2000-01-01", "NaT", "2000-02-01"])
+    da = xr.DataArray([10.0, 20.0, 30.0], dims=["time"], coords={"time": time}, name="var")
+    clim = xr.DataArray([1.0, 2.0, 5.0], dims=["month"], coords={"month": [1.0, 2.0, np.nan]}, name="var")
+    np.testing.assert_array_equal(climatology.anomaly(da, clim).values, [9, np.nan, 28])
+
+
+@pytest.mark.parametrize("method", ("anomaly", "quantile_categories"))
+def test_eager_data_larger_than_a_chunk_lazy_climatology(method):
+    """Eager data larger than the chunks chosen for it gets the same chunks for its values and coordinates."""
+    time = pd.date_range("2000-01-01", periods=2000, freq="D")
+    da = xr.DataArray(np.zeros((2000, 1100)), dims=["time", "x"], coords={"time": time}, name="var")
+    clim = xr.DataArray(np.ones((12, 1100)), dims=["month", "x"], coords={"month": np.arange(1, 13)}, name="var")
+    if method == "quantile_categories":
+        clim = clim.expand_dims(quantile=[0.5])
+    result = getattr(climatology, method)(da, clim.chunk(month=1))
+    assert len(result.chunksizes["time"]) > 1
+    xr.testing.assert_identical(result.compute(), getattr(climatology, method)(da, clim))
+
+
+@pytest.mark.parametrize(
+    "method, empty",
+    (("anomaly", "x"), ("quantile_categories", "x"), ("quantile_categories", "quantile")),
+)
+def test_empty_dimension_lazy_climatology(method, empty):
+    """Eager data with an empty dimension is compared with a lazily loaded climatology as with an eager one."""
+    n_x = 0 if empty == "x" else 3
+    time = pd.date_range("2000-01-01", periods=4, freq="MS")
+    da = xr.DataArray(np.ones((4, n_x)), dims=["time", "x"], coords={"time": time}, name="var")
+    clim = xr.DataArray(np.zeros((12, n_x)), dims=["month", "x"], coords={"month": np.arange(1, 13)}, name="var")
+    if method == "quantile_categories":
+        clim = clim.expand_dims(quantile=[] if empty == "quantile" else [0.5])
+    result = getattr(climatology, method)(da, clim.chunk(month=1))
+    xr.testing.assert_identical(result.compute(), getattr(climatology, method)(da, clim))
+
+
+def test_anomaly_leaves_dask_configuration_unchanged(monkeypatch):
+    """Anomalies of lazily loaded data do not set the dask configuration, which all threads share."""
+
+    def set_configuration(*_args, **_kwargs):
+        raise AssertionError("the dask configuration was set")
+
+    da = (_make_monthly_clim_da() + xr.DataArray(np.zeros(100), dims=["x"])).chunk(time=12)
+    clim = climatology.monthly_mean(da).compute()
+    monkeypatch.setattr(dask.config, "set", set_configuration)
+    for data, clim_month in ((da, clim), (da.compute(), clim.chunk(month=1)), (da, clim.chunk(month=1))):
+        climatology.anomaly(data, clim_month)
+
+
+def test_anomaly_missing_groups():
+    """Time steps whose group is missing from the climatology have missing anomalies."""
+    time = pd.date_range("2000-01-30", periods=4, freq="D")  # 30 and 31 January, 1 and 2 February
+    da = xr.DataArray([1.0, 2.0, 3.0, 4.0], dims=["time"], coords={"time": time}, name="var")
+    clim = xr.DataArray([1.0], dims=["month"], coords={"month": [1]}, name="var")
+    np.testing.assert_array_equal(climatology.anomaly(da, clim).values, [0, 1, np.nan, np.nan])
+
+
+def test_anomaly_scalar_coordinates():
+    """Scalar coordinates stay scalar rather than being repeated along the time dimension."""
+    da = _make_monthly_clim_da().assign_coords(latitude=51.5)
+    result = climatology.anomaly(da, climatology.monthly_mean(da))
+    assert result["latitude"].dims == ()
+
+
+def test_anomaly_bin_widths_with_grouped_climatology_raises():
+    da = _make_monthly_clim_da()
+    with pytest.raises(ValueError, match="bin_widths"):
+        climatology.anomaly(da, climatology.monthly_mean(da), bin_widths=2)
 
 
 # --- auto_anomaly: varied climatology_frequency / frequency (local) --------
