@@ -686,6 +686,15 @@ def test_quantile_categories_local_time_shift():
     np.testing.assert_array_equal(climatology.quantile_categories(da, clim, time_shift="1h").values, [0, 1, 1])
 
 
+def test_quantile_categories_local_missing_coordinates():
+    """Points without quantiles are categorised as missing, rather than dropped."""
+    da = xr.DataArray([0.0, 1.0, 2.0, 3.0], dims=["x"], coords={"x": [0, 1, 2, 3]}, name="var")
+    clim = xr.DataArray([[1.0, 1.0], [2.0, 2.0]], dims=["quantile", "x"], coords={"x": [1, 2]}, name="var")
+    result = climatology.quantile_categories(da, clim)
+    np.testing.assert_array_equal(result.x, da.x)
+    np.testing.assert_array_equal(result.values, [np.nan, 1, 2, np.nan])
+
+
 def test_quantile_categories_local_no_quantiles():
     """Without quantiles, every value is in the one category, and missing values stay missing."""
     da = xr.DataArray([np.nan, 1.0], dims=["x"], name="var")
