@@ -1143,7 +1143,8 @@ def _quantile_categories_dataarray(
         climatology_da = climatology_da.sel({clim_freq: xr.Variable(groups.dims, groups.data)})
         climatology_da = climatology_da.assign_coords({time_dim: dataarray[time_dim].variable})
         if lazy:
-            climatology_da = climatology_da.chunk({time_dim: dataarray.chunksizes.get(time_dim, "auto")})
+            # The time coordinate need not be a dimension, its groups have the dimensions of the time steps
+            climatology_da = climatology_da.chunk({dim: dataarray.chunksizes.get(dim, "auto") for dim in groups.dims})
 
     at_or_above = dataarray >= climatology_da
     categories = at_or_above.sum(quantile_dim).where(dataarray.notnull() & climatology_da.notnull().all(quantile_dim))
