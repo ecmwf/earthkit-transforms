@@ -13,6 +13,7 @@
 
 import typing as T
 
+import numpy as np
 import xarray as xr
 from earthkit.utils.decorators import format_handler
 
@@ -1115,16 +1116,20 @@ def _quantile_categories_dataarray(
             f"Climatologies grouped by time must be grouped by one of: {_tools.VALID_CLIMATOLOGY_FREQUENCIES}"
         )
 
-    if clim_freq is None:
-        data = dataarray
-    else:
-        data = groupby_time(dataarray, time_dim=time_dim, frequency=clim_freq)
+    if clim_freq is not None:
+        # Select the quantiles of each time step's group in one step, groupby arithmetic
+        # creates a task per time step when the climatology is lazily loaded
+        groups = dataarray[f"{time_dim}.{clim_freq}"]
+        # Groups missing from the climatology are categorised as missing
+        climatology_da = climatology_da.reindex({clim_freq: np.unique(groups.values)})
+        if climatology_da.chunks is not None:
+            climatology_da = climatology_da.chunk({clim_freq: -1, quantile_dim: -1})
+        climatology_da = climatology_da.sel({clim_freq: groups})
+        if climatology_da.chunks is not None:
+            climatology_da = climatology_da.chunk({time_dim: dataarray.chunksizes.get(time_dim, "auto")})
 
-    at_or_above = data >= climatology_da
-    below = data < climatology_da
-    # Comparisons with missing values are always False, so a value is neither at or above nor below
-    # a quantile when the value or the quantile is missing
-    categories = at_or_above.sum(quantile_dim).where((at_or_above | below).all(quantile_dim))
+    at_or_above = dataarray >= climatology_da
+    categories = at_or_above.sum(quantile_dim).where(dataarray.notnull() & climatology_da.notnull().all(quantile_dim))
 
     if how_label is not None:
         var_name = f"{var_name}_{how_label}"

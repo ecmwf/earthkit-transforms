@@ -304,7 +304,7 @@ def test_anomaly_daily(in_data, expected_return_type, clim_method):
     indirect=["in_data"],
 )
 def test_quantile_categories(in_data, expected_return_type, frequency):
-    clim_q = climatology.quantiles(in_data, [0.1, 0.5, 0.9], frequency=frequency).compute()
+    clim_q = climatology.quantiles(in_data, [0.1, 0.5, 0.9], frequency=frequency)
     categories = climatology.quantile_categories(in_data, clim_q)
     assert isinstance(categories, expected_return_type)
     # Dimensions and shape of the categories should be the same as the input data
@@ -658,12 +658,39 @@ def test_quantile_categories_local_attributes():
 
 
 def test_quantile_categories_local_lazy():
-    """Lazily loaded data is categorised lazily."""
-    da = _make_daily_clim_da()
-    clim = climatology.quantiles(da, [0.1, 0.9], frequency="month").compute()
-    result = climatology.quantile_categories(da.chunk(time=365), clim)
-    assert result.chunks is not None
-    xr.testing.assert_identical(result.compute(), climatology.quantile_categories(da, clim))
+    """Lazily loaded data is categorised lazily, keeping the time chunks of the data."""
+    da = _make_daily_clim_da().chunk(time=365)
+    clim = climatology.quantiles(da, [0.1, 0.9], frequency="month")
+    result = climatology.quantile_categories(da, clim)
+    assert result.chunksizes["time"] == da.chunksizes["time"]
+    xr.testing.assert_identical(result.compute(), climatology.quantile_categories(da.compute(), clim.compute()))
+
+
+def test_quantile_categories_local_missing_groups():
+    """Time steps whose group is missing from the climatology are categorised as missing."""
+    time = pd.date_range("2000-01-30", periods=4, freq="D")  # 30 and 31 January, 1 and 2 February
+    da = xr.DataArray([0.0, 2.0, 0.0, 2.0], dims=["time"], coords={"time": time}, name="var")
+    clim = xr.DataArray([[1.0]], dims=["quantile", "month"], coords={"quantile": [0.5], "month": [1]}, name="var")
+    result = climatology.quantile_categories(da, clim)
+    np.testing.assert_array_equal(result.values, [0, 1, np.nan, np.nan])
+
+
+def test_quantile_categories_local_time_shift():
+    """Time steps are matched to the groups of their shifted times."""
+    time = pd.date_range("2000-01-31T22:00", periods=3, freq="h")  # 22:00, 23:00 and 00:00
+    da = xr.DataArray([0.0, 0.0, 0.0], dims=["time"], coords={"time": time}, name="var")
+    clim = xr.DataArray(
+        [[1.0, -1.0]], dims=["quantile", "month"], coords={"quantile": [0.5], "month": [1, 2]}, name="var"
+    )
+    np.testing.assert_array_equal(climatology.quantile_categories(da, clim).values, [0, 0, 1])
+    np.testing.assert_array_equal(climatology.quantile_categories(da, clim, time_shift="1h").values, [0, 1, 1])
+
+
+def test_quantile_categories_local_no_quantiles():
+    """Without quantiles, every value is in the one category, and missing values stay missing."""
+    da = xr.DataArray([np.nan, 1.0], dims=["x"], name="var")
+    result = climatology.quantile_categories(da, xr.DataArray([], dims=["quantile"]))
+    np.testing.assert_array_equal(result.values, [np.nan, 0])
 
 
 def test_quantile_categories_local_no_quantile_dim_raises():
