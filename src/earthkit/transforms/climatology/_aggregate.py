@@ -1122,7 +1122,7 @@ def _quantile_categories_dataarray(
         )
 
     # Keep every point of the data, points without quantiles are categorised as missing
-    _, climatology_da = xr.align(dataarray, climatology_da, join="left")
+    _, climatology_da = xr.align(dataarray, climatology_da, join="left", copy=False)
 
     if clim_freq is not None:
         # Select the quantiles of each time step's group in one step, groupby arithmetic
