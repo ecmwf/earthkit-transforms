@@ -1146,6 +1146,9 @@ def _quantile_categories_dataarray(
             climatology_da = climatology_da.drop_vars([time_dim], errors="ignore")
         climatology_da = climatology_da.sel({clim_freq: xr.Variable(groups.dims, groups.data)})
         climatology_da = climatology_da.assign_coords({time_dim: dataarray[time_dim].variable})
+        if groups.isnull().any():
+            # Time steps without a group, at missing times, have no quantiles
+            climatology_da = climatology_da.where(groups.notnull().reset_coords(drop=True))
         if lazy:
             # The time coordinate need not be a dimension, its groups have the dimensions of the time steps
             climatology_da = climatology_da.chunk({dim: dataarray.chunksizes.get(dim, "auto") for dim in groups.dims})

@@ -727,6 +727,19 @@ def test_quantile_categories_local_time_coordinate_not_a_dimension(lazy):
     np.testing.assert_array_equal(result.values, [0, 1, 1])
 
 
+def test_quantile_categories_local_missing_times():
+    """Time steps at missing times are categorised as missing, even if the climatology has a missing group."""
+    time = pd.DatetimeIndex(["2000-01-01", "NaT", "2000-02-01"])
+    da = xr.DataArray([0.0, 0.0, 0.0], dims=["time"], coords={"time": time}, name="var")
+    clim = xr.DataArray(
+        [[1.0, 1.0, -1.0]],
+        dims=["quantile", "month"],
+        coords={"quantile": [0.5], "month": [1.0, 2.0, np.nan]},
+        name="var",
+    )
+    np.testing.assert_array_equal(climatology.quantile_categories(da, clim).values, [0, np.nan, 0])
+
+
 def test_quantile_categories_local_time_shift():
     """Time steps are matched to the groups of their shifted times."""
     time = pd.date_range("2000-01-31T22:00", periods=3, freq="h")  # 22:00, 23:00 and 00:00
