@@ -1,3 +1,5 @@
+import tracemalloc
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -664,6 +666,21 @@ def test_quantile_categories_local_lazy():
     result = climatology.quantile_categories(da, clim)
     assert result.chunksizes["time"] == da.chunksizes["time"]
     xr.testing.assert_identical(result.compute(), climatology.quantile_categories(da.compute(), clim.compute()))
+
+
+def test_quantile_categories_local_lazy_data_eager_climatology():
+    """Lazily loaded data is categorised lazily, without holding quantiles the size of the data in memory."""
+    da = (_make_daily_clim_da() + xr.DataArray(np.zeros(500), dims=["x"])).chunk(time=365)
+    clim = climatology.quantiles(da, [0.1, 0.9], frequency="month").compute()
+    tracemalloc.start()
+    try:
+        result = climatology.quantile_categories(da, clim)
+        peak = tracemalloc.get_traced_memory()[1]
+    finally:
+        tracemalloc.stop()
+    assert result.chunksizes["time"] == da.chunksizes["time"]
+    assert peak < da.nbytes
+    xr.testing.assert_identical(result.compute(), climatology.quantile_categories(da.compute(), clim))
 
 
 def test_quantile_categories_local_missing_groups():

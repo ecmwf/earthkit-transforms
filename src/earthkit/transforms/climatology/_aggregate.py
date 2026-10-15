@@ -1130,15 +1130,19 @@ def _quantile_categories_dataarray(
         groups = dataarray[f"{time_dim}.{clim_freq}"]
         # Groups missing from the climatology are categorised as missing
         climatology_da = climatology_da.reindex({clim_freq: np.unique(groups.values)})
-        if climatology_da.chunks is not None:
-            climatology_da = climatology_da.chunk({clim_freq: -1, quantile_dim: -1})
+        # If either is lazily loaded, the selection is too, with the chunks of the data. An eager selection
+        # of lazily loaded data would hold quantiles the size of the data in memory.
+        lazy = dataarray.chunks is not None or climatology_da.chunks is not None
+        if lazy:
+            chunks = {dim: dataarray.chunksizes[dim] for dim in climatology_da.dims if dim in dataarray.chunksizes}
+            climatology_da = climatology_da.chunk({**chunks, clim_freq: -1, quantile_dim: -1})
         # Select with the group labels alone and give the selection the time coordinate of the data,
         # so that other coordinates, such as the scalar quantile of an ensemble median, cannot conflict
         if time_dim not in climatology_da.dims:
             climatology_da = climatology_da.drop_vars([time_dim], errors="ignore")
         climatology_da = climatology_da.sel({clim_freq: xr.Variable(groups.dims, groups.data)})
         climatology_da = climatology_da.assign_coords({time_dim: dataarray[time_dim].variable})
-        if climatology_da.chunks is not None:
+        if lazy:
             climatology_da = climatology_da.chunk({time_dim: dataarray.chunksizes.get(time_dim, "auto")})
 
     at_or_above = dataarray >= climatology_da
