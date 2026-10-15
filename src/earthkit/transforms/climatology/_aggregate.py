@@ -13,6 +13,7 @@
 
 import typing as T
 
+import numpy as np
 import xarray as xr
 from earthkit.utils.decorators import format_handler
 
@@ -807,28 +808,7 @@ def _anomaly_dataarray(
     """
     reduce_kwargs.setdefault("how", "mean")
     var_name = dataarray.name
-    if isinstance(climatology, xr.Dataset):
-        if var_name in climatology:
-            climatology_da = climatology[var_name]
-        else:
-            potential_clim_vars = [c_var for c_var in climatology.data_vars if str(var_name) in str(c_var)]
-            if len(potential_clim_vars) == 1:
-                climatology_da = climatology[potential_clim_vars[0]]
-            elif f"{var_name}_{climatology_how_tag}" in potential_clim_vars:
-                climatology_da = climatology[f"{var_name}_{climatology_how_tag}"]
-            elif len(potential_clim_vars) > 1:
-                raise KeyError(
-                    "Multiple potential climatologies found in climatology dataset, "
-                    "please identify appropriate statistic with `climatology_how_tag`.\n"
-                    f"Potential climatology variables found: {potential_clim_vars}"
-                )
-            else:
-                raise ValueError(
-                    "Could not find a variable in the climatology dataset that matches "
-                    f"the name of the anomaly dataarray: {var_name}"
-                )
-    else:
-        climatology_da = climatology
+    climatology_da = _climatology_dataarray(climatology, var_name, climatology_how_tag)
 
     # If frequency not defined, it is deduced from the climatology.
     # This is somewhat hardcoded, but it is best practice, so for now it can stay here
@@ -907,6 +887,37 @@ def _anomaly_dataarray(
         update_attrs = {}
 
     return _update_anomaly_array(anomaly_array, dataarray, var_name, name_tag, update_attrs, how_label=how_label)
+
+
+def _climatology_dataarray(
+    climatology: xr.Dataset | xr.DataArray,
+    var_name: T.Hashable,
+    climatology_how_tag: str = "",
+) -> xr.DataArray:
+    """Return the climatology variable that matches the data variable `var_name`."""
+    if isinstance(climatology, xr.Dataset):
+        if var_name in climatology:
+            climatology_da = climatology[var_name]
+        else:
+            potential_clim_vars = [c_var for c_var in climatology.data_vars if str(var_name) in str(c_var)]
+            if len(potential_clim_vars) == 1:
+                climatology_da = climatology[potential_clim_vars[0]]
+            elif f"{var_name}_{climatology_how_tag}" in potential_clim_vars:
+                climatology_da = climatology[f"{var_name}_{climatology_how_tag}"]
+            elif len(potential_clim_vars) > 1:
+                raise KeyError(
+                    "Multiple potential climatologies found in climatology dataset, "
+                    "please identify appropriate statistic with `climatology_how_tag`.\n"
+                    f"Potential climatology variables found: {potential_clim_vars}"
+                )
+            else:
+                raise ValueError(
+                    "Could not find a variable in the climatology dataset that matches "
+                    f"the name of the dataarray: {var_name}"
+                )
+    else:
+        climatology_da = climatology
+    return climatology_da
 
 
 def _update_anomaly_array(anomaly_array, original_array, var_name, name_tag, update_attrs, how_label=None):
@@ -1018,3 +1029,140 @@ def auto_anomaly(
     )
 
     return anomaly(dataarray, climatology, *_args, relative=relative, **_kwargs)
+
+
+@format_handler()
+def quantile_categories(
+    dataarray: xr.Dataset | xr.DataArray,
+    climatology: xr.Dataset | xr.DataArray,
+    **_kwargs,
+) -> xr.Dataset | xr.DataArray:
+    """Categorise data by the climatological quantiles it falls between.
+
+    Each value is assigned the number of climatological quantiles that it is greater than or equal to,
+    so `N` quantiles give the categories `0`, below the lowest quantile, to `N`, at or above the highest
+    quantile. A value equal to a quantile falls in the category above it. For example, the terciles
+    give the below-normal, near-normal and above-normal categories `0`, `1` and `2`.
+
+    Parameters
+    ----------
+    dataarray : xarray.DataArray
+        The DataArray to categorise. Must contain a time dimension indicated by time_dim
+        if the climatology is grouped by a time frequency.
+    climatology : xarray.DataArray
+        Reference climatological quantiles against which the data is categorised, with a
+        `quantile` or `percentile` dimension, as returned by
+        `earthkit.transforms.climatology.quantiles` and `earthkit.transforms.climatology.percentiles`.
+        If the climatology is grouped by `dayofyear`, `week`, `weekofyear` or `month`, each time
+        step is compared with the quantiles of its group.
+    quantile_dim : str (optional)
+        Name of the quantile dimension in the climatology, default behaviour is to use
+        `quantile` or `percentile`.
+    time_dim : str (optional)
+        Name of the time dimension in the data object, default behaviour is to detect the
+        time dimension from the input object
+    climatology_how_tag : str (optional)
+        Tag to identify the climatology variable in the climatology dataset
+    how_label : str (optional)
+        Label to append to the variable name of the categories dataarray
+
+    Returns
+    -------
+    xarray.DataArray
+        The categories, with the dimensions of the input data. Values are missing where the data,
+        or any of the quantiles it is compared with, are missing.
+
+    """
+    if isinstance(dataarray, xr.Dataset):
+        out_ds = xr.Dataset().assign_attrs(dataarray.attrs)
+        for var in dataarray.data_vars:
+            out_da = _quantile_categories_dataarray(dataarray[var], climatology, **_kwargs)
+            out_ds[out_da.name] = out_da
+        return out_ds
+    else:
+        return _quantile_categories_dataarray(dataarray, climatology, **_kwargs)
+
+
+@_tools.time_dim_decorator
+def _quantile_categories_dataarray(
+    dataarray: xr.DataArray,
+    climatology: xr.Dataset | xr.DataArray,
+    time_dim: str | None = None,
+    quantile_dim: str | None = None,
+    climatology_how_tag: str = "",
+    how_label: str | None = None,
+) -> xr.DataArray:
+    """Categorise data by the climatological quantiles it falls between.
+
+    See :func:`quantile_categories` for a description of the parameters.
+    """
+    var_name = dataarray.name
+    climatology_da = _climatology_dataarray(climatology, var_name, climatology_how_tag)
+
+    if quantile_dim is None:
+        quantile_dim = next((dim for dim in ["quantile", "percentile"] if dim in climatology_da.dims), None)
+    if quantile_dim not in climatology_da.dims:
+        raise ValueError(
+            "Could not find the quantile dimension in the climatology, please identify it with `quantile_dim`. "
+            f"Climatology dimensions: {climatology_da.dims}"
+        )
+    if quantile_dim in dataarray.dims:
+        raise ValueError(f"The quantile dimension of the climatology is also in the dataarray: {quantile_dim}")
+
+    # The climatology frequency is deduced from the climatology, as for anomalies
+    clim_freq = next(
+        (freq for freq in _tools.VALID_CLIMATOLOGY_FREQUENCIES if freq in climatology_da.dims and freq != quantile_dim),
+        None,
+    )
+    extra_dims = set(climatology_da.dims) - set(dataarray.dims) - {quantile_dim, clim_freq}
+    if extra_dims:
+        raise ValueError(
+            f"The climatology has dimensions which are not in the dataarray: {sorted(map(str, extra_dims))}. "
+            f"Climatologies grouped by time must be grouped by one of: {_tools.VALID_CLIMATOLOGY_FREQUENCIES}"
+        )
+
+    # Keep every point of the data, points without quantiles are categorised as missing. The groups of the
+    # climatology are matched to the time steps, not to a dimension of the data with the same name.
+    _, climatology_da = xr.align(dataarray, climatology_da, join="left", exclude=[clim_freq], copy=False)
+
+    if clim_freq is not None:
+        # Select the quantiles of each time step's group in one step, groupby arithmetic
+        # creates a task per time step when the climatology is lazily loaded
+        groups = dataarray[f"{time_dim}.{clim_freq}"]
+        # Groups missing from the climatology are categorised as missing
+        climatology_da = climatology_da.reindex({clim_freq: np.unique(groups.values)})
+        # If either is lazily loaded, the selection is too, with the chunks of the data. An eager selection
+        # of lazily loaded data would hold quantiles the size of the data in memory.
+        lazy = dataarray.chunks is not None or climatology_da.chunks is not None
+        if lazy:
+            chunks = {dim: dataarray.chunksizes[dim] for dim in climatology_da.dims if dim in dataarray.chunksizes}
+            # The selection has time chunks the size of the climatology's chunks of groups, so these are made
+            # as large as the time chunks of the data, rather than leaving a chunk for every few time steps
+            time_chunks = [size for dim in groups.dims for size in dataarray.chunksizes.get(dim, ())]
+            group_chunks = int(np.min([np.max(time_chunks), climatology_da.sizes[clim_freq]])) if time_chunks else -1
+            climatology_da = climatology_da.chunk({**chunks, clim_freq: group_chunks or -1, quantile_dim: -1})
+        # Select with the group labels alone and give the selection the time coordinate of the data,
+        # so that other coordinates, such as the scalar quantile of an ensemble median, cannot conflict
+        if time_dim not in climatology_da.dims:
+            climatology_da = climatology_da.drop_vars([time_dim], errors="ignore")
+        climatology_da = climatology_da.sel({clim_freq: xr.Variable(groups.dims, groups.data)})
+        climatology_da = climatology_da.assign_coords({time_dim: dataarray[time_dim].variable})
+        if groups.isnull().any():
+            # Time steps without a group, at missing times, have no quantiles
+            climatology_da = climatology_da.where(groups.notnull().reset_coords(drop=True))
+        if lazy:
+            # The time coordinate need not be a dimension, its groups have the dimensions of the time steps
+            climatology_da = climatology_da.chunk({dim: dataarray.chunksizes.get(dim, "auto") for dim in groups.dims})
+
+    at_or_above = dataarray >= climatology_da
+    categories = at_or_above.sum(quantile_dim).where(dataarray.notnull() & climatology_da.notnull().all(quantile_dim))
+
+    if how_label is not None:
+        var_name = f"{var_name}_{how_label}"
+    # Categories have no units, and are no longer the quantity described by the standard_name
+    update_attrs = {k: v for k, v in dataarray.attrs.items() if k not in ["units", "standard_name"]}
+    if "long_name" in update_attrs:
+        update_attrs["long_name"] += " quantile category"
+    categories = categories.rename(var_name)
+    categories.attrs = update_attrs
+    return categories
