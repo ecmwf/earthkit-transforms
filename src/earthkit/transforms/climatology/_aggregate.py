@@ -825,6 +825,8 @@ def _anomaly_dataarray(
     # Annual anomalies are simpler and do not need to be subtracted from before resampling
     frequency = groupby_kwargs.get("frequency")
     clim_groupby_kwargs = {k: v for k, v in groupby_kwargs.items() if k != "frequency"}
+    if clim_freq != "year" and frequency != "year" and clim_groupby_kwargs.get("bin_widths") is not None:
+        raise ValueError(f"bin_widths cannot be used with a climatology grouped by {clim_freq}")
 
     if frequency is None:
         if clim_freq == "year":
@@ -833,17 +835,11 @@ def _anomaly_dataarray(
             if relative:
                 anomaly_array = (anomaly_array / climatology_da) * 100.0
         else:
-            # If clim_freq is not year, then we need to groupby the dataarray before taking
-            # the difference
-            anomaly_array = (
-                groupby_time(dataarray, time_dim=time_dim, frequency=clim_freq, **clim_groupby_kwargs) - climatology_da
-            )
+            # If clim_freq is not year, then each time step is compared with the climatology of its group
+            climatology_da = _climatology_of_time_steps(dataarray, climatology_da, clim_freq, time_dim)
+            anomaly_array = dataarray - climatology_da
             if relative:
-                anomaly_array = (
-                    groupby_time(anomaly_array, time_dim=time_dim, frequency=clim_freq, **clim_groupby_kwargs)
-                    / climatology_da
-                    * 100.0
-                )
+                anomaly_array = (anomaly_array / climatology_da) * 100.0
             anomaly_array = anomaly_array.broadcast_like(dataarray)
 
     elif frequency == "year":
@@ -860,18 +856,12 @@ def _anomaly_dataarray(
             if relative:
                 anomaly_array = (anomaly_array / climatology_da) * 100.0
         else:
-            # Need to group the dataarray to the same frequency as the climatology before taking the difference,
-            # and then broadcast back to the original dataarray dimensions
-            anomaly_array = (
-                groupby_time(dataarray, time_dim=time_dim, frequency=clim_freq, **clim_groupby_kwargs) - climatology_da
-            )
+            # Each time step is compared with the climatology of its group before resampling
+            climatology_da = _climatology_of_time_steps(dataarray, climatology_da, clim_freq, time_dim)
+            anomaly_array = dataarray - climatology_da
 
             if relative:
-                anomaly_array = (
-                    groupby_time(anomaly_array, time_dim=time_dim, frequency=clim_freq, **clim_groupby_kwargs)
-                    / climatology_da
-                    * 100.0
-                )
+                anomaly_array = (anomaly_array / climatology_da) * 100.0
 
             # The broadcast_like is probably not necessary as the _temporal_reduce should take care
             # of things, but it is a useful safeguard against any potential changes in downstream processing
