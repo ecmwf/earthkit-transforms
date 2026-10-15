@@ -686,6 +686,33 @@ def test_quantile_categories_local_time_shift():
     np.testing.assert_array_equal(climatology.quantile_categories(da, clim, time_shift="1h").values, [0, 1, 1])
 
 
+@pytest.mark.parametrize("lazy", (False, True))
+def test_quantile_categories_local_scalar_coordinates(lazy):
+    """Scalar coordinates, such as the quantile of an ensemble median, are kept rather than conflicting."""
+    ensemble = xr.DataArray(
+        np.arange(24.0).reshape(2, 12),
+        dims=["member", "time"],
+        coords={"time": pd.date_range("2000-01-01", periods=12, freq="MS")},
+        name="var",
+    )
+    median = ensemble.quantile(0.5, dim="member")  # 6..17, with a scalar quantile coordinate
+    months = np.arange(1, 13)
+    clim = xr.DataArray(
+        np.stack([months + 4.5, months + 5.5]),
+        dims=["quantile", "month"],
+        coords={"quantile": [0.1, 0.9], "month": months},
+        name="var",
+    )
+    if lazy:
+        clim = clim.chunk()
+    result = climatology.quantile_categories(median, clim)
+    np.testing.assert_array_equal(result.values, 1)
+    assert float(result["quantile"]) == 0.5
+    # A time coordinate left on the climatology does not conflict with the time steps of the data
+    clim_with_time = clim.assign_coords(time=pd.Timestamp("1990-01-01"))
+    xr.testing.assert_identical(climatology.quantile_categories(median, clim_with_time), result)
+
+
 def test_quantile_categories_local_missing_coordinates():
     """Points without quantiles are categorised as missing, rather than dropped."""
     da = xr.DataArray([0.0, 1.0, 2.0, 3.0], dims=["x"], coords={"x": [0, 1, 2, 3]}, name="var")

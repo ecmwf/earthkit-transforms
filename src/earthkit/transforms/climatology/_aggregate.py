@@ -1132,7 +1132,12 @@ def _quantile_categories_dataarray(
         climatology_da = climatology_da.reindex({clim_freq: np.unique(groups.values)})
         if climatology_da.chunks is not None:
             climatology_da = climatology_da.chunk({clim_freq: -1, quantile_dim: -1})
-        climatology_da = climatology_da.sel({clim_freq: groups})
+        # Select with the group labels alone and give the selection the time coordinate of the data,
+        # so that other coordinates, such as the scalar quantile of an ensemble median, cannot conflict
+        if time_dim not in climatology_da.dims:
+            climatology_da = climatology_da.drop_vars([time_dim], errors="ignore")
+        climatology_da = climatology_da.sel({clim_freq: xr.Variable(groups.dims, groups.data)})
+        climatology_da = climatology_da.assign_coords({time_dim: dataarray[time_dim].variable})
         if climatology_da.chunks is not None:
             climatology_da = climatology_da.chunk({time_dim: dataarray.chunksizes.get(time_dim, "auto")})
 
