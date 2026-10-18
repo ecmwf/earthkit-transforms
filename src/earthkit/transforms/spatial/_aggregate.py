@@ -55,6 +55,70 @@ def _transform_from_latlon(lat, lon):
     return trans * scale
 
 
+def _shapes_to_longitude_window(shape_list: T.List, lon, regular: bool = True) -> T.List:
+    """Shift geometries into the 360-degree longitude window covered by the grid.
+
+    Shapefiles are usually in the -180..180 convention, while GRIB on regular
+    latitude/longitude grids from MARS or the CDS uses 0..360. Without this step a
+    geometry west of Greenwich falls outside a 0..360 grid, the mask is empty and
+    the reduction silently returns NaN (see GH issue #133).
+
+    The window starts half a grid step west of the smallest longitude for regular
+    grids (so that the wrap-around pixel is covered), and a sliver west of the
+    smallest longitude otherwise (so that points on that meridian are not on the
+    clipping edge). It is at least 360 degrees wide and extends to the largest
+    longitude for grids that repeat a meridian. Each geometry is clipped to the
+    window and to its two 360-degree-shifted copies, the clipped parts are
+    translated back into the window, and their union replaces the geometry.
+    Geometries that already lie inside the window are returned as they are.
+
+    Parameters
+    ----------
+    shape_list : list
+        List of shapely geometries, in degrees
+    lon : array
+        Longitude coordinate values of the grid, 1-D for regular grids
+    regular : bool, optional
+        True if the grid is regular, in which case the window is offset by half a
+        grid step so that the wrap-around pixel is covered
+
+    Returns
+    -------
+    list
+        Geometries in the longitude window of the grid
+
+    """
+    import shapely
+    from shapely.affinity import translate
+    from shapely.geometry import box
+
+    lon_values = getattr(lon, "data", lon)
+    xp = array_namespace_from_object(lon_values)
+    lon_min = float(xp.min(lon_values))
+    lon_max = float(xp.max(lon_values))
+    if regular and len(lon_values) > 1:
+        half_step = abs(float(lon_values[1] - lon_values[0])) / 2
+    else:
+        half_step = 1e-6
+    window_start = lon_min - half_step
+    window_end = max(window_start + 360.0, lon_max + half_step)
+
+    out = []
+    for shape in shape_list:
+        minx, miny, maxx, maxy = shape.bounds
+        if window_start <= minx and maxx <= window_end:
+            out.append(shape)
+            continue
+        parts = []
+        for offset in (-360.0, 0.0, 360.0):
+            clip = box(window_start - offset, miny - 1.0, window_end - offset, maxy + 1.0)
+            part = shape.intersection(clip)
+            if not part.is_empty:
+                parts.append(translate(part, xoff=offset))
+        out.append(shapely.union_all(parts) if parts else shape)
+    return out
+
+
 def rasterize(
     shape_list: T.List,
     coords: xr.core.coordinates.Coordinates,
@@ -90,6 +154,7 @@ def rasterize(
     """
     from rasterio import features
 
+    shape_list = _shapes_to_longitude_window(shape_list, coords[lon_key], regular=True)
     transform = _transform_from_latlon(coords[lat_key], coords[lon_key])
     out_shape = (len(coords[lat_key]), len(coords[lon_key]))
     raster = features.rasterize(shape_list, out_shape=out_shape, transform=transform, **kwargs)
@@ -150,6 +215,8 @@ def mask_contains_points(
             coords[lon_key].data,
             coords[lat_key].data,
         )
+
+    shape_list = _shapes_to_longitude_window(shape_list, lon_full, regular=False)
 
     # get spatial dims and create output array:
     spatial_dims = list(dict.fromkeys(lat_dims + lon_dims))

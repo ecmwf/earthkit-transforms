@@ -1068,3 +1068,113 @@ def test_reduce_dataset_with_area():
     result = spatial.reduce(ds, area=area, how="mean")
     assert isinstance(result, xr.Dataset)
     assert "var" in result
+
+
+# Longitude conventions: shapes are usually in -180..180 while GRIB on regular grids is in 0..360
+# (GH issue #133). Box edges sit halfway between grid points so no grid point lies on a boundary.
+LON_CONVENTION_SHAPES = gpd.GeoDataFrame(
+    {"id": ["west", "straddle_greenwich", "east", "west_as_0_360", "pacific_as_0_360"]},
+    geometry=[
+        Polygon.from_bounds(-72.5, -32.5, -37.5, 2.5),  # South America, -180..180
+        Polygon.from_bounds(-12.5, 37.5, 12.5, 62.5),  # crosses Greenwich
+        Polygon.from_bounds(17.5, -32.5, 52.5, 2.5),  # east of Greenwich
+        Polygon.from_bounds(287.5, -32.5, 322.5, 2.5),  # same region as "west", 0..360
+        Polygon.from_bounds(197.5, -2.5, 232.5, 32.5),  # west of the dateline, 0..360
+    ],
+    crs="EPSG:4326",
+)
+# grid points of the 5-degree test grid inside each box
+LON_CONVENTION_COUNTS = [49, 25, 49, 49, 49]
+
+
+def _longitude_convention_data():
+    rng = np.random.default_rng(133)
+    lat = np.arange(60.0, -61.0, -5.0)
+    lon = np.arange(0.0, 360.0, 5.0)
+    da_0_360 = xr.DataArray(
+        rng.random((lat.size, lon.size)),
+        dims=["latitude", "longitude"],
+        coords={"latitude": lat, "longitude": lon},
+    )
+    da_180 = da_0_360.assign_coords(longitude=((da_0_360.longitude + 180) % 360) - 180).sortby("longitude")
+    return da_0_360, da_180
+
+
+def _to_180(mask_array):
+    return mask_array.assign_coords(longitude=((mask_array.longitude + 180) % 360) - 180).sortby("longitude")
+
+
+def test_shapes_to_longitude_window():
+    lon = np.arange(0.0, 360.0, 5.0)
+    shapes = list(LON_CONVENTION_SHAPES.geometry)
+    out = _spatial._shapes_to_longitude_window(shapes, lon, regular=True)
+    # shapes already in the window are returned unchanged
+    assert out[2] is shapes[2]
+    assert out[3] is shapes[3]
+    # shapes west of Greenwich are moved into 0..360, areas are preserved
+    assert out[0].bounds == (287.5, -32.5, 322.5, 2.5)
+    assert out[1].bounds == (-2.5, 37.5, 357.5, 62.5)
+    for shape, moved in zip(shapes, out):
+        assert moved.area == pytest.approx(shape.area)
+    # and the other way round
+    out = _spatial._shapes_to_longitude_window(shapes, np.arange(-180.0, 180.0, 5.0), regular=True)
+    assert out[3].bounds == (-72.5, -32.5, -37.5, 2.5)
+    assert out[4].bounds == (-162.5, -2.5, -127.5, 32.5)
+
+
+@pytest.mark.skipif(not rasterio_available, reason="rasterio is not available")
+def test_spatial_reduce_longitude_conventions():
+    da_0_360, da_180 = _longitude_convention_data()
+    out_0_360 = spatial.reduce(da_0_360, LON_CONVENTION_SHAPES, mask_dim="id")
+    out_180 = spatial.reduce(da_180, LON_CONVENTION_SHAPES, mask_dim="id")
+    assert not out_0_360.isnull().any()
+    assert not out_180.isnull().any()
+    xr.testing.assert_allclose(out_0_360, out_180)
+    expected_west = da_180.sel(latitude=slice(2.5, -32.5), longitude=slice(-72.5, -37.5)).mean()
+    assert out_0_360.sel(id="west").item() == pytest.approx(expected_west.item())
+    assert out_0_360.sel(id="west").item() == pytest.approx(out_0_360.sel(id="west_as_0_360").item())
+    expected_pacific = da_180.sel(latitude=slice(32.5, -2.5), longitude=slice(-162.5, -127.5)).mean()
+    assert out_180.sel(id="pacific_as_0_360").item() == pytest.approx(expected_pacific.item())
+
+
+@pytest.mark.skipif(not rasterio_available, reason="rasterio is not available")
+def test_spatial_mask_longitude_conventions():
+    da_0_360, da_180 = _longitude_convention_data()
+    masked_0_360 = spatial.mask(da_0_360, LON_CONVENTION_SHAPES, mask_dim="id", chunk=False)
+    masked_180 = spatial.mask(da_180, LON_CONVENTION_SHAPES, mask_dim="id", chunk=False)
+    assert masked_0_360.count(["latitude", "longitude"]).values.tolist() == LON_CONVENTION_COUNTS
+    xr.testing.assert_allclose(_to_180(masked_0_360), masked_180)
+
+
+@pytest.mark.skipif(not rasterio_available, reason="rasterio is not available")
+def test_rasterize_longitude_conventions():
+    da_0_360, da_180 = _longitude_convention_data()
+    for shape, count in zip(LON_CONVENTION_SHAPES.geometry, LON_CONVENTION_COUNTS):
+        mask_0_360 = _spatial.rasterize([shape], da_0_360.coords)
+        mask_180 = _spatial.rasterize([shape], da_180.coords)
+        assert mask_0_360.sum() == count
+        xr.testing.assert_equal(_to_180(mask_0_360), mask_180)
+
+
+@pytest.mark.skipif(not rasterio_available, reason="rasterio is not available")
+def test_rasterize_longitude_conventions_repeated_meridian():
+    # a 0..360 grid that includes both 0 and 360
+    da = xr.DataArray(
+        np.ones((25, 73)),
+        dims=["latitude", "longitude"],
+        coords={"latitude": np.arange(60.0, -61.0, -5.0), "longitude": np.arange(0.0, 361.0, 5.0)},
+    )
+    straddle = LON_CONVENTION_SHAPES.geometry[1]
+    mask_array = _spatial.rasterize([straddle], da.coords)
+    # 5 rows x (350, 355, 0, 5, 10 and the repeated 360)
+    assert mask_array.sum() == 30
+    assert mask_array.sel(longitude=[0.0, 360.0], latitude=50.0).values.tolist() == [1, 1]
+
+
+def test_mask_contains_points_longitude_conventions():
+    da_0_360, da_180 = _longitude_convention_data()
+    for shape, count in zip(LON_CONVENTION_SHAPES.geometry, LON_CONVENTION_COUNTS):
+        mask_0_360 = _spatial.mask_contains_points([shape], da_0_360.coords)
+        mask_180 = _spatial.mask_contains_points([shape], da_180.coords)
+        assert mask_0_360.sum() == count
+        xr.testing.assert_equal(_to_180(mask_0_360).fillna(0), mask_180.fillna(0))
