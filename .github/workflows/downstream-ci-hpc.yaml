@@ -19,5 +19,6 @@ jobs:
     name: downstream-ci-hpc
     uses: ecmwf/downstream-ci/.github/workflows/downstream-ci-hpc.yml@main
     with:
+      ci_group: only-self
       earthkit-transforms: ecmwf/earthkit-transforms@${{ github.event.pull_request.head.sha || github.sha }}
     secrets: inherit
