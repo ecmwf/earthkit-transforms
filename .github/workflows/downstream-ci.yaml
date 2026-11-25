@@ -20,6 +20,7 @@ jobs:
     name: downstream-ci
     uses: ecmwf/downstream-ci/.github/workflows/downstream-ci.yml@main
     with:
+      ci_group: only-self
       earthkit-transforms: ecmwf/earthkit-transforms@${{ github.event.pull_request.head.sha || github.sha }}
       codecov_upload: true
       python_qa: false
