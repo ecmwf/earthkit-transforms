@@ -42,6 +42,7 @@ python-version = "3.12"
 python-version = "3.13"
 
 [package]
+allow-stale-deps = true
 ci-pre-commit = false
 ci-schedule = "from-dependencies+27"
 compiler-inputs = []
