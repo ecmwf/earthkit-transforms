@@ -1,0 +1,6 @@
+{% extends "test.sh.j2" %}
+{# mypy over the source tree; the leg's extras ("ci") bring mypy and the stubs. #}
+{% block test %}
+cd "$CI_SOURCE_DIR"
+make type-check
+{% endblock %}

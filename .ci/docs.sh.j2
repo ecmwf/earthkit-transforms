@@ -1,0 +1,9 @@
+{% extends "test.sh.j2" %}
+{# The Sphinx build, notebooks included; the leg's extras ("docs") bring Sphinx and nbsphinx. #}
+{% block test %}
+# nbsphinx converts the notebooks with the pandoc executable; use the one pypandoc-binary ships.
+pandoc_bin="$(python -c 'import pypandoc; print(pypandoc.get_pandoc_path())')"
+export PATH="$(dirname "$pandoc_bin"):$PATH"
+cd "$CI_SOURCE_DIR"
+make docs-build
+{% endblock %}

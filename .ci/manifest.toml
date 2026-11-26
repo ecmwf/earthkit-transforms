@@ -15,6 +15,54 @@ python-version-input = "python-version"
 ref = "develop"
 repo = "ecmwf/earthkit-utils"
 
+# Two kinds that only check and publish nothing: the type check and docs build, and the legacy API's tests.
+# They run in ci.yml alone, not when an upstream changes. Their legs' fields match those of [matrix.test].
+[matrix.checks]
+publishes = false
+
+[matrix.checks.defaults]
+build-type = "RelWithDebInfo"
+c-compiler = "gcc-13"
+container = "eccr.ecmwf.int/public-ci-images/ubuntu24.04-gcc13-gfortran13"
+cxx-compiler = "g++-13"
+platform = "ubuntu-24.04"
+python-build-type = "Release"
+python-platform = "gh-ubuntu-26.04"
+python-version = "3.13"
+runs-on = "ubuntu-latest"
+
+[[matrix.checks.include]]
+check = "type-check"
+extras = "ci"
+job-script = "./.ci/type-check.sh.j2"
+
+[[matrix.checks.include]]
+check = "docs-build"
+extras = "docs"
+job-script = "./.ci/docs.sh.j2"
+
+[matrix.legacy-api]
+publishes = false
+
+[matrix.legacy-api.defaults]
+build-type = "RelWithDebInfo"
+c-compiler = "gcc-13"
+container = "eccr.ecmwf.int/public-ci-images/ubuntu24.04-gcc13-gfortran13"
+cxx-compiler = "g++-13"
+extras = "all"
+job-script = "./.ci/test.sh.j2"
+platform = "ubuntu-24.04"
+pytest-args = "-vv tests/legacy-api"
+python-build-type = "Release"
+python-platform = "gh-ubuntu-26.04"
+runs-on = "ubuntu-latest"
+
+[[matrix.legacy-api.include]]
+python-version = "3.12"
+
+[[matrix.legacy-api.include]]
+python-version = "3.13"
+
 [matrix.test]
 triggers = ["upstream-change", "rebuild-request"]
 
@@ -43,7 +91,7 @@ python-version = "3.13"
 
 [package]
 allow-stale-deps = true
-ci-pre-commit = false
+ci-pre-commit = true
 ci-schedule = "from-dependencies+27"
 compiler-inputs = []
 fork-pull-requests = false

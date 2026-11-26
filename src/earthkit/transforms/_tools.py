@@ -107,10 +107,11 @@ def time_dim_decorator(func):
 
         # Timedelta interpretation of time_shift takes precedence over coordinate lookup
         if isinstance(time_shift, str):
+            shift_name = time_shift
             try:
-                time_shift = pd.Timedelta(time_shift)
+                time_shift = pd.Timedelta(shift_name)
             except ValueError:
-                time_shift = dataarray.coords[time_shift]
+                time_shift = dataarray.coords[shift_name]
 
         if isinstance(time_shift, xr.DataArray):
             if time_dim in time_shift.dims:

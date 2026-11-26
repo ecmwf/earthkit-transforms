@@ -36,6 +36,16 @@ jobs:
     steps:
       - uses: ecmwf/ci-infrastructure/actions/require-ci-approval@main
 
+  pre-commit:
+    needs: ci-approval
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: ecmwf/ci-infrastructure/actions/pre-commit@main
+
   resolve:
     needs: ci-approval
     runs-on: ubuntu-latest
@@ -57,15 +67,15 @@ jobs:
       - id: r
         uses: ecmwf/ci-infrastructure/actions/resolve-deps@main
         with:
-          matrix: test
+          matrix: checks,legacy-api,test
           token: ${{ steps.mint.outputs.token }}
           rebuild-missing: 'true'
-      - name: Wait for the deps of test
+      - name: Wait for the deps of checks, legacy-api, test
         if: steps.r.outputs.dispatch-plans == '[]'
         uses: ecmwf/ci-infrastructure/actions/wait-for-deps@main
         with:
           matrix: ${{ steps.r.outputs.json }}
-          kinds: test
+          kinds: checks,legacy-api,test
           token: ${{ steps.mint.outputs.token }}
     name: resolve + wait-build
 
@@ -81,8 +91,92 @@ jobs:
           client-id: ${{ vars.CI_DISPATCHER_APP_CLIENT_ID }}
           app-private-key: ${{ secrets.CI_DISPATCHER_APP_PRIVATE_KEY }}
 
+  checks:
+    needs: [ci-approval, resolve, rebuild-producers, pre-commit]
+    name: checks (${{ matrix._resolved['job-name'] }})
+    runs-on: ${{ matrix['runs-on'] }}
+    container:
+      image: ${{ matrix.container || '' }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.resolve.outputs.matrices).checks }}
+    steps:
+      - name: Announce image
+        uses: ecmwf/ci-infrastructure/actions/announce-image@main
+      - id: mint
+        uses: ecmwf/ci-infrastructure/actions/mint-token@main
+        with:
+          client-id: ${{ vars.CI_READER_APP_CLIENT_ID }}
+          private-key: ${{ secrets.CI_READER_APP_PRIVATE_KEY }}
+          repositories: cfgrib,earthkit-data,earthkit-transforms,earthkit-utils,ecbuild,eccodes,eccodes-python,eckit,fdb,findlibs,metkit,multiurl,odc,pdbufr,pyodc,stack-dependencies
+          permissions: contents:read actions:read
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Fetch resolved deps
+        id: deps
+        uses: ecmwf/ci-infrastructure/actions/fetch-deps@main
+        with:
+          deps-json: ${{ toJSON(matrix._resolved.deps) }}
+          token: ${{ steps.mint.outputs.token }}
+      - name: Print dependency table
+        uses: ecmwf/ci-infrastructure/actions/print-dep-table@main
+        with:
+          resolved: ${{ toJSON(matrix._resolved) }}
+      - name: Build
+        id: build
+        uses: ecmwf/ci-infrastructure/actions/run-job-script@main
+        with:
+          job-script: ${{ matrix.job-script }}
+          matrix-leg: ${{ toJSON(matrix) }}
+          package: earthkit-transforms
+          cmake-prefix-path: ${{ steps.deps.outputs.cmake-prefix-path }}
+
+  legacy-api:
+    needs: [ci-approval, resolve, rebuild-producers, pre-commit]
+    name: legacy-api (${{ matrix._resolved['job-name'] }})
+    runs-on: ${{ matrix['runs-on'] }}
+    container:
+      image: ${{ matrix.container || '' }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.resolve.outputs.matrices).legacy-api }}
+    steps:
+      - name: Announce image
+        uses: ecmwf/ci-infrastructure/actions/announce-image@main
+      - id: mint
+        uses: ecmwf/ci-infrastructure/actions/mint-token@main
+        with:
+          client-id: ${{ vars.CI_READER_APP_CLIENT_ID }}
+          private-key: ${{ secrets.CI_READER_APP_PRIVATE_KEY }}
+          repositories: cfgrib,earthkit-data,earthkit-transforms,earthkit-utils,ecbuild,eccodes,eccodes-python,eckit,fdb,findlibs,metkit,multiurl,odc,pdbufr,pyodc,stack-dependencies
+          permissions: contents:read actions:read
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Fetch resolved deps
+        id: deps
+        uses: ecmwf/ci-infrastructure/actions/fetch-deps@main
+        with:
+          deps-json: ${{ toJSON(matrix._resolved.deps) }}
+          token: ${{ steps.mint.outputs.token }}
+      - name: Print dependency table
+        uses: ecmwf/ci-infrastructure/actions/print-dep-table@main
+        with:
+          resolved: ${{ toJSON(matrix._resolved) }}
+      - name: Build
+        id: build
+        uses: ecmwf/ci-infrastructure/actions/run-job-script@main
+        with:
+          job-script: ${{ matrix.job-script }}
+          matrix-leg: ${{ toJSON(matrix) }}
+          package: earthkit-transforms
+          cmake-prefix-path: ${{ steps.deps.outputs.cmake-prefix-path }}
+
   test:
-    needs: [ci-approval, resolve, rebuild-producers]
+    needs: [ci-approval, resolve, rebuild-producers, pre-commit]
     name: test (${{ matrix._resolved['job-name'] }})
     runs-on: ${{ matrix['runs-on'] }}
     container:
@@ -131,7 +225,7 @@ jobs:
   ci-result:
     name: collect results
     if: always()
-    needs: [ci-approval, resolve, test]
+    needs: [ci-approval, pre-commit, resolve, checks, legacy-api, test]
     runs-on: ubuntu-latest
     permissions:
       statuses: write
