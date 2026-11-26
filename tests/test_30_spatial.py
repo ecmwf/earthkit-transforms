@@ -222,6 +222,11 @@ def create_test_geodataframe():
     return gpd.GeoDataFrame(geometry=polygons, index=[1])
 
 
+def create_local_geodataframe():
+    polygon = Polygon([(0.4, 0.4), (0.4, 1.1), (1.1, 1.1), (1.1, 0.4)])
+    return gpd.GeoDataFrame(geometry=[polygon])
+
+
 def test_reduce_mean():
     dataarray = create_test_dataarray()
     result = _spatial._reduce_dataarray_as_xarray(dataarray, how="mean")
@@ -325,6 +330,45 @@ def test_spatial_reduce_with_shapely_geodataframe_local():
     result = _spatial._reduce_dataarray_as_xarray(create_test_dataarray(), geodataframe=geodataframe, how="mean")
     assert isinstance(result, xr.DataArray)
     assert "index" in result.dims
+
+
+def test_spatial_reduce_rejects_all_touched_for_irregular_grid():
+    dataarray = xr.DataArray(
+        np.arange(9).reshape(3, 3),
+        dims=("latitude", "longitude"),
+        coords={"latitude": [0.0, 1.0, 3.0], "longitude": [0.0, 1.0, 3.0]},
+    )
+
+    with pytest.raises(ValueError, match="all_touched=True is not supported for irregular grids"):
+        spatial.reduce(dataarray, create_local_geodataframe(), all_touched=True)
+
+
+def test_spatial_reduce_all_touched_false_for_irregular_grid():
+    dataarray = xr.DataArray(
+        np.arange(9).reshape(3, 3),
+        dims=("latitude", "longitude"),
+        coords={"latitude": [0.0, 1.0, 3.0], "longitude": [0.0, 1.0, 3.0]},
+    )
+
+    result = spatial.reduce(dataarray, create_local_geodataframe(), all_touched=False)
+
+    assert result.item() == 4
+
+
+@pytest.mark.skipif(
+    not rasterio_available,
+    reason="rasterio is not available",
+)
+def test_spatial_reduce_all_touched_for_regular_grid():
+    dataarray = xr.DataArray(
+        np.arange(9).reshape(3, 3),
+        dims=("latitude", "longitude"),
+        coords={"latitude": [0.0, 1.0, 2.0], "longitude": [0.0, 1.0, 2.0]},
+    )
+
+    result = spatial.reduce(dataarray, create_local_geodataframe(), all_touched=True)
+
+    assert result.item() == 2
 
 
 # ---------------------------------------------------------------------------

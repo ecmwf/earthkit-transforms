@@ -12,7 +12,6 @@
 # limitations under the License.
 
 import functools
-import logging
 import typing as T
 from copy import deepcopy
 
@@ -29,8 +28,6 @@ from earthkit.transforms._tools import (
     get_spatial_info,
     standard_weights,
 )
-
-logger = logging.getLogger(__name__)
 
 
 def _transform_from_latlon(lat, lon):
@@ -668,12 +665,16 @@ def _reduce_dataarray_as_xarray(
     spatial_info = get_spatial_info(dataarray, lat_key=lat_key, lon_key=lon_key)
     # Get spatial info required by mask functions:
     mask_kwargs = {**mask_kwargs, **{key: spatial_info[key] for key in ["lat_key", "lon_key", "regular"]}}
-    # All touched only valid for rasterize method
+    requested_all_touched = all_touched or mask_kwargs.get("all_touched", False)
+    if not spatial_info["regular"] and requested_all_touched and mask_arrays is None and geodataframe is not None:
+        raise ValueError(
+            "all_touched=True is not supported for irregular grids. Use all_touched=False, provide a regular "
+            "contiguous grid, or precompute suitable masks."
+        )
+
+    # All touched is only valid for the rasterize method.
     if spatial_info["regular"]:
         mask_kwargs.setdefault("all_touched", all_touched)
-    else:
-        if all_touched:
-            logger.warning("all_touched only valid for regular data, ignoring")
     spatial_dims = spatial_info.get("spatial_dims")
 
     reduce_dims = spatial_dims + extra_reduce_dims
