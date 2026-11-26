@@ -16,6 +16,6 @@
 Typically this is done with an xarray representation of data and a geopandas representation of geometries.
 """
 
-from ._aggregate import mask, reduce
+from ._aggregate import mask, reduce, shapes_to_masks
 
-__all__ = ["mask", "reduce"]
+__all__ = ["mask", "reduce", "shapes_to_masks"]

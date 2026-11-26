@@ -497,6 +497,20 @@ def test_shapes_to_masks_geodataframe():
     assert len(result) == len(gdf)
 
 
+def test_shapes_to_masks_labels_are_used_by_reduce():
+    """Masks built from a GeoDataFrame retain its labels during reduction."""
+    from earthkit.transforms.spatial import shapes_to_masks
+
+    gdf = gpd.GeoDataFrame({"geometry": [_BOX_A, _BOX_B], "region": ["north", "south"]})
+    masks = shapes_to_masks(gdf, _MCP_DA, regular=False, mask_dim="region", lat_key="latitude", lon_key="longitude")
+
+    direct = spatial.reduce(_MCP_DA, gdf, mask_dim="region", lat_key="latitude", lon_key="longitude")
+    precomputed = spatial.reduce(_MCP_DA, mask_arrays=masks, lat_key="latitude", lon_key="longitude")
+
+    assert list(precomputed["region"].values) == ["north", "south"]
+    xr.testing.assert_equal(precomputed, direct)
+
+
 @pytest.mark.skipif(not rasterio_available, reason="rasterio is not available")
 def test_shapes_to_mask_regular_grid():
     """shapes_to_mask with regular=True (rasterize path) returns a 2-D mask."""
@@ -520,6 +534,19 @@ def test_shapes_to_masks_regular_grid():
     assert len(result) == 1
     assert isinstance(result[0], xr.DataArray)
     assert set(result[0].dims) == {"lat", "lon"}
+
+
+@pytest.mark.skipif(not rasterio_available, reason="rasterio is not available")
+def test_shapes_to_masks_all_touched():
+    """all_touched changes the cells included by a reusable regular-grid mask."""
+    shape = Polygon([(0.25, 0.25), (0.25, 0.75), (0.75, 0.75), (0.75, 0.25)])
+    gdf = gpd.GeoDataFrame(geometry=[shape])
+
+    center_masks = spatial.shapes_to_masks(gdf, _REG_DA, all_touched=False)
+    touched_masks = spatial.shapes_to_masks(gdf, _REG_DA, all_touched=True)
+
+    assert np.count_nonzero(center_masks[0]) == 0
+    assert np.count_nonzero(touched_masks[0]) == 4
 
 
 # ---------------------------------------------------------------------------
@@ -965,6 +992,26 @@ def test_spatial_reduce_precomputed_mask_irr_list_two_masks(convention):
     result = spatial.reduce(_MCP_DA, mask_arrays=[mask_a, mask_b], how="mean", lat_key="latitude", lon_key="longitude")
     np.testing.assert_allclose(result.isel(index=0).item(), 3.0)
     np.testing.assert_allclose(result.isel(index=1).item(), 1.0)
+
+
+def test_reusable_masks_reduce_multiple_variables_and_dates():
+    """One mask set can be used for a Dataset containing several dates and variables."""
+    gdf = gpd.GeoDataFrame({"geometry": [_BOX_A, _BOX_B], "region": ["north", "south"]})
+    masks = spatial.shapes_to_masks(
+        gdf, _MCP_DA, regular=False, mask_dim="region", lat_key="latitude", lon_key="longitude"
+    )
+    data = xr.Dataset(
+        {
+            "temperature": xr.concat([_MCP_DA, _MCP_DA + 10], dim=pd.Index([1, 2], name="date")),
+            "rainfall": xr.concat([_MCP_DA + 100, _MCP_DA + 110], dim=pd.Index([1, 2], name="date")),
+        }
+    )
+
+    result = spatial.reduce(data, mask_arrays=masks, lat_key="latitude", lon_key="longitude")
+
+    assert list(result["region"].values) == ["north", "south"]
+    np.testing.assert_allclose(result["temperature"].sel(region="north"), [3.0, 13.0])
+    np.testing.assert_allclose(result["rainfall"].sel(region="south"), [101.0, 111.0])
 
 
 # ---------------------------------------------------------------------------
